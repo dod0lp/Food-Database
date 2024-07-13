@@ -37,7 +37,7 @@
     }
 
     /// <summary>
-    /// <see cref="Nutrients"/> content per 100g of Food
+    /// <see cref="Nutrients"/> content of certain <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>
     /// </summary>
     public struct Nutrients
     {
@@ -52,6 +52,26 @@
             CarbohydrateContent = carbohydrateContent;
             Protein = protein;
             Salt = salt;
+        }
+
+        public static Nutrients operator +(Nutrients n1, Nutrients n2)
+        {
+            return new Nutrients(
+                n1.FatContent + n2.FatContent,
+                n1.CarbohydrateContent + n2.CarbohydrateContent,
+                n1.Protein + n2.Protein,
+                n1.Salt + n2.Salt
+            );
+        }
+
+        public static Nutrients operator -(Nutrients n1, Nutrients n2)
+        {
+            return new Nutrients(
+                n1.FatContent - n2.FatContent,
+                n1.CarbohydrateContent - n2.CarbohydrateContent,
+                n1.Protein - n2.Protein,
+                n1.Salt - n2.Salt
+            );
         }
     }
 

@@ -245,12 +245,44 @@ public class Program
     {
         Console.WriteLine("Hello World!");
 
-        Fat fat1 = new(0, 240);
-        Console.WriteLine(fat1.Total);
-        Console.WriteLine(fat1.Saturated);
+        bool tests = true;
+        if (tests)
+        {
+            Fat fat1 = new(0, 240);
+            Console.WriteLine(fat1.Total);
+            Console.WriteLine(fat1.Saturated);
 
-        Energy en1 = new(100);
-        Energy en2 = new(50);
-        Console.WriteLine(en1 + en2);
+            Energy en1 = new(100);
+            Energy en2 = new(50);
+            Console.WriteLine(en1 + en2);
+
+
+            Nutrients nutrients1 = new Nutrients(
+                new Energy(150),
+                new Fat(30, 15),
+                new Carbohydrates(70, 40),
+                20,
+                3.5
+            );
+
+            Nutrients nutrients2 = new Nutrients(
+                new Energy(100),
+                new Fat(20, 10),
+                new Carbohydrates(50, 30),
+                15,
+                2.5
+            );
+
+            Nutrients resultAddNutrients = nutrients1 + nutrients2;
+            Nutrients resultSubtractNutrients = nutrients1 - nutrients2;
+            Nutrients resultScaleNutrients = 0.5 * nutrients1;
+
+            Console.WriteLine(nutrients1);
+            Console.WriteLine(nutrients2);
+
+            Console.WriteLine($"Result of addition (Nutrients):\n{resultAddNutrients}");
+            Console.WriteLine($"Result of subtraction (Nutrients):\n{resultSubtractNutrients}");
+            Console.WriteLine($"Result of scaling (Nutrients):\n{resultScaleNutrients}");
+        }
     }
 }

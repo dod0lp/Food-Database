@@ -83,6 +83,27 @@ namespace Food
                 n1.Salt - n2.Salt
             );
         }
+
+        public static Nutrients operator *(double factor, Nutrients nutrients)
+        {
+            return new Nutrients(
+                factor * nutrients.Energy,
+                factor * nutrients.FatContent,
+                factor * nutrients.CarbohydrateContent,
+                factor * nutrients.Protein,
+                factor * nutrients.Salt
+            );
+        }
+
+        public static Nutrients operator *(Nutrients nutrients, double factor)
+        {
+            return factor * nutrients;
+        }
+
+        public override string ToString()
+        {
+            return $"Energy: {Energy}, Fat: {FatContent}, Carbohydrates: {CarbohydrateContent}, Protein: {Protein}, Salt: {Salt}";
+        }
     }
 
     public struct Energy

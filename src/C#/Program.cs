@@ -20,6 +20,17 @@
         {
             Ingredients.Add(food);
         }
+
+        public bool RemoveIngredient(int foodId)
+        {
+            var ingredient = Ingredients.FirstOrDefault(f => f.Id == foodId);
+            if (ingredient != null)
+            {
+                Ingredients.Remove(ingredient);
+                return true;
+            }
+            return false;
+        }
     }
 
     public struct Nutrients
@@ -60,5 +71,13 @@
             Total = total;
             Sugar = sugar;
         }
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Console.WriteLine("Hello World!");
     }
 }

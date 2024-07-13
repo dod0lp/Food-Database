@@ -4,14 +4,15 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public double Weight { get; set; }
         public Nutrients NutrientContent { get; set; }
-        // TODO: Maybe make this into just list of FoodIDs for simpler database work?
         public List<Food> Ingredients { get; set; }
 
-        public Food(int id, string name, Nutrients nutrientContent)
+        public Food(int id, string name, double weight, Nutrients nutrientContent)
         {
             Id = id;
             Name = name;
+            Weight = weight;
             NutrientContent = nutrientContent;
             Ingredients = new List<Food>();
         }
@@ -24,15 +25,20 @@
         public bool RemoveIngredient(int foodId)
         {
             var ingredient = Ingredients.FirstOrDefault(f => f.Id == foodId);
+
             if (ingredient != null)
             {
                 Ingredients.Remove(ingredient);
                 return true;
             }
+
             return false;
         }
     }
 
+    /// <summary>
+    /// <see cref="Nutrients"/> content per 100g of Food
+    /// </summary>
     public struct Nutrients
     {
         public Fat FatContent { get; set; }
@@ -59,6 +65,16 @@
             Total = total;
             Saturated = saturated;
         }
+
+        public static Fat operator +(Fat f1, Fat f2)
+        {
+            return new Fat(f1.Total + f2.Total, f1.Saturated + f2.Saturated);
+        }
+
+        public static Fat operator -(Fat f1, Fat f2)
+        {
+            return new Fat(f1.Total - f2.Total, f1.Saturated - f2.Saturated);
+        }
     }
 
     public struct Carbohydrates
@@ -70,6 +86,16 @@
         {
             Total = total;
             Sugar = sugar;
+        }
+
+        public static Carbohydrates operator +(Carbohydrates c1, Carbohydrates c2)
+        {
+            return new Carbohydrates(c1.Total + c2.Total, c1.Sugar + c2.Sugar);
+        }
+
+        public static Carbohydrates operator -(Carbohydrates c1, Carbohydrates c2)
+        {
+            return new Carbohydrates(c1.Total - c2.Total, c1.Sugar - c2.Sugar);
         }
     }
 }

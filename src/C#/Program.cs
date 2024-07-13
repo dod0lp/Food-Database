@@ -47,13 +47,15 @@ namespace Food
     /// </summary>
     public struct Nutrients
     {
+        public Energy Energy { get; set; }
         public Fat FatContent { get; set; }
         public Carbohydrates CarbohydrateContent { get; set; }
         public double Protein { get; set; }
         public double Salt { get; set; }
 
-        public Nutrients(Fat fatContent, Carbohydrates carbohydrateContent, double protein, double salt)
+        public Nutrients(Energy energy, Fat fatContent, Carbohydrates carbohydrateContent, double protein, double salt)
         {
+            Energy = energy;
             FatContent = fatContent;
             CarbohydrateContent = carbohydrateContent;
             Protein = protein;
@@ -63,6 +65,7 @@ namespace Food
         public static Nutrients operator +(Nutrients n1, Nutrients n2)
         {
             return new Nutrients(
+                n1.Energy + n2.Energy,
                 n1.FatContent + n2.FatContent,
                 n1.CarbohydrateContent + n2.CarbohydrateContent,
                 n1.Protein + n2.Protein,
@@ -73,6 +76,7 @@ namespace Food
         public static Nutrients operator -(Nutrients n1, Nutrients n2)
         {
             return new Nutrients(
+                n1.Energy - n2.Energy,
                 n1.FatContent - n2.FatContent,
                 n1.CarbohydrateContent - n2.CarbohydrateContent,
                 n1.Protein - n2.Protein,
@@ -91,6 +95,7 @@ namespace Food
         public double Kcal
         {
             get => kcal;
+
             set
             {
                 kcal = Convert.ToInt32(value);
@@ -101,6 +106,7 @@ namespace Food
         public double Kj
         {
             get => kj;
+
             set
             {
                 kj = Convert.ToInt32(value);
@@ -121,12 +127,31 @@ namespace Food
             }
         }
 
+        public static Energy operator +(Energy e1, Energy e2)
+        {
+            return new Energy(e1.Kcal + e2.Kcal);
+        }
+
+        public static Energy operator -(Energy e1, Energy e2)
+        {
+            return new Energy(e1.Kcal - e2.Kcal);
+        }
+
+        public static Energy operator *(double factor, Energy e)
+        {
+            return new Energy(e.Kcal * factor);
+        }
+
+        public static Energy operator *(Energy e, double factor)
+        {
+            return factor * e;
+        }
+
         public override string ToString()
         {
             return $"{kcal} kcal ({kj} kJ)";
         }
     }
-
 
     public struct Fat
     {
@@ -147,6 +172,16 @@ namespace Food
         public static Fat operator -(Fat f1, Fat f2)
         {
             return new Fat(f1.Total - f2.Total, f1.Saturated - f2.Saturated);
+        }
+
+        public static Fat operator *(double factor, Fat f)
+        {
+            return new Fat(f.Total * factor, f.Saturated * factor);
+        }
+
+        public static Fat operator *(Fat f, double factor)
+        {
+            return factor * f;
         }
     }
 
@@ -170,6 +205,16 @@ namespace Food
         {
             return new Carbohydrates(c1.Total - c2.Total, c1.Sugar - c2.Sugar);
         }
+
+        public static Carbohydrates operator *(double factor, Carbohydrates c)
+        {
+            return new Carbohydrates(c.Total * factor, c.Sugar * factor);
+        }
+
+        public static Carbohydrates operator *(Carbohydrates c, double factor)
+        {
+            return factor * c;
+        }
     }
 }
 
@@ -184,6 +229,7 @@ public class Program
         Console.WriteLine(fat1.Saturated);
 
         Energy en1 = new(100);
-        Console.WriteLine(en1);
+        Energy en2 = new(50);
+        Console.WriteLine(en1 + en2);
     }
 }

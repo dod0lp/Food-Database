@@ -6,6 +6,15 @@ namespace Food
     // If there is value not set, the default value in most, if not all, cases will be 0
     // for easier setting up of values, so we can't say when value was not set, but we can set
     // value of something to -1 to explicitly specify, that this value is not set yet
+
+    public static class NumberOperations
+    {
+        public static double RoundUpTo2DecimalPlaces(double number)
+        {
+            return Math.Ceiling(number * 100) / 100;
+        }
+    }
+
     public class Food
     {
         public int Id { get; set; }
@@ -50,27 +59,27 @@ namespace Food
     public struct Nutrients
     {
         /// <summary>
-        /// Gets or sets the energy content of the nutrients.
+        /// Gets or sets the energy content of the <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>.
         /// </summary>
         public Energy Energy { get; set; }
 
         /// <summary>
-        /// Gets or sets the fat content of the nutrients.
+        /// Gets or sets the fat content of the <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>..
         /// </summary>
         public Fat FatContent { get; set; }
 
         /// <summary>
-        /// Gets or sets the carbohydrate content of the nutrients.
+        /// Gets or sets the carbohydrate content of the <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>..
         /// </summary>
         public Carbohydrates CarbohydrateContent { get; set; }
 
         /// <summary>
-        /// Gets or sets the protein content of the nutrients.
+        /// Gets or sets the protein content of the <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>..
         /// </summary>
         public double Protein { get; set; }
 
         /// <summary>
-        /// Gets or sets the salt content of the nutrients.
+        /// Gets or sets the salt content of the <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>..
         /// </summary>
         public double Salt { get; set; }
 
@@ -87,8 +96,8 @@ namespace Food
             Energy = energy;
             FatContent = fatContent;
             CarbohydrateContent = carbohydrateContent;
-            Protein = protein;
-            Salt = salt;
+            Protein = NumberOperations.RoundUpTo2DecimalPlaces(protein);
+            Salt = NumberOperations.RoundUpTo2DecimalPlaces(salt);
         }
 
         /// <summary>
@@ -182,8 +191,8 @@ namespace Food
 
             set
             {
-                kcal = Convert.ToInt32(value);
-                kj = Convert.ToInt32(value * KcalToKjFactor);
+                kcal = (int) Math.Ceiling(value);
+                kj = (int) Math.Ceiling(value * KcalToKjFactor);
             }
         }
 
@@ -196,8 +205,8 @@ namespace Food
 
             set
             {
-                kj = Convert.ToInt32(value);
-                kcal = Convert.ToInt32(value / KcalToKjFactor);
+                kj = (int) Math.Ceiling(value);
+                kcal = (int) Math.Ceiling(value / KcalToKjFactor);
             }
         }
 
@@ -299,8 +308,8 @@ namespace Food
         /// <param name="saturated">The amount of saturated fat in grams (default is 0).</param>
         public Fat(double total = 0, double saturated = 0)
         {
-            Total = total;
-            Saturated = saturated;
+            Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
+            Saturated = NumberOperations.RoundUpTo2DecimalPlaces(saturated);
         }
 
         /// <summary>
@@ -384,8 +393,8 @@ namespace Food
         /// <param name="sugar">The amount of sugar in grams (default is 0).</param>
         public Carbohydrates(double total = 0, double sugar = 0)
         {
-            Total = total;
-            Sugar = sugar;
+            Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
+            Sugar = NumberOperations.RoundUpTo2DecimalPlaces(sugar);
         }
 
         /// <summary>

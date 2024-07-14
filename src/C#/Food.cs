@@ -1,6 +1,4 @@
-﻿using Food;
-
-namespace Food
+﻿namespace Food
 {
     // There is no check if some values are negative, for example negative amount of Protein, Fat...
     // If there is value not set, the default value in most, if not all, cases will be 0

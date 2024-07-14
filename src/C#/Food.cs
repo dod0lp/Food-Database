@@ -74,12 +74,12 @@
         /// <summary>
         /// Gets or sets the protein content of the <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>..
         /// </summary>
-        public double Protein { get; set; }
+        public Protein Protein { get; set; }
 
         /// <summary>
         /// Gets or sets the salt content of the <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>..
         /// </summary>
-        public double Salt { get; set; }
+        public Salt Salt { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Nutrients"/> struct with specified nutritional values.
@@ -89,13 +89,13 @@
         /// <param name="carbohydrateContent">The carbohydrate content.</param>
         /// <param name="protein">The protein content.</param>
         /// <param name="salt">The salt content.</param>
-        public Nutrients(Energy energy, Fat fatContent, Carbohydrates carbohydrateContent, double protein, double salt)
+        public Nutrients(Energy energy, Fat fatContent, Carbohydrates carbohydrateContent, Protein protein, Salt salt)
         {
             Energy = energy;
             FatContent = fatContent;
             CarbohydrateContent = carbohydrateContent;
-            Protein = NumberOperations.RoundUpTo2DecimalPlaces(protein);
-            Salt = NumberOperations.RoundUpTo2DecimalPlaces(salt);
+            Protein = protein;
+            Salt = salt;
         }
 
         /// <summary>
@@ -497,7 +497,7 @@
         /// </summary>
         /// <param name="factor">The scaling factor.</param>
         /// <param name="p">The <see cref="Protein"/> instance to scale.</param>
-        /// <returns>A new <see cref="Protein"/> instance with scaled protein value.</returns>
+        /// <returns>A new <see cref="Protein"/> instance with scaled <see cref="Protein.Total"/> value.</returns>
         public static Protein operator *(double factor, Protein p)
         {
             return new Protein(p.Total * factor);
@@ -508,7 +508,7 @@
         /// </summary>
         /// <param name="p">The <see cref="Protein"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
-        /// <returns>A new <see cref="Protein"/> instance with scaled protein value.</returns>
+        /// <returns>A new <see cref="Protein"/> instance with scaled <see cref="Protein.Total"/> value.</returns>
         public static Protein operator *(Protein p, double factor)
         {
             return factor * p;
@@ -568,7 +568,7 @@
         /// </summary>
         /// <param name="factor">The scaling factor.</param>
         /// <param name="s">The <see cref="Salt"/> instance to scale.</param>
-        /// <returns>A new <see cref="Salt"/> instance with scaled salt value.</returns>
+        /// <returns>A new <see cref="Salt"/> instance with scaled <see cref="Salt.Total"/> value.</returns>
         public static Salt operator *(double factor, Salt s)
         {
             return new Salt(s.Total * factor);
@@ -579,7 +579,7 @@
         /// </summary>
         /// <param name="s">The <see cref="Salt"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
-        /// <returns>A new <see cref="Salt"/> instance with scaled salt value.</returns>
+        /// <returns>A new <see cref="Salt"/> instance with scaled <see cref="Salt.Total"/> value.</returns>
         public static Salt operator *(Salt s, double factor)
         {
             return factor * s;
@@ -617,16 +617,16 @@
                     new Energy(150),
                     new Fat(30, 15),
                     new Carbohydrates(70, 40),
-                    protein: 20,
-                    salt: 3.5
+                    new Protein(20),
+                    new Salt(3.5)
                 );
 
                 Nutrients nutrients2 = new(
                     new Energy(100),
                     new Fat(20, 10),
                     new Carbohydrates(50, 30),
-                    protein: 15,
-                    salt: 2.5
+                    new Protein(15),
+                    new Salt(2.5)
                 );
 
                 Nutrients resultAddNutrients = nutrients1 + nutrients2;

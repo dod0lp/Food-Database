@@ -446,6 +446,14 @@ namespace Food
             return factor * c;
         }
 
+        /// <summary>
+        /// Returns a string representation of the <see cref="Carbohydrates"/> instance, displaying its <see cref="Carbohydrates.Total"/> and <see cref="Carbohydrates.Sugar"/> amounts.
+        /// </summary>
+        /// <returns>A string representation of the <see cref="Carbohydrates"/> instance.</returns>
+        public override readonly string ToString()
+        {
+            return $"Total: {Total}, Sugar: {Sugar}";
+        }
     }
 
     public class Program
@@ -491,6 +499,12 @@ namespace Food
                 Console.WriteLine($"Result of addition (Nutrients):\n{resultAddNutrients}");
                 Console.WriteLine($"Result of subtraction (Nutrients):\n{resultSubtractNutrients}");
                 Console.WriteLine($"Result of scaling (Nutrients):\n{resultScaleNutrients}");
+
+                // Rounding up tests
+                Fat fat2 = new Fat(10.22222, 10.333);
+                Console.WriteLine(fat2);
+                Carbohydrates carbs1 = new Carbohydrates(1.1321321, 325.43891);
+                Console.WriteLine(carbs1);
             }
         }
     }

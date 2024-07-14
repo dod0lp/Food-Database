@@ -1,4 +1,7 @@
-﻿namespace Food
+﻿using System.ComponentModel.DataAnnotations;
+using static Food_Database_Base.DB_Descriptors;
+
+namespace Food
 {
     // There is no check if some values are negative, for example negative amount of Protein, Fat...
     // If there is value not set, the default value in most, if not all, cases will be 0
@@ -20,6 +23,9 @@
         public double Weight { get; set; }
         public Nutrients NutrientContent { get; set; }
         public List<Food> Ingredients { get; set; }
+
+        [MaxLength(_max_food_description_length)]
+        public string Description { get; set; }
 
         public Food(int id, string name, double weight, Nutrients nutrientContent)
         {

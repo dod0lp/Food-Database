@@ -525,6 +525,77 @@
     }
 
 
+    public struct Salt
+    {
+        /// <summary>
+        /// Gets or sets the total amount of salt in grams.
+        /// </summary>
+        public double Total { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Salt"/> struct with specified value.
+        /// </summary>
+        /// <param name="total">The total amount of salt in grams (default is 0).</param>
+        public Salt(double total = 0)
+        {
+            Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
+        }
+
+        /// <summary>
+        /// Adds two instances of <see cref="Salt"/>, combining their <see cref="Salt.Total"/> amounts.
+        /// </summary>
+        /// <param name="s1">The first <see cref="Salt"/> instance.</param>
+        /// <param name="s2">The second <see cref="Salt"/> instance.</param>
+        /// <returns>A new <see cref="Salt"/> instance with summed salt values.</returns>
+        public static Salt operator +(Salt s1, Salt s2)
+        {
+            return new Salt(s1.Total + s2.Total);
+        }
+
+        /// <summary>
+        /// Subtracts one instance of <see cref="Salt"/> from another, subtracting their <see cref="Salt.Total"/> amounts.
+        /// </summary>
+        /// <param name="s1">The first <see cref="Salt"/> instance.</param>
+        /// <param name="s2">The second <see cref="Salt"/> instance.</param>
+        /// <returns>A new <see cref="Salt"/> instance with subtracted salt values.</returns>
+        public static Salt operator -(Salt s1, Salt s2)
+        {
+            return new Salt(s1.Total - s2.Total);
+        }
+
+        /// <summary>
+        /// Scales the salt value of a <see cref="Salt"/> instance by a specified factor.
+        /// </summary>
+        /// <param name="factor">The scaling factor.</param>
+        /// <param name="s">The <see cref="Salt"/> instance to scale.</param>
+        /// <returns>A new <see cref="Salt"/> instance with scaled salt value.</returns>
+        public static Salt operator *(double factor, Salt s)
+        {
+            return new Salt(s.Total * factor);
+        }
+
+        /// <summary>
+        /// Scales the salt value of a <see cref="Salt"/> instance by a specified factor.
+        /// </summary>
+        /// <param name="s">The <see cref="Salt"/> instance to scale.</param>
+        /// <param name="factor">The scaling factor.</param>
+        /// <returns>A new <see cref="Salt"/> instance with scaled salt value.</returns>
+        public static Salt operator *(Salt s, double factor)
+        {
+            return factor * s;
+        }
+
+        /// <summary>
+        /// Returns a string representation of the <see cref="Salt"/> instance, displaying its <see cref="Salt.Total"/> amount.
+        /// </summary>
+        /// <returns>A string representation of the <see cref="Salt"/> instance.</returns>
+        public override readonly string ToString()
+        {
+            return $"Total: {Total} grams";
+        }
+    }
+
+
     public class Program
     {
         public static void Main()

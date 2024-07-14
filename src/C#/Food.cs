@@ -454,6 +454,77 @@
         }
     }
 
+    public struct Protein
+    {
+        /// <summary>
+        /// Gets or sets the total amount of protein in grams.
+        /// </summary>
+        public double Total { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Protein"/> struct with specified value.
+        /// </summary>
+        /// <param name="total">The total amount of protein in grams (default is 0).</param>
+        public Protein(double total = 0)
+        {
+            Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
+        }
+
+        /// <summary>
+        /// Adds two instances of <see cref="Protein"/>, combining their <see cref="Protein.Total"/> amounts.
+        /// </summary>
+        /// <param name="p1">The first <see cref="Protein"/> instance.</param>
+        /// <param name="p2">The second <see cref="Protein"/> instance.</param>
+        /// <returns>A new <see cref="Protein"/> instance with summed protein values.</returns>
+        public static Protein operator +(Protein p1, Protein p2)
+        {
+            return new Protein(p1.Total + p2.Total);
+        }
+
+        /// <summary>
+        /// Subtracts one instance of <see cref="Protein"/> from another, subtracting their <see cref="Protein.Total"/> amounts.
+        /// </summary>
+        /// <param name="p1">The first <see cref="Protein"/> instance.</param>
+        /// <param name="p2">The second <see cref="Protein"/> instance.</param>
+        /// <returns>A new <see cref="Protein"/> instance with subtracted protein values.</returns>
+        public static Protein operator -(Protein p1, Protein p2)
+        {
+            return new Protein(p1.Total - p2.Total);
+        }
+
+        /// <summary>
+        /// Scales the protein value of a <see cref="Protein"/> instance by a specified factor.
+        /// </summary>
+        /// <param name="factor">The scaling factor.</param>
+        /// <param name="p">The <see cref="Protein"/> instance to scale.</param>
+        /// <returns>A new <see cref="Protein"/> instance with scaled protein value.</returns>
+        public static Protein operator *(double factor, Protein p)
+        {
+            return new Protein(p.Total * factor);
+        }
+
+        /// <summary>
+        /// Scales the protein value of a <see cref="Protein"/> instance by a specified factor.
+        /// </summary>
+        /// <param name="p">The <see cref="Protein"/> instance to scale.</param>
+        /// <param name="factor">The scaling factor.</param>
+        /// <returns>A new <see cref="Protein"/> instance with scaled protein value.</returns>
+        public static Protein operator *(Protein p, double factor)
+        {
+            return factor * p;
+        }
+
+        /// <summary>
+        /// Returns a string representation of the <see cref="Protein"/> instance, displaying its <see cref="Protein.Total"/> amount.
+        /// </summary>
+        /// <returns>A string representation of the <see cref="Protein"/> instance.</returns>
+        public override readonly string ToString()
+        {
+            return $"Total: {Total} grams";
+        }
+    }
+
+
     public class Program
     {
         public static void Main()

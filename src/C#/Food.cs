@@ -471,20 +471,20 @@
                 Energy en2 = new(50);
                 Console.WriteLine(en1 + en2);
 
-                Nutrients nutrients1 = new Nutrients(
+                Nutrients nutrients1 = new(
                     new Energy(150),
                     new Fat(30, 15),
                     new Carbohydrates(70, 40),
-                    20,
-                    3.5
+                    protein: 20,
+                    salt: 3.5
                 );
 
-                Nutrients nutrients2 = new Nutrients(
+                Nutrients nutrients2 = new(
                     new Energy(100),
                     new Fat(20, 10),
                     new Carbohydrates(50, 30),
-                    15,
-                    2.5
+                    protein: 15,
+                    salt: 2.5
                 );
 
                 Nutrients resultAddNutrients = nutrients1 + nutrients2;

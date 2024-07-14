@@ -520,10 +520,9 @@
         /// <returns>A string representation of the <see cref="Protein"/> instance.</returns>
         public override readonly string ToString()
         {
-            return $"Total: {Total} grams";
+            return $"Total: {Total}";
         }
     }
-
 
     public struct Salt
     {
@@ -591,7 +590,7 @@
         /// <returns>A string representation of the <see cref="Salt"/> instance.</returns>
         public override readonly string ToString()
         {
-            return $"Total: {Total} grams";
+            return $"Total: {Total}";
         }
     }
 

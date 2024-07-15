@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using static Food_Database_Base.DB_Descriptors;
-
-namespace Food
+﻿namespace Food
 {
     // There is no check if some values are negative, for example negative amount of Protein, Fat...
     // If there is value not set, the default value in most, if not all, cases will be 0
@@ -23,17 +20,16 @@ namespace Food
         public double Weight { get; set; }
         public Nutrients NutrientContent { get; set; }
         public List<Food> Ingredients { get; set; }
-
-        [MaxLength(_max_food_description_length)]
         public string Description { get; set; }
 
-        public Food(int id, string name, double weight, Nutrients nutrientContent)
+        public Food(int id, string name, double weight, Nutrients nutrientContent, string description = "")
         {
             Id = id;
             Name = name;
             Weight = weight;
             NutrientContent = nutrientContent;
             Ingredients = new List<Food>();
+            Description = description;
         }
 
         public void AddIngredient(Food food)
@@ -176,6 +172,9 @@ namespace Food
         }
     }
 
+    // TODO: Make it as base class for Fat, Carbs, Protein, Salt
+    public struct Nutrient { }
+
     /// <summary>
     /// Represents energy information in both <see cref="kcal"/> (kilocalories) and <see cref="kj"/> (kilojoules).
     /// </summary>
@@ -291,7 +290,7 @@ namespace Food
     }
 
     /// <summary>
-    /// Represents nutritional information related to fats.
+    /// Represents nutritional information related to <see cref="Fat"/>.
     /// </summary>
     public struct Fat
     {
@@ -376,7 +375,7 @@ namespace Food
     }
 
     /// <summary>
-    /// Represents nutritional information related to carbohydrates.
+    /// Represents nutritional information related to <see cref="Carbohydrates"/>.
     /// </summary>
     public struct Carbohydrates
     {
@@ -460,6 +459,9 @@ namespace Food
         }
     }
 
+    /// <summary>
+    /// Represents nutritional information related to <see cref="Protein"/>.
+    /// </summary>
     public struct Protein
     {
         /// <summary>
@@ -530,6 +532,9 @@ namespace Food
         }
     }
 
+    /// <summary>
+    /// Represents nutritional information related to <see cref="Salt"/>.
+    /// </summary>
     public struct Salt
     {
         /// <summary>
@@ -648,7 +653,7 @@ namespace Food
                 // Rounding up tests
                 Fat fat2 = new Fat(10.22222, 10.333);
                 Console.WriteLine(fat2);
-                Carbohydrates carbs1 = new Carbohydrates(1.1321321, 325.43891);
+                Carbohydrates carbs1 = new(1.1321321, 325.43891);
                 Console.WriteLine(carbs1);
             }
         }

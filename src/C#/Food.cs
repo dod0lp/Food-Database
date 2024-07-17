@@ -5,6 +5,9 @@
     // for easier setting up of values, so we can't say when value was not set, but we can set
     // value of something to -1 to explicitly specify, that this value is not set yet
 
+    /// <summary>
+    /// Class for specific operations with numbers.
+    /// </summary>
     public static class NumberOperations
     {
         public static int[] lookup_powers_10 = new int[9];
@@ -199,9 +202,6 @@
         }
     }
 
-    // TODO: Make it as base class for Fat, Carbs, Protein, Salt
-    public struct Nutrient { }
-
     /// <summary>
     /// Represents energy information in both <see cref="kcal"/> (kilocalories) and <see cref="kj"/> (kilojoules).
     /// </summary>
@@ -241,7 +241,8 @@
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Energy"/> struct with a specified energy value.
+        /// Initializes a new instance of the <see cref="Energy"/> struct with a specified energy value.<br></br>
+        /// Can initialize with either <see cref="Kcal"/> or <see cref="KJ"/>
         /// </summary>
         /// <param name="value">The energy value.</param>
         /// <param name="isKcal">Specify true if the provided value is in kcal (default), false if in kJ.</param>
@@ -314,6 +315,12 @@
         {
             return $"{Kcal} kcal ({KJ} kJ)";
         }
+    }
+
+    // TODO: figure out how this shit will work to have Total, Operators inherit....
+    public struct Nutrient
+    {
+
     }
 
     /// <summary>

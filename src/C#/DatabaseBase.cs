@@ -2,11 +2,12 @@
 {
     public static class DB_Descriptors
     {
-        private static string _server = "localhost";
-        private static string _user = "user";
-        private static string _password = "pw";
+        private static readonly string _server = "localhost";
+        private static readonly string _database = "db_food";
+        private static readonly string _user = "user";
+        private static readonly string _password = "pw";
 
-        public static string connectionString = $"Server={_server};Database=db_food;User={_user};Password={_password};";
+        private static readonly string connectionString = $"Server={_server};Database={_database};User={_user};Password={_password};";
 
         // Needs to be const because [Descriptor] this thing is used for needs const value
         public const int _max_food_description_length = 10_000;

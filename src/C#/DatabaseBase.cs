@@ -2,7 +2,11 @@
 {
     public static class DB_Descriptors
     {
-        public static string connectionString = "Server=localhost;Database=db_food;User=user;Password=pw;";
+        private static string _server = "localhost";
+        private static string _user = "user";
+        private static string _password = "pw";
+        
+        public static string connectionString = $"Server={_server};Database=db_food;User={_user};Password={_password};";
         public const int _max_food_description_length = 10_000;
     }
 

@@ -682,12 +682,10 @@ namespace Food
     {
         public static void Main()
         {
-            Console.WriteLine("Hello World!");
-
             bool tests = true;
             if (tests)
             {
-                Fat fat1 = new(0, 240);
+                Fat fat1 = new(10, 7);
                 Console.WriteLine(fat1.Total);
                 Console.WriteLine(fat1.Saturated);
 
@@ -723,14 +721,17 @@ namespace Food
                 Console.WriteLine($"Result of scaling (Nutrients):\n{resultScaleNutrients}");
 
                 // Rounding up tests
-                Fat fat2 = new (10.22222, 10.333);
+                Fat fat2 = new (10.22222, 9.333);
                 Console.WriteLine(fat2);
-                Carbohydrates carbs1 = new(1.1321321, 325.43891);
+                Carbohydrates carbs1 = new(132.1321321, 25.43891);
                 Console.WriteLine(carbs1);
 
+                const double numberToRoundup = 10.123456789;
+                Console.WriteLine($"\nRounding up {numberToRoundup}:");
                 for (int i = 0; i < 9; i++)
                 {
-                    Console.WriteLine(NumberOperations.RoundUpToNDecimalPlaces(10.123456789, i));
+                    Console.Write($"{i} decimal places: ");
+                    Console.WriteLine(NumberOperations.RoundUpToNDecimalPlaces(numberToRoundup, i));
                 }
             }
         }

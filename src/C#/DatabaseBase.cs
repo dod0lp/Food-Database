@@ -7,7 +7,7 @@
         private static readonly string _user = "user";
         private static readonly string _password = "pw";
 
-        private static readonly string connectionString = $"Server={_server};Database={_database};User={_user};Password={_password};";
+        public static readonly string connectionString = $"Server={_server};Database={_database};User={_user};Password={_password};";
 
         // Needs to be const because [Descriptor] this thing is used for needs const value
         public const int _max_food_description_length = 10_000;

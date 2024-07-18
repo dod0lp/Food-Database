@@ -320,7 +320,17 @@
     // TODO: figure out how this shit will work to have Total, Operators inherit....
     public struct Nutrient
     {
+        public double Total { get; set; }
 
+        public Nutrient(double total = 0)
+        {
+            Total = total;
+        }
+
+        public override string ToString()
+        {
+            return $"Total: {Total}";
+        }
     }
 
     /// <summary>

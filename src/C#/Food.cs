@@ -1,4 +1,6 @@
-﻿namespace Food
+﻿using System.Numerics;
+
+namespace Food
 {
     // There is no check if some values are negative, for example negative amount of Protein, Fat...
     // If there is value not set, the default value in most, if not all, cases will be 0
@@ -318,13 +320,63 @@
     }
 
     // TODO: figure out how this shit will work to have Total, Operators inherit....
-    public struct Nutrient
+    /// <summary>
+    /// Represents nutritional information
+    /// </summary>
+    public class Nutrient
     {
+        /// <summary>
+        /// Gets or sets the total amount of <see cref="Nutrient"/> in grams.
+        /// </summary>
         public double Total { get; set; }
 
         public Nutrient(double total = 0)
         {
             Total = total;
+        }
+
+        /// <summary>
+        /// Adds two instances of <see cref="Nutrient"/>, combining their <see cref="Nutrient.Total"/> amounts.
+        /// </summary>
+        /// <param name="n1">The first <see cref="Nutrient"/> instance.</param>
+        /// <param name="n2">The second <see cref="Nutrient"/> instance.</param>
+        /// <returns>A new <see cref="Nutrient"/> instance with summed protein values.</returns>
+        public static Nutrient operator +(Nutrient n1, Nutrient n2)
+        {
+            return new Nutrient(n1.Total + n2.Total);
+        }
+
+        /// <summary>
+        /// Subtracts one instance of <see cref="Nutrient"/> from another, subtracting their <see cref="Nutrient.Total"/> amounts.
+        /// </summary>
+        /// <param name="n1">The first <see cref="Nutrient"/> instance.</param>
+        /// <param name="n2">The second <see cref="Nutrient"/> instance.</param>
+        /// <returns>A new <see cref="Nutrient"/> instance with subtracted nutrient values.</returns>
+        public static Nutrient operator -(Nutrient n1, Nutrient n2)
+        {
+            return new Nutrient(n1.Total - n2.Total);
+        }
+
+        /// <summary>
+        /// Scales the nutrient value of a <see cref="Nutrient"/> instance by a specified factor.
+        /// </summary>
+        /// <param name="factor">The scaling factor.</param>
+        /// <param name="n">The <see cref="Nutrient"/> instance to scale.</param>
+        /// <returns>A new <see cref="Nutrient"/> instance with scaled <see cref="Nutrient.Total"/> value.</returns>
+        public static Nutrient operator *(double factor, Nutrient n)
+        {
+            return new Nutrient(n.Total * factor);
+        }
+
+        /// <summary>
+        /// Scales the nutrient value of a <see cref="Nutrient"/> instance by a specified factor.
+        /// </summary>
+        /// <param name="n">The <see cref="Nutrient"/> instance to scale.</param>
+        /// <param name="factor">The scaling factor.</param>
+        /// <returns>A new <see cref="Nutrient"/> instance with scaled <see cref="Nutrient.Total"/> value.</returns>
+        public static Nutrient operator *(Nutrient n, double factor)
+        {
+            return factor * n;
         }
 
         public override string ToString()
@@ -336,13 +388,8 @@
     /// <summary>
     /// Represents nutritional information related to <see cref="Fat"/>.
     /// </summary>
-    public struct Fat
+    public class Fat : Nutrient
     {
-        /// <summary>
-        /// Gets or sets the total amount of fat in grams.
-        /// </summary>
-        public double Total { get; set; }
-
         /// <summary>
         /// Gets or sets the amount of saturated fat in grams.
         /// </summary>
@@ -353,9 +400,8 @@
         /// </summary>
         /// <param name="total">The total amount of fat in grams (default is 0).</param>
         /// <param name="saturated">The amount of saturated fat in grams (default is 0).</param>
-        public Fat(double total = 0, double saturated = 0)
+        public Fat(double total = 0, double saturated = 0) : base(total)
         {
-            Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
             Saturated = NumberOperations.RoundUpTo2DecimalPlaces(saturated);
         }
 
@@ -412,7 +458,7 @@
         /// Returns a string representation of the <see cref="Fat"/> instance, displaying its <see cref="Fat.Total"/> and <see cref="Fat.Saturated"/> amounts.
         /// </summary>
         /// <returns>A string representation of the <see cref="Fat"/> instance.</returns>
-        public override readonly string ToString()
+        public override string ToString()
         {
             return $"Total: {Total}, Saturated: {Saturated}";
         }
@@ -421,13 +467,8 @@
     /// <summary>
     /// Represents nutritional information related to <see cref="Carbohydrates"/>.
     /// </summary>
-    public struct Carbohydrates
+    public class Carbohydrates : Nutrient
     {
-        /// <summary>
-        /// Gets or sets the total amount of carbohydrates in grams.
-        /// </summary>
-        public double Total { get; set; }
-
         /// <summary>
         /// Gets or sets the amount of sugar in grams.
         /// </summary>
@@ -438,9 +479,8 @@
         /// </summary>
         /// <param name="total">The total amount of carbohydrates in grams (default is 0).</param>
         /// <param name="sugar">The amount of sugar in grams (default is 0).</param>
-        public Carbohydrates(double total = 0, double sugar = 0)
+        public Carbohydrates(double total = 0, double sugar = 0) : base(total)
         {
-            Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
             Sugar = NumberOperations.RoundUpTo2DecimalPlaces(sugar);
         }
 
@@ -497,7 +537,7 @@
         /// Returns a string representation of the <see cref="Carbohydrates"/> instance, displaying its <see cref="Carbohydrates.Total"/> and <see cref="Carbohydrates.Sugar"/> amounts.
         /// </summary>
         /// <returns>A string representation of the <see cref="Carbohydrates"/> instance.</returns>
-        public override readonly string ToString()
+        public override string ToString()
         {
             return $"Total: {Total}, Sugar: {Sugar}";
         }
@@ -506,21 +546,9 @@
     /// <summary>
     /// Represents nutritional information related to <see cref="Protein"/>.
     /// </summary>
-    public struct Protein
+    public class Protein : Nutrient
     {
-        /// <summary>
-        /// Gets or sets the total amount of protein in grams.
-        /// </summary>
-        public double Total { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Protein"/> struct with specified value.
-        /// </summary>
-        /// <param name="total">The total amount of protein in grams (default is 0).</param>
-        public Protein(double total = 0)
-        {
-            Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
-        }
+        public Protein(double total = 0) : base(total) { }
 
         /// <summary>
         /// Adds two instances of <see cref="Protein"/>, combining their <see cref="Protein.Total"/> amounts.
@@ -565,35 +593,14 @@
         {
             return factor * p;
         }
-
-        /// <summary>
-        /// Returns a string representation of the <see cref="Protein"/> instance, displaying its <see cref="Protein.Total"/> amount.
-        /// </summary>
-        /// <returns>A string representation of the <see cref="Protein"/> instance.</returns>
-        public override readonly string ToString()
-        {
-            return $"Total: {Total}";
-        }
     }
 
     /// <summary>
     /// Represents nutritional information related to <see cref="Salt"/>.
     /// </summary>
-    public struct Salt
+    public class Salt : Nutrient
     {
-        /// <summary>
-        /// Gets or sets the total amount of salt in grams.
-        /// </summary>
-        public double Total { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Salt"/> struct with specified value.
-        /// </summary>
-        /// <param name="total">The total amount of salt in grams (default is 0).</param>
-        public Salt(double total = 0)
-        {
-            Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
-        }
+        public Salt(double total = 0) : base(total) { }
 
         /// <summary>
         /// Adds two instances of <see cref="Salt"/>, combining their <see cref="Salt.Total"/> amounts.
@@ -611,7 +618,7 @@
         /// </summary>
         /// <param name="s1">The first <see cref="Salt"/> instance.</param>
         /// <param name="s2">The second <see cref="Salt"/> instance.</param>
-        /// <returns>A new <see cref="Salt"/> instance with subtracted salt values.</returns>
+        /// <returns>A new <see cref="Salt"/> instance with subtracted protein values.</returns>
         public static Salt operator -(Salt s1, Salt s2)
         {
             return new Salt(s1.Total - s2.Total);
@@ -639,14 +646,6 @@
             return factor * s;
         }
 
-        /// <summary>
-        /// Returns a string representation of the <see cref="Salt"/> instance, displaying its <see cref="Salt.Total"/> amount.
-        /// </summary>
-        /// <returns>A string representation of the <see cref="Salt"/> instance.</returns>
-        public override readonly string ToString()
-        {
-            return $"Total: {Total}";
-        }
     }
 
 

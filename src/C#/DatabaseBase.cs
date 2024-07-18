@@ -1,7 +1,8 @@
 ﻿namespace Food_Database_Base
 {
-    public static class DB_Descriptors
+    public static class DB_Food_Descriptors
     {
+        // TODO: Possibly make it so that those variables for food database are read from '.env' docker file
         private static readonly string _server = "localhost";
         private static readonly string _database = "db_food";
         private static readonly string _user = "user";
@@ -11,6 +12,10 @@
 
         // Needs to be const because [Descriptor] this thing is used for needs const value
         public const int _max_food_description_length = 10_000;
+
+        private static readonly string tableFood = "table_food";
+        private static readonly string tableNutrients = "table_nutrients";
+        private static readonly string tableFoodIngredients = "table_food_ingredients";
     }
 
     // TODO: Make descriptor for this very database using Food table name, class description etc.

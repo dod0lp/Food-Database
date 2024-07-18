@@ -56,12 +56,18 @@ namespace Food
 
         public Food(int id, string name, double weight, Nutrients nutrientContent, string description = "")
         {
+            // Main table
             Id = id;
             Name = name;
-            Weight = weight;
-            NutrientContent = nutrientContent;
-            Ingredients = new List<Food>();
             Description = description;
+            Weight = NumberOperations.RoundUpTo2DecimalPlaces(weight);
+
+            // Separate table, foreign key ID
+            NutrientContent = nutrientContent;
+
+            // Separate table, foreign key combination of food and other food ID, where first one will be main food,
+            // other ID will be one ingredient - other food - food is simply an ingredient
+            Ingredients = new List<Food>();
         }
 
         public void AddIngredient(Food food)
@@ -319,7 +325,6 @@ namespace Food
         }
     }
 
-    // TODO: figure out how this shit will work to have Total, Operators inherit....
     /// <summary>
     /// Represents nutritional information
     /// </summary>
@@ -331,6 +336,15 @@ namespace Food
         public double Total { get; set; }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Nutrient"/> class with specified values.
+        /// </summary>
+        /// <param name="total">The total amount of nutrient in grams (default is 0).</param>
+        public Nutrient(double total = 0)
+        {
+            Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
+        }
+
+        /// <summary>
         /// String for setting how total value of <see cref="Nutrient"/> is displayed
         /// </summary>
         /// <param name="total">Simply put <see cref="Total"/> here.</param>
@@ -338,15 +352,6 @@ namespace Food
         protected static string Str_Total(double total)
         {
             return $"Total: {total}";
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Nutrient"/> class with specified values.
-        /// </summary>
-        /// <param name="total">The total amount of nutrient in grams (default is 0).</param>
-        public Nutrient(double total = 0)
-        {
-            Total = total;
         }
 
         /// <summary>
@@ -718,7 +723,7 @@ namespace Food
                 Console.WriteLine($"Result of scaling (Nutrients):\n{resultScaleNutrients}");
 
                 // Rounding up tests
-                Fat fat2 = new Fat(10.22222, 10.333);
+                Fat fat2 = new (10.22222, 10.333);
                 Console.WriteLine(fat2);
                 Carbohydrates carbs1 = new(1.1321321, 325.43891);
                 Console.WriteLine(carbs1);

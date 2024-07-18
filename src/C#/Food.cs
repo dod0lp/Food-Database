@@ -223,8 +223,8 @@ namespace Food
 
             set
             {
-                kcal = (int) Math.Ceiling(value);
-                kj = (int) Math.Ceiling(value * KcalToKjFactor);
+                kcal = (int)Math.Ceiling(value);
+                kj = (int)Math.Ceiling(value * KcalToKjFactor);
             }
         }
 
@@ -237,8 +237,8 @@ namespace Food
 
             set
             {
-                kj = (int) Math.Ceiling(value);
-                kcal = (int) Math.Ceiling(value / KcalToKjFactor);
+                kj = (int)Math.Ceiling(value);
+                kcal = (int)Math.Ceiling(value / KcalToKjFactor);
             }
         }
 
@@ -331,6 +331,16 @@ namespace Food
         public double Total { get; set; }
 
         /// <summary>
+        /// String for setting how total value of <see cref="Nutrient"/> is displayed
+        /// </summary>
+        /// <param name="total">Simply put <see cref="Total"/> here.</param>
+        /// <returns></returns>
+        protected static string Str_Total(double total)
+        {
+            return $"Total: {total}";
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Nutrient"/> class with specified values.
         /// </summary>
         /// <param name="total">The total amount of nutrient in grams (default is 0).</param>
@@ -385,7 +395,7 @@ namespace Food
 
         public override string ToString()
         {
-            return $"Total: {Total}";
+            return $"{Str_Total(Total)}";
         }
     }
 
@@ -464,7 +474,7 @@ namespace Food
         /// <returns>A string representation of the <see cref="Fat"/> instance.</returns>
         public override string ToString()
         {
-            return $"Total: {Total}, Saturated: {Saturated}";
+            return $"{Str_Total(Total)}, Saturated: {Saturated}";
         }
     }
 
@@ -543,7 +553,7 @@ namespace Food
         /// <returns>A string representation of the <see cref="Carbohydrates"/> instance.</returns>
         public override string ToString()
         {
-            return $"Total: {Total}, Sugar: {Sugar}";
+            return $"{Str_Total(Total)}, Sugar: {Sugar}";
         }
     }
 

@@ -330,6 +330,10 @@ namespace Food
         /// </summary>
         public double Total { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Nutrient"/> class with specified values.
+        /// </summary>
+        /// <param name="total">The total amount of nutrient in grams (default is 0).</param>
         public Nutrient(double total = 0)
         {
             Total = total;
@@ -548,6 +552,10 @@ namespace Food
     /// </summary>
     public class Protein : Nutrient
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Protein"/> class with specified values.
+        /// </summary>
+        /// <param name="total">The total amount of protein in grams (default is 0).</param>
         public Protein(double total = 0) : base(total) { }
 
         /// <summary>
@@ -558,6 +566,8 @@ namespace Food
         /// <returns>A new <see cref="Protein"/> instance with summed protein values.</returns>
         public static Protein operator +(Protein p1, Protein p2)
         {
+            // This is with use of inheritance, but.... nvm
+            // return new Protein(((Nutrient)p1 + (Nutrient)p2).Total);
             return new Protein(p1.Total + p2.Total);
         }
 
@@ -600,6 +610,10 @@ namespace Food
     /// </summary>
     public class Salt : Nutrient
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Salt"/> class with specified values.
+        /// </summary>
+        /// <param name="total">The total amount of salt in grams (default is 0).</param>
         public Salt(double total = 0) : base(total) { }
 
         /// <summary>

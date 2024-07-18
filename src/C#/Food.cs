@@ -56,17 +56,18 @@ namespace Food
 
         public Food(int id, string name, double weight, Nutrients nutrientContent, string description = "")
         {
-            // Main table
+            // Main table - Food
             Id = id;
             Name = name;
             Description = description;
             Weight = NumberOperations.RoundUpTo2DecimalPlaces(weight);
 
-            // Separate table, foreign key ID
+            // Separate table, foreign key ID - Nutrients
             NutrientContent = nutrientContent;
 
             // Separate table, foreign key combination of food and other food ID, where first one will be main food,
             // other ID will be one ingredient - other food - food is simply an ingredient
+            // - Ingredients
             Ingredients = new List<Food>();
         }
 
@@ -680,9 +681,21 @@ namespace Food
 
     public class Program_Food
     {
-        public static void Main()
+        private static readonly string argTestsNutrients = "nutrientsTests";
+
+        public static void Main(string[] args)
         {
-            bool tests = true;
+            #region NutrientsTests
+            bool tests = false;
+
+            if (args.Length > 0)
+            {
+                if (args[0] == argTestsNutrients)
+                {
+                    tests = true;
+                }
+            }
+
             if (tests)
             {
                 Fat fat1 = new(10, 7);
@@ -734,6 +747,7 @@ namespace Food
                     Console.WriteLine(NumberOperations.RoundUpToNDecimalPlaces(numberToRoundup, i));
                 }
             }
+            #endregion
         }
     }
 }

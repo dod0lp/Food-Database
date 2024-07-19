@@ -1,22 +1,32 @@
 ﻿namespace Food_Database_Base
 {
+    public static class DB_Descriptors
+    {
+        public static string MakeConnectionString(string server, string database, string user, string password)
+        {
+            return $"Server={server};Database={database};User={user};Password={password};";
+        }
+    }
+
     public static class DB_Food_Descriptors
     {
         // TODO: Possibly make it so that those variables for food database are read from '.env' docker file
-        private static readonly string _server = "localhost";
-        private static readonly string _database = "db_food";
-        private static readonly string _user = "user";
-        private static readonly string _password = "pw";
+        private static readonly string server = "localhost";
+        private static readonly string database = "db_food";
+        private static readonly string user = "user";
+        private static readonly string password = "pw";
 
-        public static readonly string connectionString = $"Server={_server};Database={_database};User={_user};Password={_password};";
+        public static readonly string connectionString = DB_Descriptors.MakeConnectionString(server, database, user, password);
 
         // Needs to be const because [Descriptor] this thing is used for needs const value
-        public const int _max_food_description_length = 10_000;
+        public const int max_food_description_length = 10_000;
 
         private static readonly string tableFood = "table_food";
         private static readonly string tableNutrients = "table_nutrients";
         private static readonly string tableFoodIngredients = "table_food_ingredients";
     }
+
+    // TODO: create a C# backend (ASP.NET Core Web API) that uses EntityFramework or ADO.NET to interact with the database.
 
     // TODO: Make descriptor for this very database using Food table name, class description etc.
     // Or maybe just use LinqToSql to my predefined Food class with structs etc

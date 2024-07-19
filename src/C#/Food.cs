@@ -685,18 +685,17 @@ namespace Food
 
         public static void Main(string[] args)
         {
-            #region NutrientsTests
-            bool tests = false;
+            bool testsNutrients = false;
 
             if (args.Length > 0)
             {
                 if (args[0] == argTestsNutrients)
                 {
-                    tests = true;
+                    testsNutrients = true;
                 }
             }
 
-            if (tests)
+            if (testsNutrients)
             {
                 Fat fat1 = new(10, 7);
                 Console.WriteLine(fat1.Total);
@@ -747,7 +746,6 @@ namespace Food
                     Console.WriteLine(NumberOperations.RoundUpToNDecimalPlaces(numberToRoundup, i));
                 }
             }
-            #endregion
         }
     }
 }

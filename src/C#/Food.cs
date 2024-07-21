@@ -90,6 +90,8 @@ namespace Food
         }
     }
 
+    // TODO: Describe this in database with simply double/int in sense of database 'FatContent_Total' + 'FatContent_Saturated'
+    // will be like 'Fat' structure in C#
     /// <summary>
     /// <see cref="Nutrients"/> content of certain <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>
     /// <br></br>

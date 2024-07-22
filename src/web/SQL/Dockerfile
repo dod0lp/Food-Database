@@ -1,5 +1,11 @@
-FROM mysql:9.0.0
+FROM mcr.microsoft.com/mssql/server:2019-latest
 
-COPY ./init.sql /docker-entrypoint-initdb.d/
+RUN mkdir /usr/src/app
 
-EXPOSE 3306
+COPY init.sql /usr/src/app/
+
+ENTRYPOINT /bin/bash -c " \
+    /opt/mssql/bin/sqlservr & \
+    sleep 20s && \
+    /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SA_PASSWORD -i /usr/src/app/init.sql && \
+    wait"

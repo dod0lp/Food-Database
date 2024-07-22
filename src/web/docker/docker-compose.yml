@@ -1,12 +1,16 @@
 version: '1.0.0'
 
 services:
-  db_mysql_food:
-    build: ./../SQL
-    ports:
-      - "3306:3306"
+  sqlserver:
+    build:
+      context: ./../sql
+      dockerfile: Dockerfile
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: ${ACCEPT_EULA}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql

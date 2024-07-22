@@ -1,5 +1,15 @@
-CREATE TABLE IF NOT EXISTS test_table (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
+CREATE DATABASE db_food;
+GO
+
+USE db_food;
+
+GO
+
+CREATE TABLE TestTable (
+    Id INT PRIMARY KEY IDENTITY,
+    Name NVARCHAR(50) NOT NULL
 );
-INSERT INTO test_table (name) VALUES ('Sample Name');
+GO
+
+INSERT INTO TestTable (Name) VALUES ('Sample Data');
+GO

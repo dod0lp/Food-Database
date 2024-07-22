@@ -5,11 +5,13 @@ services:
     build:
       context: ./../sql
       dockerfile: Dockerfile
-    image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: sqlserver
     environment:
-      SA_PASSWORD: ${SA_PASSWORD}
-      ACCEPT_EULA: ${ACCEPT_EULA}
+      - SA_PASSWORD=${SA_PASSWORD}
+      - ACCEPT_EULA=${ACCEPT_EULA}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     ports:
       - "1433:1433"
     volumes:

@@ -13,8 +13,8 @@
         // TODO: Possibly make it so that those variables for food database are read from '.env' docker file
         private static readonly string server = "localhost";
         private static readonly string database = "db_food";
-        private static readonly string user = "user";
-        private static readonly string password = "pw";
+        private static readonly string user = "BackendCSharp";
+        private static readonly string password = "Password@123";
 
         public static readonly string connectionString = DB_Descriptors.MakeConnectionString(server, database, user, password);
 

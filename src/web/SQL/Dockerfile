@@ -1,14 +1,17 @@
 FROM mcr.microsoft.com/mssql/server:2019-latest
 
-ENV SA_PASSWORD=${SA_PASSWORD}
-ENV ACCEPT_EULA=${ACCEPT_EULA}
+USER root
 
-RUN mkdir -p /usr/src/app
+ARG WORK_DIR=/usr/src/app
 
-COPY init.sql /usr/src/app/
+RUN mkdir -p ${WORK_DIR}
 
-ENTRYPOINT /bin/bash -c " \
-    /opt/mssql/bin/sqlservr & \
-    sleep 20s && \
-    /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SA_PASSWORD -i /usr/src/app/init.sql && \
-    wait"
+COPY init.sql ${WORK_DIR}
+
+COPY startup.sh ${WORK_DIR}
+RUN chmod +x ${WORK_DIR}/startup.sh
+
+EXPOSE 1433
+
+
+CMD ["/usr/src/app/startup.sh"]

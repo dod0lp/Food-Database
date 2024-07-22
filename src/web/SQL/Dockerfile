@@ -1,6 +1,9 @@
 FROM mcr.microsoft.com/mssql/server:2019-latest
 
-RUN mkdir /usr/src/app
+ENV SA_PASSWORD=${SA_PASSWORD}
+ENV ACCEPT_EULA=${ACCEPT_EULA}
+
+RUN mkdir -p /usr/src/app
 
 COPY init.sql /usr/src/app/
 

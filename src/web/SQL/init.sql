@@ -49,19 +49,35 @@ GO
 ALTER ROLE db_owner ADD MEMBER [$(DB_USER)];
 GO
 
--- Create test-table, if does not exist already
-IF OBJECT_ID('dbo.TestTable', 'U') IS NULL
+IF OBJECT_ID('dbo.table_food', 'U') IS NULL
 BEGIN
-    CREATE TABLE TestTable (
-        Id INT PRIMARY KEY IDENTITY,
-        Name NVARCHAR(50) NOT NULL
+    CREATE TABLE dbo.table_food (
+        food_id INT PRIMARY KEY IDENTITY(1,1),
+        food_name NVARCHAR(100) NOT NULL,
+        food_description NVARCHAR(255)
     );
 END
 GO
 
--- Insert sample data, if does not exist already
-IF NOT EXISTS (SELECT * FROM TestTable WHERE Name = 'Sample Data')
+IF OBJECT_ID('dbo.table_nutrients', 'U') IS NULL
 BEGIN
-    INSERT INTO TestTable (Name) VALUES ('Sample Data');
+    CREATE TABLE dbo.table_nutrients (
+        nutrient_id INT PRIMARY KEY IDENTITY(1,1),
+        nutrient_name NVARCHAR(100) NOT NULL,
+        nutrient_unit NVARCHAR(50)
+    );
+END
+GO
+
+IF OBJECT_ID('dbo.table_food_ingredients', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.table_food_ingredients (
+        ingredient_id INT PRIMARY KEY IDENTITY(1,1),
+        food_id INT NOT NULL,
+        nutrient_id INT NOT NULL,
+        quantity DECIMAL(10, 2),
+        FOREIGN KEY (food_id) REFERENCES dbo.table_food(food_id),
+        FOREIGN KEY (nutrient_id) REFERENCES dbo.table_nutrients(nutrient_id)
+    );
 END
 GO

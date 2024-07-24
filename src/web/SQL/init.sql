@@ -72,12 +72,13 @@ GO
 IF OBJECT_ID('dbo.table_food_ingredients', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.table_food_ingredients (
-        ingredient_id INT PRIMARY KEY IDENTITY(1,1),
         food_id INT NOT NULL,
         nutrient_id INT NOT NULL,
         quantity DECIMAL(10, 2),
+        PRIMARY KEY (food_id, nutrient_id),
         FOREIGN KEY (food_id) REFERENCES dbo.table_food(food_id),
         FOREIGN KEY (nutrient_id) REFERENCES dbo.table_nutrients(nutrient_id)
     );
 END
 GO
+

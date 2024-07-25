@@ -1,6 +1,6 @@
 -- Choose master database for credentials etc
 USE [master];
-GO;
+GO
 
 -- Admin variables - credentials, based on .env file
 DECLARE @DB_NAME NVARCHAR(128) = '$(DB_NAME)';
@@ -49,9 +49,9 @@ GO
 ALTER ROLE db_owner ADD MEMBER [$(DB_USER)];
 GO
 
-IF OBJECT_ID('dbo.table_food', 'U') IS NULL
+IF OBJECT_ID('dbo.Food', 'U') IS NULL
 BEGIN
-    CREATE TABLE dbo.table_food (
+    CREATE TABLE dbo.Food (
         food_id INT PRIMARY KEY IDENTITY(1,1),
         food_name NVARCHAR(100) NOT NULL,
         food_description NVARCHAR(255)
@@ -59,9 +59,9 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('dbo.table_nutrients', 'U') IS NULL
+IF OBJECT_ID('dbo.Nutrients', 'U') IS NULL
 BEGIN
-    CREATE TABLE dbo.table_nutrients (
+    CREATE TABLE dbo.Nutrients (
         nutrient_id INT PRIMARY KEY IDENTITY(1,1),
         nutrient_name NVARCHAR(100) NOT NULL,
         nutrient_unit NVARCHAR(50)
@@ -69,15 +69,15 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('dbo.table_food_ingredients', 'U') IS NULL
+IF OBJECT_ID('dbo.Ingredients', 'U') IS NULL
 BEGIN
-    CREATE TABLE dbo.table_food_ingredients (
+    CREATE TABLE dbo.Ingredients (
         food_id INT NOT NULL,
         nutrient_id INT NOT NULL,
         quantity DECIMAL(10, 2),
         PRIMARY KEY (food_id, nutrient_id),
-        FOREIGN KEY (food_id) REFERENCES dbo.table_food(food_id),
-        FOREIGN KEY (nutrient_id) REFERENCES dbo.table_nutrients(nutrient_id)
+        FOREIGN KEY (food_id) REFERENCES dbo.Food(food_id),
+        FOREIGN KEY (nutrient_id) REFERENCES dbo.Nutrients(nutrient_id)
     );
 END
 GO

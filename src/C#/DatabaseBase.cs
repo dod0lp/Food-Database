@@ -22,9 +22,9 @@
         public const int max_food_description_length = 4_000;
         public const int max_food_name_length = 100;
 
-        private static readonly string tableFood = "table_food";
-        private static readonly string tableNutrients = "table_nutrients";
-        private static readonly string tableFoodIngredients = "table_food_ingredients";
+        private static readonly string tableFood = "Food";
+        private static readonly string tableNutrients = "Nutrients";
+        private static readonly string tableFoodIngredients = "Ingredients";
     }
 
     // TODO: create a C# backend (ASP.NET Core Web API) that uses EntityFramework or ADO.NET to interact with the database.

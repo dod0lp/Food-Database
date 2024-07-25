@@ -16,7 +16,7 @@ echo "[-----------] Running initialization script and starting up database. [---
 /opt/mssql-tools/bin/sqlcmd -S localhost \
 -U sa -P ${SA_PASSWORD} \
 -i ${WORK_DIR}/init.sql \
--v WORK_DIR="${WORK_DIR}" DB_NAME=${DB_NAME} \
+-v WORK_DIR="${WORK_DIR}" DB_NAME="${DB_NAME}" \
 DB_USER="${DB_USER}" DB_PASSWORD="${DB_PASSWORD}"
 
 wait

@@ -17,7 +17,7 @@ BEGIN
         ConfigValue NVARCHAR(128)
     );
 END
-GO
+
 
 -- Use the INSERT statement with a condition to also avoid value duplicates
 -- Insert DB_NAME - name of the database

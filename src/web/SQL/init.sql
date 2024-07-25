@@ -54,7 +54,7 @@ BEGIN
     CREATE TABLE dbo.Food (
         food_id INT PRIMARY KEY IDENTITY(1,1),
         food_name NVARCHAR(100) NOT NULL,
-        food_description NVARCHAR(255)
+        food_description NVARCHAR(10000)
     );
 END
 GO

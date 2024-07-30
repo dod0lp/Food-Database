@@ -19,8 +19,8 @@
         public static readonly string connectionString = DB_Descriptors.MakeConnectionString(server, database, user, password);
 
         // Needs to be const because [Descriptor] this thing is used for needs const value
-        public const int max_food_description_length = 4_000;
-        public const int max_food_name_length = 100;
+        public const int maxFoodDescriptionLength = 4_000;
+        public const int maxFoodNameLength = 100;
 
         private static readonly string tableFood = "Food";
         private static readonly string tableNutrients = "Nutrients";

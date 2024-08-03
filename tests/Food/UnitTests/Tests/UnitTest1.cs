@@ -15,5 +15,27 @@ namespace FoodTests
             Assert.Equal(totalFat, fat.Total);
             Assert.Equal(saturatedFat, fat.Saturated);
         }
+
+        [Theory]
+        [InlineData(5)]
+        [InlineData(10)]
+        [InlineData(15)]
+        public void MakeSalts(int total)
+        {
+            Salt salt = new(total);
+
+            Assert.Equal(total, salt.Total);
+        }
+
+        [Theory]
+        [InlineData(30)]
+        [InlineData(45)]
+        [InlineData(60)]
+        public void MakeProteins(int total)
+        {
+            Protein protein = new(total);
+
+            Assert.Equal(total, protein.Total);
+        }
     }
 }

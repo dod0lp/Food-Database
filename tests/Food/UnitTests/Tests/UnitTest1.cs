@@ -37,5 +37,17 @@ namespace FoodTests
 
             Assert.Equal(total, protein.Total);
         }
+
+        [Theory]
+        [InlineData(30, 10)]
+        [InlineData(45, 15)]
+        [InlineData(60, 20)]
+        public void MakeCarbohydrates(int total, int sugar)
+        {
+            Carbohydrates carbs = new(total, sugar);
+
+            Assert.Equal(total, carbs.Total);
+            Assert.Equal(sugar, carbs.Sugar);
+        }
     }
 }

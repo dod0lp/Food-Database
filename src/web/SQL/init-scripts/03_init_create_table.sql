@@ -23,7 +23,7 @@ GO
 
 CREATE TABLE dbo.Nutrients (
     ID INT PRIMARY KEY IDENTITY(1, 1),
-    FoodID INT,
+    Food_ID INT NOT NULL,
     Energy_Kcal INT NOT NULL,
     Energy_Kj INT NOT NULL,
     Fat_Total FLOAT NOT NULL,
@@ -32,16 +32,18 @@ CREATE TABLE dbo.Nutrients (
     Carbs_Saturated FLOAT NOT NULL,
     Protein_Total FLOAT NOT NULL,
     Salt_Total FLOAT NOT NULL,
-    CONSTRAINT FK_Food_Nutrients FOREIGN KEY (FoodID) REFERENCES dbo.Food(food_id)
+
+    CONSTRAINT FK_Food_Nutrients FOREIGN KEY (Food_ID) REFERENCES dbo.Food(ID)
 );
 GO
 
 CREATE TABLE dbo.Ingredients (
-    food_id INT NOT NULL,
-    nutrient_id INT NOT NULL,
-    quantity DECIMAL(10, 2),
-    PRIMARY KEY (food_id, nutrient_id),
-    FOREIGN KEY (food_id) REFERENCES dbo.Food(food_id),
-    FOREIGN KEY (nutrient_id) REFERENCES dbo.Nutrients(nutrient_id)
+    Food_ID_Complete INT NOT NULL,
+    Food_ID_Part     INT NOT NULL,
+    
+    CONSTRAINT PK_Ingredients PRIMARY KEY (Food_ID_Complete, Food_ID_Part),
+    
+    CONSTRAINT FK_Ingredients_Food_Complete FOREIGN KEY (Food_ID_Complete) REFERENCES dbo.Food(ID),
+    CONSTRAINT FK_Ingredients_Food_Part FOREIGN KEY (Food_ID_Part) REFERENCES dbo.Food(ID)
 );
 GO

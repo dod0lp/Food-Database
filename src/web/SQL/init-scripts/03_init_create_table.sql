@@ -1,7 +1,7 @@
 USE [$(DB_NAME)];
 GO
 
-IF OBJECT_ID('dbo.Food', 'U') IS NOT NULL
+/*IF OBJECT_ID('dbo.Food', 'U') IS NOT NULL
     DROP TABLE dbo.Food;
 GO
 
@@ -11,7 +11,7 @@ GO
 
 IF OBJECT_ID('dbo.Ingredients', 'U') IS NOT NULL
     DROP TABLE dbo.Ingredients;
-GO
+GO*/
 
 CREATE TABLE dbo.Food (
     ID INT PRIMARY KEY IDENTITY(1, 1),
@@ -22,8 +22,7 @@ CREATE TABLE dbo.Food (
 GO
 
 CREATE TABLE dbo.Nutrients (
-    ID INT PRIMARY KEY IDENTITY(1, 1),
-    Food_ID INT NOT NULL,
+    Food_ID INT PRIMARY KEY,
     Energy_Kcal INT NOT NULL,
     Energy_Kj INT NOT NULL,
     Fat_Total FLOAT NOT NULL,

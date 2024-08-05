@@ -4,9 +4,10 @@ GO
 IF OBJECT_ID('dbo.Food', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Food (
-        food_id INT PRIMARY KEY IDENTITY(1,1),
-        food_name NVARCHAR(100) NOT NULL,
-        food_description NVARCHAR(4000)
+        ID INT PRIMARY KEY IDENTITY(1,1),
+        Name NVARCHAR(100) NOT NULL,
+        Weight FLOAT NOT NULL,
+        Description NVARCHAR(4000)
     );
 END
 GO

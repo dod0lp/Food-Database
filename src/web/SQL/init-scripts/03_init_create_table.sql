@@ -4,7 +4,7 @@ GO
 IF OBJECT_ID('dbo.Food', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Food (
-        ID INT PRIMARY KEY IDENTITY(1,1),
+        ID INT PRIMARY KEY IDENTITY(1, 1),
         Name NVARCHAR(100) NOT NULL,
         Weight FLOAT NOT NULL,
         Description NVARCHAR(4000)
@@ -15,9 +15,17 @@ GO
 IF OBJECT_ID('dbo.Nutrients', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Nutrients (
-        nutrient_id INT PRIMARY KEY IDENTITY(1,1),
-        nutrient_name NVARCHAR(100) NOT NULL,
-        nutrient_unit NVARCHAR(50)
+        ID INT PRIMARY KEY IDENTITY(1, 1),
+        FoodID INT,
+        Energy_Kcal INT NOT NULL,
+        Energy_Kj INT NOT NULL,
+        Fat_Total FLOAT NOT NULL,
+        Fat_Saturated FLOAT NOT NULL,
+        Carbs_Total FLOAT NOT NULL,
+        Carbs_Saturated FLOAT NOT NULL,
+        Protein_Total FLOAT NOT NULL,
+        Salt_Total FLOAT NOT NULL,
+        CONSTRAINT FK_Food_Nutrients FOREIGN KEY (FoodID) REFERENCES dbo.Food(food_id)
     );
 END
 GO

@@ -4,7 +4,7 @@ namespace FoodTests
 {
     public class NutrientsCreation
     {
-        public static IEnumerable<object[]> TestData_Total_MultiplesOf5()
+        public static IEnumerable<object[]> TestData_Int_Total_MultiplesOf5()
         {
             const int maxNum = 100;
             const int step = 5;
@@ -15,7 +15,7 @@ namespace FoodTests
             }
         }
 
-        public static IEnumerable<object[]> TestData_Total_and_Other_MultiplesOf5()
+        public static IEnumerable<object[]> TestData_Int_Total_and_Other_MultiplesOf5()
         {
             const int maxNum = 100;
             const int step = 5;
@@ -29,12 +29,30 @@ namespace FoodTests
             }
         }
 
+        public static IEnumerable<object[]> TestData_Total_and_Other_MultiplesOf5()
+        {
+            const int maxNum = 100;
+            const int step = 5;
+
+            Random random = new Random();
+            for (int i = 0; i <= maxNum; i += step)
+            {
+                double total = i + random.NextDouble(); // Add a random fraction to make `total` a double
+                double multiplier = random.NextDouble(); // Generates a random number between 0.0 and 0.99
+                double secondary = total * multiplier; // Multiply the `total` by this multiplier
+                yield return new object[] { total, secondary };
+            }
+        }
+
+
+        // TODO: Create tests for double datatypes, that will also round it up to 2decimal places
+        // as does Nutrient class, do it inside of TestData function, that it returns rounded up object
 
         [Theory]
         [InlineData(10, 7)]
         [InlineData(15, 5)]
         [InlineData(20, 10)]
-        [MemberData(nameof(TestData_Total_and_Other_MultiplesOf5))]
+        [MemberData(nameof(TestData_Int_Total_and_Other_MultiplesOf5))]
         public void MakeFats(int totalFat, int saturatedFat)
         {
             Fat fat = new(totalFat, saturatedFat);
@@ -47,7 +65,7 @@ namespace FoodTests
         [InlineData(30, 10)]
         [InlineData(45, 15)]
         [InlineData(60, 20)]
-        [MemberData(nameof(TestData_Total_and_Other_MultiplesOf5))]
+        [MemberData(nameof(TestData_Int_Total_and_Other_MultiplesOf5))]
         public void MakeCarbohydrates(int total, int sugar)
         {
             Carbohydrates carbs = new(total, sugar);
@@ -60,7 +78,7 @@ namespace FoodTests
         [InlineData(5)]
         [InlineData(10)]
         [InlineData(15)]
-        [MemberData(nameof(TestData_Total_MultiplesOf5))]
+        [MemberData(nameof(TestData_Int_Total_MultiplesOf5))]
         public void MakeSalts(int total)
         {
             Salt salt = new(total);
@@ -72,7 +90,7 @@ namespace FoodTests
         [InlineData(30)]
         [InlineData(45)]
         [InlineData(60)]
-        [MemberData(nameof(TestData_Total_MultiplesOf5))]
+        [MemberData(nameof(TestData_Int_Total_MultiplesOf5))]
         public void MakeProteins(int total)
         {
             Protein protein = new(total);

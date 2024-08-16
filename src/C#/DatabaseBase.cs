@@ -1,4 +1,9 @@
-﻿namespace Food_Database_Base
+﻿using Food;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace Food_Database_Base
 {
     public static class DB_Descriptors
     {
@@ -11,6 +16,7 @@
     public static class DB_Food_Descriptors
     {
         // TODO: Possibly make it so that those variables for food database are read from '.env' docker file
+        // apparently not a good practice and this needs to be saved in launcsettings.json or similar
         private static readonly string server = "localhost";
         private static readonly string database = "db_food";
         private static readonly string user = "BackendCSharp";
@@ -26,6 +32,71 @@
         private static readonly string tableNutrients = "Nutrients";
         private static readonly string tableFoodIngredients = "Ingredients";
     }
+
+    // TODO: MapToDomain & MapToEntity for those classes
+
+    [Table("Nutrients")]
+    public class NutrientEntity
+    {
+        [Key]
+        [Column("Food_ID")]
+        public int FoodId { get; set; }
+
+        [Column("Energy_Kcal")]
+        public int EnergyKcal { get; set; }
+
+        [Column("Fat_Total")]
+        public float FatTotal { get; set; }
+
+        // Navigation property to Food
+        [ForeignKey("FoodId")]
+        public FoodEntity Food { get; set; }
+    }
+
+    [Table("Food")]
+    public class FoodEntity
+    {
+        [Key]
+        [Column("Food_ID")]
+        public int FoodId { get; set; }
+
+        [Column("Name")]
+        public string Name { get; set; }
+
+        [Column("Weight")]
+        public float Weight { get; set; }
+
+        [Column("Description")]
+        public string Description { get; set; }
+
+        // Navigation property to Nutrient
+        public NutrientEntity Nutrient { get; set; }
+
+        // Navigation properties for Ingredients
+        public ICollection<IngredientEntity> IngredientsAsPart { get; set; } = new HashSet<IngredientEntity>();
+        public ICollection<IngredientEntity> IngredientsAsComplete { get; set; } = new HashSet<IngredientEntity>();
+    }
+
+    [Table("Ingredients")]
+    public class IngredientEntity
+    {
+        [Key]
+        [Column("Food_ID_Complete")]
+        public int FoodIdComplete { get; set; }
+
+        [Key]
+        [Column("Food_ID_Part")]
+        public int FoodIdPart { get; set; }
+
+        // Navigation properties
+        [ForeignKey("FoodIdComplete")]
+        public FoodEntity FoodComplete { get; set; }
+
+        [ForeignKey("FoodIdPart")]
+        public FoodEntity FoodPart { get; set; }
+    }
+
+
 
     // TODO: create a C# backend (ASP.NET Core Web API) that uses EntityFramework or ADO.NET to interact with the database.
 

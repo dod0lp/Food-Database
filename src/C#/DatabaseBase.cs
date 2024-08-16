@@ -1,5 +1,4 @@
 ﻿using Food;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
@@ -28,14 +27,14 @@ namespace Food_Database_Base
         public const int maxFoodDescriptionLength = 4_000;
         public const int maxFoodNameLength = 100;
 
-        private static readonly string tableFood = "Food";
-        private static readonly string tableNutrients = "Nutrients";
-        private static readonly string tableFoodIngredients = "Ingredients";
+        public const string tableFood = "Food";
+        public const string tableNutrients = "Nutrients";
+        public const string tableFoodIngredients = "Ingredients";
     }
 
     // TODO: MapToDomain & MapToEntity for those classes
 
-    [Table("Nutrients")]
+    [Table(DB_Food_Descriptors.tableNutrients)]
     public class NutrientEntity
     {
         [Key]
@@ -53,7 +52,7 @@ namespace Food_Database_Base
         public FoodEntity Food { get; set; }
     }
 
-    [Table("Food")]
+    [Table(DB_Food_Descriptors.tableFood)]
     public class FoodEntity
     {
         [Key]
@@ -77,7 +76,7 @@ namespace Food_Database_Base
         public ICollection<IngredientEntity> IngredientsAsComplete { get; set; } = new HashSet<IngredientEntity>();
     }
 
-    [Table("Ingredients")]
+    [Table(DB_Food_Descriptors.tableFoodIngredients)]
     public class IngredientEntity
     {
         [Key]

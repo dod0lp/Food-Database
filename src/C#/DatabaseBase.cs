@@ -1,6 +1,7 @@
 ﻿using Food;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Food_Database_Base
 {
@@ -21,20 +22,20 @@ namespace Food_Database_Base
         private static readonly string user = "BackendCSharp";
         private static readonly string password = "Password@123";
 
-        public static readonly string connectionString = DB_Descriptors.MakeConnectionString(server, database, user, password);
+        public static readonly string ConnectionString = DB_Descriptors.MakeConnectionString(server, database, user, password);
 
         // Needs to be const because [Descriptor] this thing is used for needs const value
         public const int maxFoodDescriptionLength = 4_000;
         public const int maxFoodNameLength = 100;
 
-        public const string tableFood = "Food";
-        public const string tableNutrients = "Nutrients";
-        public const string tableFoodIngredients = "Ingredients";
+        public const string TableFood = "Food";
+        public const string TableNutrients = "Nutrients";
+        public const string TableFoodIngredients = "Ingredients";
     }
 
     // TODO: MapToDomain & MapToEntity for those classes
 
-    [Table(DB_Food_Descriptors.tableNutrients)]
+    [Table(DB_Food_Descriptors.TableNutrients)]
     public class NutrientEntity
     {
         [Key]
@@ -44,15 +45,34 @@ namespace Food_Database_Base
         [Column("Energy_Kcal")]
         public int EnergyKcal { get; set; }
 
+        [Column("Energy_Kj")]
+        public int EnergyKj { get; set; }
+
         [Column("Fat_Total")]
         public float FatTotal { get; set; }
+
+        [Column("Fat_Saturated")]
+        public float FatSaturated { get; set; }
+
+        [Column("Carbs_Total")]
+        public float CarbsTotal { get; set; }
+
+        [Column("Carbs_Saturated")]
+        public float CarbsSaturated { get; set; }
+
+        [Column("Protein_Total")]
+        public float ProteinTotal { get; set; }
+
+        [Column("Salt_Total")]
+        public float SaltTotal { get; set; }
+
 
         // Navigation property to Food
         [ForeignKey("FoodId")]
         public FoodEntity Food { get; set; }
     }
 
-    [Table(DB_Food_Descriptors.tableFood)]
+    [Table(DB_Food_Descriptors.TableFood)]
     public class FoodEntity
     {
         [Key]
@@ -76,7 +96,7 @@ namespace Food_Database_Base
         public ICollection<IngredientEntity> IngredientsAsComplete { get; set; } = new HashSet<IngredientEntity>();
     }
 
-    [Table(DB_Food_Descriptors.tableFoodIngredients)]
+    [Table(DB_Food_Descriptors.TableFoodIngredients)]
     public class IngredientEntity
     {
         [Key]
@@ -95,12 +115,42 @@ namespace Food_Database_Base
         public FoodEntity FoodPart { get; set; }
     }
 
+    public class FoodDbContext : DbContext
+    {
+        public DbSet<NutrientEntity> Nutrients { get; set; }
+        public DbSet<FoodEntity> Foods { get; set; }
+        public DbSet<IngredientEntity> Ingredients { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer(DB_Food_Descriptors.ConnectionString);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<IngredientEntity>()
+                .HasKey(i => new { i.FoodIdComplete, i.FoodIdPart });
+
+            // Simply configure key relations
+            modelBuilder.Entity<NutrientEntity>()
+                .HasOne(n => n.Food)
+                .WithOne(f => f.Nutrient)
+                .HasForeignKey<NutrientEntity>(n => n.FoodId);
+
+            modelBuilder.Entity<FoodEntity>()
+                .HasMany(f => f.IngredientsAsPart)
+                .WithOne(i => i.FoodPart)
+                .HasForeignKey(i => i.FoodIdPart);
+
+            modelBuilder.Entity<FoodEntity>()
+                .HasMany(f => f.IngredientsAsComplete)
+                .WithOne(i => i.FoodComplete)
+                .HasForeignKey(i => i.FoodIdComplete);
+        }
+    }
 
 
     // TODO: create a C# backend (ASP.NET Core Web API) that uses EntityFramework or ADO.NET to interact with the database.
-
-    // TODO: Make descriptor for this very database using Food table name, class description etc.
-    // Or maybe just use LinqToSql to my predefined Food class with structs etc
 
     /*class Program_Database
     {

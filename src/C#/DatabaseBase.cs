@@ -25,8 +25,8 @@ namespace Food_Database_Base
         public static readonly string ConnectionString = DB_Descriptors.MakeConnectionString(server, database, user, password);
 
         // Needs to be const because [Descriptor] this thing is used for needs const value
-        public const int maxFoodDescriptionLength = 4_000;
-        public const int maxFoodNameLength = 100;
+        public const int MaxFoodDescriptionLength = 4_000;
+        public const int MaxFoodNameLength = 100;
 
         public const string TableFood = "Food";
         public const string TableNutrients = "Nutrients";

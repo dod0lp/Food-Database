@@ -149,8 +149,44 @@ namespace Food_Database_Base
         }
     }
 
+    public static class NutrientMappingExtensions
+    {
+        // simple Mapping from Entity to Domain
+        public static Nutrients MapToDomain(this NutrientEntity entity)
+        {
+            return new Nutrients(
+                new Energy(entity.EnergyKcal),
+                new Fat(entity.FatTotal, entity.FatSaturated),
+                new Carbohydrates(entity.CarbsTotal, entity.CarbsSaturated),
+                new Protein(entity.ProteinTotal),
+                new Salt(entity.SaltTotal)
+            );
+        }
 
-    // TODO: create a C# backend (ASP.NET Core Web API) that uses EntityFramework or ADO.NET to interact with the database.
+        // Maping from Domain to Entity model
+        // it is explicitly casted as float, because in DB it is float
+        // hope this wont break anything
+        public static NutrientEntity MapToEntity(this Nutrients model, int foodId)
+        {
+            return new NutrientEntity
+            {
+                FoodId = foodId,
+                // Energykcal is int in database, in Domain model it is float, but it is being explicitly cast as 'int'
+                // when using setter
+                EnergyKcal = (int)model.Energy.Kcal,
+                EnergyKj = (int)model.Energy.KJ,
+                FatTotal = (float)model.FatContent.Total,
+                FatSaturated = (float)model.FatContent.Saturated,
+                CarbsTotal = (float)model.CarbohydrateContent.Total,
+                CarbsSaturated = (float)model.CarbohydrateContent.Sugar,
+                ProteinTotal = (float)model.Protein.Total,
+                SaltTotal = (float)model.Salt.Total
+            };
+        }
+    }
+
+
+    // TODO: create a C# backend (ASP.NET Core Web API) that uses EntityFramework interact with the database.
 
     /*class Program_Database
     {

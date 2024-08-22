@@ -175,11 +175,15 @@ namespace Food_Database_Base
                 // when using setter
                 EnergyKcal = (int)model.Energy.Kcal,
                 EnergyKj = (int)model.Energy.KJ,
+
                 FatTotal = (float)model.FatContent.Total,
                 FatSaturated = (float)model.FatContent.Saturated,
+
                 CarbsTotal = (float)model.CarbohydrateContent.Total,
                 CarbsSaturated = (float)model.CarbohydrateContent.Sugar,
+
                 ProteinTotal = (float)model.Protein.Total,
+                
                 SaltTotal = (float)model.Salt.Total
             };
         }

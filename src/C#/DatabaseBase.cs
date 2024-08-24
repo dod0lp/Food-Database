@@ -12,7 +12,11 @@ namespace Food_Database_Base
             return $"Server={server};Database={database};User={user};Password={password};";
         }
     }
-
+    
+    /// <summary>
+    /// Class for using and making Food Database data, Accessing database, Making connection string for database connection [<see cref="ConnectionString"/>] <br></br>
+    /// Constants for accessing database tables [starting with Table], Maximum lengths of variables [starting with Max],...
+    /// </summary>
     public static class DB_Food_Descriptors
     {
         // TODO: Possibly make it so that those variables for food database are read from '.env' docker file

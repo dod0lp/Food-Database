@@ -54,12 +54,12 @@ namespace Food
         public List<Food> Ingredients { get; set; }
         public string Description { get; set; }
 
-        public Food(int id, string name, double weight, Nutrients nutrientContent, string description = "")
+        public Food(int id, string name, double weight, Nutrients nutrientContent, string description)
         {
             // Main table - Food
             Id = id;
             Name = name;
-            Description = description;
+            Description = description ?? "";
             Weight = NumberOperations.RoundUpTo2DecimalPlaces(weight);
 
             // Separate table, foreign key ID - Nutrients
@@ -69,6 +69,11 @@ namespace Food
             // other ID will be one ingredient - other food - food is simply an ingredient
             // - Ingredients
             Ingredients = new List<Food>();
+        }
+
+        public Food(int id, string name, double weight, Nutrients nutrientContent, string description, List<Food> ingredients) : this(id, name, weight, nutrientContent, description)
+        {
+            Ingredients = ingredients;
         }
 
         public void AddIngredient(Food food)

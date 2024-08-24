@@ -12,7 +12,11 @@ namespace Food_Database_Base
             return $"Server={server};Database={database};User={user};Password={password};";
         }
     }
-
+    
+    /// <summary>
+    /// Class for using and making Food Database data, Accessing database, Making connection string for database connection [<see cref="ConnectionString"/>] <br></br>
+    /// Constants for accessing database tables [starting with Table], Maximum lengths of variables [starting with Max],...
+    /// </summary>
     public static class DB_Food_Descriptors
     {
         // TODO: Possibly make it so that those variables for food database are read from '.env' docker file
@@ -186,6 +190,53 @@ namespace Food_Database_Base
                 
                 SaltTotal = (float)model.Salt.Total
             };
+        }
+    }
+
+    public static class FoodMappingExtensions
+    {
+        // Map FoodEntity to Food (Domain)
+        public static Food.Food MapToDomain(this FoodEntity entity)
+        {
+            return new Food.Food(
+                entity.FoodId,
+                entity.Name,
+                entity.Weight,
+                entity.Nutrient.MapToDomain(),
+                entity.Description,
+                entity.IngredientsAsComplete.Select(i => i.FoodPart.MapToDomain()).ToList()
+            );
+        }
+
+        // Map Food (Domain) to FoodEntity
+        public static FoodEntity MapToEntity(this Food.Food model)
+        {
+            var entity = new FoodEntity
+            {
+                FoodId = model.Id,
+                Name = model.Name,
+                Weight = (float)model.Weight,
+                Description = model.Description,
+                Nutrient = model.NutrientContent.MapToEntity(model.Id),
+                IngredientsAsPart = new HashSet<IngredientEntity>()
+            };
+
+            // Map Ingredients
+            if (model.Ingredients != null)
+            {
+                foreach (var ingredient in model.Ingredients)
+                {
+                    entity.IngredientsAsPart.Add(new IngredientEntity
+                    {
+                        FoodIdComplete = model.Id,
+                        FoodIdPart = ingredient.Id,
+                        FoodComplete = entity,
+                        FoodPart = ingredient.MapToEntity()
+                    });
+                }
+            }
+
+            return entity;
         }
     }
 

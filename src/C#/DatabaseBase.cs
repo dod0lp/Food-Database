@@ -194,15 +194,14 @@ namespace Food_Database_Base
         // Map FoodEntity to Food (Domain)
         public static Food.Food MapToDomain(this FoodEntity entity)
         {
-            /*return new Food.Food
-            {
-                Id = entity.FoodId,
-                Name = entity.Name,
-                Weight = entity.Weight,
-                NutrientContent = entity.Nutrient.MapToDomain(),
-                Description = entity.Description,
-            };*/
-            return new Food.Food(entity.FoodId, entity.Name, entity.Weight, entity.Nutrient.MapToDomain(), entity.Description);
+            return new Food.Food(
+                entity.FoodId,
+                entity.Name,
+                entity.Weight,
+                entity.Nutrient.MapToDomain(),
+                entity.Description,
+                entity.IngredientsAsComplete.Select(i => i.FoodPart.MapToDomain()).ToList()
+            );
         }
 
         // Map Food (Domain) to FoodEntity
@@ -226,7 +225,9 @@ namespace Food_Database_Base
                     entity.IngredientsAsPart.Add(new IngredientEntity
                     {
                         FoodIdComplete = model.Id,
-                        FoodIdPart = ingredient.Id
+                        FoodIdPart = ingredient.Id,
+                        FoodComplete = entity,
+                        FoodPart = ingredient.MapToEntity()
                     });
                 }
             }

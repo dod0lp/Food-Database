@@ -189,6 +189,52 @@ namespace Food_Database_Base
         }
     }
 
+    public static class FoodMappingExtensions
+    {
+        // Map FoodEntity to Food (Domain)
+        public static Food.Food MapToDomain(this FoodEntity entity)
+        {
+            /*return new Food.Food
+            {
+                Id = entity.FoodId,
+                Name = entity.Name,
+                Weight = entity.Weight,
+                NutrientContent = entity.Nutrient.MapToDomain(),
+                Description = entity.Description,
+            };*/
+            return new Food.Food(entity.FoodId, entity.Name, entity.Weight, entity.Nutrient.MapToDomain(), entity.Description);
+        }
+
+        // Map Food (Domain) to FoodEntity
+        public static FoodEntity MapToEntity(this Food.Food model)
+        {
+            var entity = new FoodEntity
+            {
+                FoodId = model.Id,
+                Name = model.Name,
+                Weight = (float)model.Weight,
+                Description = model.Description,
+                Nutrient = model.NutrientContent.MapToEntity(model.Id),
+                IngredientsAsPart = new HashSet<IngredientEntity>()
+            };
+
+            // Map Ingredients
+            if (model.Ingredients != null)
+            {
+                foreach (var ingredient in model.Ingredients)
+                {
+                    entity.IngredientsAsPart.Add(new IngredientEntity
+                    {
+                        FoodIdComplete = model.Id,
+                        FoodIdPart = ingredient.Id
+                    });
+                }
+            }
+
+            return entity;
+        }
+    }
+
 
     // TODO: create a C# backend (ASP.NET Core Web API) that uses EntityFramework interact with the database.
 

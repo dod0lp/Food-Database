@@ -25,14 +25,14 @@ namespace Food
         }
 
         /// <summary>
-        /// Round up double to <see cref="N"/> decimal places.<br></br>
+        /// Round up float to <see cref="N"/> decimal places.<br></br>
         /// </summary>
         /// <param name="number">Number to be rounded up.</param>
         /// <param name="N">Number of total decimal places.</param>
         /// <returns></returns>
-        public static double RoundUpToNDecimalPlaces(double number, int N)
+        public static float RoundUpToNDecimalPlaces(float number, int N)
         {
-            return Math.Ceiling(number * lookup_powers_10[N]) / lookup_powers_10[N];
+            return Convert.ToSingle(Math.Ceiling(number * lookup_powers_10[N]) / lookup_powers_10[N]);
         }
 
         /// <summary>
@@ -40,10 +40,10 @@ namespace Food
         /// </summary>
         /// <param name="number">Number to be rounded up.</param>
         /// <returns></returns>
-        public static double RoundUpTo2DecimalPlaces(double number)
+        public static float RoundUpTo2DecimalPlaces(float number)
         {
             // return RoundUpToNDecimalPlaces(number, 2);
-            return Math.Ceiling(number * 100) / 100;
+            return Convert.ToSingle(Math.Ceiling(number * 100) / 100);
         }
     }
 
@@ -51,12 +51,12 @@ namespace Food
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public double Weight { get; set; }
+        public float Weight { get; set; }
         public Nutrients NutrientContent { get; set; }
         public List<Food> Ingredients { get; set; }
         public string Description { get; set; }
 
-        public Food(int id, string name, double weight, Nutrients nutrientContent, string description)
+        public Food(int id, string name, float weight, Nutrients nutrientContent, string description)
         {
             // Main table - Food
             Id = id;
@@ -73,7 +73,7 @@ namespace Food
             Ingredients = new List<Food>();
         }
 
-        public Food(int id, string name, double weight, Nutrients nutrientContent, string description, List<Food> ingredients)
+        public Food(int id, string name, float weight, Nutrients nutrientContent, string description, List<Food> ingredients)
             : this(id, name, weight, nutrientContent, description)
         {
             Ingredients = ingredients;
@@ -110,7 +110,7 @@ namespace Food
         }
     }
 
-    // TODO: Describe this in database with simply double/int in sense of database 'FatContent_Total' + 'FatContent_Saturated'
+    // TODO: Describe this in database with simply float/int in sense of database 'FatContent_Total' + 'FatContent_Saturated'
     // will be like 'Fat' structure in C#
     /// <summary>
     /// <see cref="Nutrients"/> content of certain <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>
@@ -201,7 +201,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="nutrients">The <see cref="Nutrients"/> instance to scale.</param>
         /// <returns>A new <see cref="Nutrients"/> instance with scaled nutritional values.</returns>
-        public static Nutrients operator *(double factor, Nutrients nutrients)
+        public static Nutrients operator *(float factor, Nutrients nutrients)
         {
             return new Nutrients(
                 factor * nutrients.Energy,
@@ -218,7 +218,7 @@ namespace Food
         /// <param name="nutrients">The <see cref="Nutrients"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Nutrients"/> instance with scaled nutritional values.</returns>
-        public static Nutrients operator *(Nutrients nutrients, double factor)
+        public static Nutrients operator *(Nutrients nutrients, float factor)
         {
             return factor * nutrients;
         }
@@ -238,7 +238,7 @@ namespace Food
     /// </summary>
     public struct Energy
     {
-        private static readonly double KcalToKjFactor = 4.184;
+        private static readonly float KcalToKjFactor = 4.184F;
 
         private int kcal;
         private int kj;
@@ -246,7 +246,7 @@ namespace Food
         /// <summary>
         /// Gets or sets the energy value in <see cref="kcal"/> (kilocalories).
         /// </summary>
-        public double Kcal
+        public float Kcal
         {
             readonly get => kcal;
 
@@ -260,7 +260,7 @@ namespace Food
         /// <summary>
         /// Gets or sets the energy value in <see cref="kj"/> (kilojoules).
         /// </summary>
-        public double KJ
+        public float KJ
         {
             readonly get => kj;
 
@@ -277,7 +277,7 @@ namespace Food
         /// </summary>
         /// <param name="value">The energy value.</param>
         /// <param name="isKcal">Specify true if the provided value is in kcal (default), false if in kJ.</param>
-        public Energy(double value, bool isKcal = true)
+        public Energy(float value, bool isKcal = true)
         {
             if (isKcal)
             {
@@ -322,7 +322,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="e">The <see cref="Energy"/> instance to scale.</param>
         /// <returns>A new <see cref="Energy"/> instance with scaled energy values in kcal.</returns>
-        public static Energy operator *(double factor, Energy e)
+        public static Energy operator *(float factor, Energy e)
         {
             return new Energy(e.Kcal * factor);
         }
@@ -333,7 +333,7 @@ namespace Food
         /// <param name="e">The <see cref="Energy"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Energy"/> instance with scaled energy values in kcal.</returns>
-        public static Energy operator *(Energy e, double factor)
+        public static Energy operator *(Energy e, float factor)
         {
             return factor * e;
         }
@@ -356,13 +356,13 @@ namespace Food
         /// <summary>
         /// Gets or sets the total amount of <see cref="Nutrient"/> in grams.
         /// </summary>
-        public double Total { get; set; }
+        public float Total { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Nutrient"/> class with specified values.
         /// </summary>
         /// <param name="total">The total amount of nutrient in grams (default is 0).</param>
-        public Nutrient(double total = 0)
+        public Nutrient(float total = 0)
         {
             Total = NumberOperations.RoundUpTo2DecimalPlaces(total);
         }
@@ -372,7 +372,7 @@ namespace Food
         /// </summary>
         /// <param name="total">Simply put <see cref="Total"/> here.</param>
         /// <returns></returns>
-        protected static string Str_Total(double total)
+        protected static string Str_Total(float total)
         {
             return $"Total: {total}";
         }
@@ -405,7 +405,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="n">The <see cref="Nutrient"/> instance to scale.</param>
         /// <returns>A new <see cref="Nutrient"/> instance with scaled <see cref="Nutrient.Total"/> value.</returns>
-        public static Nutrient operator *(double factor, Nutrient n)
+        public static Nutrient operator *(float factor, Nutrient n)
         {
             return new Nutrient(n.Total * factor);
         }
@@ -416,7 +416,7 @@ namespace Food
         /// <param name="n">The <see cref="Nutrient"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Nutrient"/> instance with scaled <see cref="Nutrient.Total"/> value.</returns>
-        public static Nutrient operator *(Nutrient n, double factor)
+        public static Nutrient operator *(Nutrient n, float factor)
         {
             return factor * n;
         }
@@ -435,14 +435,14 @@ namespace Food
         /// <summary>
         /// Gets or sets the amount of saturated fat in grams.
         /// </summary>
-        public double Saturated { get; set; }
+        public float Saturated { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Fat"/> struct with specified values.
         /// </summary>
         /// <param name="total">The total amount of fat in grams (default is 0).</param>
         /// <param name="saturated">The amount of saturated fat in grams (default is 0).</param>
-        public Fat(double total = 0, double saturated = 0) : base(total)
+        public Fat(float total = 0, float saturated = 0) : base(total)
         {
             Saturated = NumberOperations.RoundUpTo2DecimalPlaces(saturated);
         }
@@ -480,7 +480,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="f">The <see cref="Fat"/> instance to scale.</param>
         /// <returns>A new <see cref="Fat"/> instance with scaled <see cref="Fat"/> values.</returns>
-        public static Fat operator *(double factor, Fat f)
+        public static Fat operator *(float factor, Fat f)
         {
             return new Fat(f.Total * factor, f.Saturated * factor);
         }
@@ -491,7 +491,7 @@ namespace Food
         /// <param name="f">The <see cref="Fat"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Fat"/> instance with scaled <see cref="Fat"/> values.</returns>
-        public static Fat operator *(Fat f, double factor)
+        public static Fat operator *(Fat f, float factor)
         {
             return factor * f;
         }
@@ -514,14 +514,14 @@ namespace Food
         /// <summary>
         /// Gets or sets the amount of sugar in grams.
         /// </summary>
-        public double Sugar { get; set; }
+        public float Sugar { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Carbohydrates"/> struct with specified values.
         /// </summary>
         /// <param name="total">The total amount of carbohydrates in grams (default is 0).</param>
         /// <param name="sugar">The amount of sugar in grams (default is 0).</param>
-        public Carbohydrates(double total = 0, double sugar = 0) : base(total)
+        public Carbohydrates(float total = 0, float sugar = 0) : base(total)
         {
             Sugar = NumberOperations.RoundUpTo2DecimalPlaces(sugar);
         }
@@ -559,7 +559,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="c">The <see cref="Carbohydrates"/> instance to scale.</param>
         /// <returns>A new <see cref="Carbohydrates"/> instance with scaled carbohydrate values.</returns>
-        public static Carbohydrates operator *(double factor, Carbohydrates c)
+        public static Carbohydrates operator *(float factor, Carbohydrates c)
         {
             return new Carbohydrates(c.Total * factor, c.Sugar * factor);
         }
@@ -570,7 +570,7 @@ namespace Food
         /// <param name="c">The <see cref="Carbohydrates"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Carbohydrates"/> instance with scaled carbohydrate values.</returns>
-        public static Carbohydrates operator *(Carbohydrates c, double factor)
+        public static Carbohydrates operator *(Carbohydrates c, float factor)
         {
             return factor * c;
         }
@@ -594,7 +594,7 @@ namespace Food
         /// Initializes a new instance of the <see cref="Protein"/> class with specified values.
         /// </summary>
         /// <param name="total">The total amount of protein in grams (default is 0).</param>
-        public Protein(double total = 0) : base(total) { }
+        public Protein(float total = 0) : base(total) { }
 
         /// <summary>
         /// Adds two instances of <see cref="Protein"/>, combining their <see cref="Protein.Total"/> amounts.
@@ -626,7 +626,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="p">The <see cref="Protein"/> instance to scale.</param>
         /// <returns>A new <see cref="Protein"/> instance with scaled <see cref="Protein.Total"/> value.</returns>
-        public static Protein operator *(double factor, Protein p)
+        public static Protein operator *(float factor, Protein p)
         {
             return new Protein(p.Total * factor);
         }
@@ -637,7 +637,7 @@ namespace Food
         /// <param name="p">The <see cref="Protein"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Protein"/> instance with scaled <see cref="Protein.Total"/> value.</returns>
-        public static Protein operator *(Protein p, double factor)
+        public static Protein operator *(Protein p, float factor)
         {
             return factor * p;
         }
@@ -652,7 +652,7 @@ namespace Food
         /// Initializes a new instance of the <see cref="Salt"/> class with specified values.
         /// </summary>
         /// <param name="total">The total amount of salt in grams (default is 0).</param>
-        public Salt(double total = 0) : base(total) { }
+        public Salt(float total = 0) : base(total) { }
 
         /// <summary>
         /// Adds two instances of <see cref="Salt"/>, combining their <see cref="Salt.Total"/> amounts.
@@ -682,7 +682,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="s">The <see cref="Salt"/> instance to scale.</param>
         /// <returns>A new <see cref="Salt"/> instance with scaled <see cref="Salt.Total"/> value.</returns>
-        public static Salt operator *(double factor, Salt s)
+        public static Salt operator *(float factor, Salt s)
         {
             return new Salt(s.Total * factor);
         }
@@ -693,7 +693,7 @@ namespace Food
         /// <param name="s">The <see cref="Salt"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Salt"/> instance with scaled <see cref="Salt.Total"/> value.</returns>
-        public static Salt operator *(Salt s, double factor)
+        public static Salt operator *(Salt s, float factor)
         {
             return factor * s;
         }
@@ -732,7 +732,7 @@ namespace Food
                     new Fat(30, 15),
                     new Carbohydrates(70, 40),
                     new Protein(20),
-                    new Salt(3.5)
+                    new Salt(3.5F)
                 );
 
                 Nutrients nutrients2 = new(
@@ -740,12 +740,12 @@ namespace Food
                     new Fat(20, 10),
                     new Carbohydrates(50, 30),
                     new Protein(15),
-                    new Salt(2.5)
+                    new Salt(2.5F)
                 );
 
                 Nutrients resultAddNutrients = nutrients1 + nutrients2;
                 Nutrients resultSubtractNutrients = nutrients1 - nutrients2;
-                Nutrients resultScaleNutrients = 0.5 * nutrients1;
+                Nutrients resultScaleNutrients = 0.5F * nutrients1;
 
                 Console.WriteLine(nutrients1);
                 Console.WriteLine(nutrients2);
@@ -755,12 +755,12 @@ namespace Food
                 Console.WriteLine($"Result of scaling (Nutrients):\n{resultScaleNutrients}");
 
                 // Rounding up tests
-                Fat fat2 = new (10.22222, 9.333);
+                Fat fat2 = new (10.22222F, 9.333F);
                 Console.WriteLine(fat2);
-                Carbohydrates carbs1 = new(132.1321321, 25.43891);
+                Carbohydrates carbs1 = new(132.1321321F, 25.43891F);
                 Console.WriteLine(carbs1);
 
-                const double numberToRoundup = 10.123456789;
+                const float numberToRoundup = 10.123456789F;
                 Console.WriteLine($"\nRounding up {numberToRoundup}:");
                 for (int i = 0; i < 9; i++)
                 {
@@ -770,11 +770,11 @@ namespace Food
             }
 
             Nutrients nutrientsPotato = new(
-                    new Energy(313),
-                    new Fat(0.1, 0.02),
-                    new Carbohydrates(23.2, 0.5),
-                    new Protein(3.1),
-                    new Salt(0.004)
+                    new Energy(313F),
+                    new Fat(0.1F, 0.02F),
+                    new Carbohydrates(23.2F, 0.5F),
+                    new Protein(3.1F),
+                    new Salt(0.004F)
                 );
 
             Food foodPotato = new(-1, "Potato", 100, nutrientsPotato, "Root vegetable");

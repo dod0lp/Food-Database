@@ -1,4 +1,6 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
+using Food_Database_Base;
 
 namespace Food
 {
@@ -93,6 +95,18 @@ namespace Food
             }
 
             return false;
+        }
+
+        public string ToReadableString(Food food)
+        {
+            return $"ID: {food.Id}\nName: {food.Name}\nWeight: {food.Weight}\nNutrients: {food.NutrientContent}\n"
+                +
+                $"Number of Ingredients: {food.Ingredients.Count}\nDescription: {food.Description}";
+        }
+
+        public override string ToString()
+        {
+            return ToReadableString(this);
         }
     }
 
@@ -754,6 +768,22 @@ namespace Food
                     Console.WriteLine(NumberOperations.RoundUpToNDecimalPlaces(numberToRoundup, i));
                 }
             }
+
+            Nutrients nutrientsPotato = new(
+                    new Energy(313),
+                    new Fat(0.1, 0.02),
+                    new Carbohydrates(23.2, 0.5),
+                    new Protein(3.1),
+                    new Salt(0.004)
+                );
+
+            Food foodPotato = new(-1, "Potato", 100, nutrientsPotato, "Root vegetable");
+
+            FoodEntity foodPotatoEntity = foodPotato.MapToEntity();
+            Food foodPotatoFromEntity = foodPotatoEntity.MapToDomain();
+
+            Console.WriteLine(foodPotato);
+            Console.WriteLine(foodPotatoFromEntity);
         }
     }
 }

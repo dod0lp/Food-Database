@@ -71,7 +71,8 @@ namespace Food
             Ingredients = new List<Food>();
         }
 
-        public Food(int id, string name, double weight, Nutrients nutrientContent, string description, List<Food> ingredients) : this(id, name, weight, nutrientContent, description)
+        public Food(int id, string name, double weight, Nutrients nutrientContent, string description, List<Food> ingredients)
+            : this(id, name, weight, nutrientContent, description)
         {
             Ingredients = ingredients;
         }

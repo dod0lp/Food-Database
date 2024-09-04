@@ -769,7 +769,7 @@ namespace Food
                 }
             }
 
-            Nutrients nutrientsPotato = new(
+            Nutrients nutrientPotato = new(
                     new Energy(313F),
                     new Fat(0.1F, 0.02F),
                     new Carbohydrates(23.2F, 0.5F),
@@ -777,13 +777,18 @@ namespace Food
                     new Salt(0.004F)
                 );
 
-            Food foodPotato = new(-1, "Potato", 100, nutrientsPotato, "Root vegetable");
+            Food foodPotato = new(-1, "Potato", 100, nutrientPotato, "Root vegetable");
 
             FoodEntity foodPotatoEntity = foodPotato.MapToEntity();
             Food foodPotatoFromEntity = foodPotatoEntity.MapToDomain();
-
             Console.WriteLine(foodPotato);
             Console.WriteLine(foodPotatoFromEntity);
+
+            NutrientEntity nutrientPotatoEntity = nutrientPotato.MapToEntity(foodPotato.Id);
+            Nutrients nutrientPotatoFromEntity = nutrientPotatoEntity.MapToDomain();
+            Console.WriteLine(nutrientPotato);
+            Console.WriteLine(nutrientPotatoFromEntity);
+
         }
     }
 }

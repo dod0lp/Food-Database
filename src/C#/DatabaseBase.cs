@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Food_Database_Base
 {
@@ -226,6 +227,11 @@ namespace Food_Database_Base
         /// <returns>A <see cref="Nutrients"/> domain model populated with data from the <paramref name="entity"/>.</returns>
         public static Nutrients MapToDomain(this NutrientEntity entity)
         {
+            if (entity is null)
+            {
+                return new Nutrients(new(-1), new(-1, -1), new(-1, -1), new(-1), new(-1));
+            }
+
             return new Nutrients(
                 new Energy(entity.EnergyKcal),
                 new Fat(entity.FatTotal, entity.FatSaturated),
@@ -277,18 +283,48 @@ namespace Food_Database_Base
         /// <summary>
         /// Maps a <see cref="FoodEntity"/> to a <see cref="Food.Food"/> domain model.
         /// </summary>
+        /// <param name="entity">The <see cref="FoodEntity"/> instance to be mapped without ingredients list.</param>
+        /// <returns>A <see cref="Food.Food"/> domain model populated with data from the <paramref name="entity"/>.</returns>
+        public static Food.Food MapToDomainWithoutIngredients(this FoodEntity entity)
+        {
+            return
+                new Food.Food(
+                    entity.FoodId,
+                    entity.Name,
+                    entity.Weight,
+                    entity.Nutrient.MapToDomain(),
+                    entity.Description
+                );
+        }
+
+        /// <summary>
+        /// Maps a <see cref="FoodEntity"/> to a <see cref="Food.Food"/> domain model.
+        /// </summary>
         /// <param name="entity">The <see cref="FoodEntity"/> instance to be mapped.</param>
         /// <returns>A <see cref="Food.Food"/> domain model populated with data from the <paramref name="entity"/>.</returns>
         public static Food.Food MapToDomain(this FoodEntity entity)
         {
-            return new Food.Food(
-                entity.FoodId,
-                entity.Name,
-                entity.Weight,
-                entity.Nutrient.MapToDomain(),
-                entity.Description,
-                entity.IngredientsAsComplete.Select(i => i.FoodPart.MapToDomain()).ToList()
-            );
+            var ingredients = new List<Food.Food>();
+            var retFood = entity.MapToDomainWithoutIngredients();
+
+            if (entity.IngredientsAsComplete.Count > 0)
+            {
+                foreach (var ingredient in entity.IngredientsAsComplete)
+                {
+                    var temp = ingredient.FoodPart;
+                    var domainIngredient = new Food.Food(
+                        temp.FoodId,
+                        temp.Name,
+                        temp.Weight,
+                        temp.Nutrient.MapToDomain(),
+                        temp.Description
+                    );
+
+                    retFood.AddIngredient(domainIngredient);
+                }
+            }
+
+            return retFood;
         }
 
         /// <summary>

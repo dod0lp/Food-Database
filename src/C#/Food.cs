@@ -141,6 +141,12 @@ namespace Food
 
             string allIngredients = string.Join(",", ingredientsInfo);
             string foodInfo = $"Contains: {allIngredients}";
+
+            if (allIngredients.Length == 0)
+            {
+                foodInfo = "Contains: Nothing else";
+            }
+
             foodInfoList.Add(foodInfo);
 
             return foodInfoList;

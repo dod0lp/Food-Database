@@ -64,12 +64,25 @@ namespace CSharp_FrontEnd
                     foreach (FoodEntity foodEntity in foodsWithNutrients)
                     {
                         Food.Food foodList = foodEntity.MapToDomain();
-                        int id = foodList.Id;
-                        string name = foodList.Name;
-                        double weight = foodList.Weight;
+                        var foodInfoList = Food.Food.ToStringList(foodList);
 
+                        var row = new DataGridViewRow();
+                        row.CreateCells(dataGridView1);
 
-                        dataGridView1.Rows.Add(foodInfoList);
+                        if (foodInfoList.Count > row.Cells.Count)
+                        {
+                            for (int i = row.Cells.Count; i < foodInfoList.Count; i++)
+                            {
+                                row.Cells.Add(new DataGridViewTextBoxCell());
+                            }
+                        }
+
+                        for (int i = 0; i < foodInfoList.Count; i++)
+                        {
+                            row.Cells[i].Value = foodInfoList[i];
+                        }
+
+                        dataGridView1.Rows.Add(row);
                     }
                 }
             }

@@ -343,11 +343,7 @@ namespace Food_Database_Base
             {
                 // I can't add ID in this case, because it breaks database foreignkey,...
                 Name = model.Name,
-<<<<<<< HEAD
-                Weight = (float)model.Weight,
-=======
                 Weight = (double)model.Weight,
->>>>>>> sql-setup
                 Description = model.Description,
                 Nutrient = model.NutrientContent.MapToEntity(model.Id),
                 IngredientsAsPart = new HashSet<IngredientEntity>()

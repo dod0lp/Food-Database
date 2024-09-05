@@ -100,9 +100,14 @@ namespace Food
 
         public string ToReadableString(Food food)
         {
-            return $"ID: {food.Id}\nName: {food.Name}\nWeight: {food.Weight}\nNutrients: {food.NutrientContent}\n"
+            string foodInfo = $"ID: {food.Id}\nName: {food.Name}\nWeight: {food.Weight}\nNutrients: {food.NutrientContent}\n"
                 +
-                $"Number of Ingredients: {food.Ingredients.Count}\nDescription: {food.Description}";
+                $"Description: {food.Description}\n";
+
+            string foodsContained = string.Join("\n", Ingredients.Select(food => food.Name));
+
+            return foodInfo + foodsContained;
+
         }
 
         public override string ToString()
@@ -702,6 +707,48 @@ namespace Food
     }
 
 
+    public static class FoodEntityParser
+    {
+        public static string ParseEntityHumanReadable(Food_Database_Base.FoodEntity foodEntity)
+        {
+            string result = "";
+
+            result += $"Name: {foodEntity.Name}\n";
+            result += $"Weight: {foodEntity.Weight}g\n";
+            result += $"Description: {foodEntity.Description}\n";
+
+            if (foodEntity.Nutrient != null)
+            {
+                result += $"Nutritional Info:\n";
+                result += $"  Energy: {foodEntity.Nutrient.EnergyKcal} kcal / {foodEntity.Nutrient.EnergyKj} kJ\n";
+                result += $"  Total Fat: {foodEntity.Nutrient.FatTotal}g (Saturated: {foodEntity.Nutrient.FatSaturated}g)\n";
+                result += $"  Total Carbs: {foodEntity.Nutrient.CarbsTotal}g (Sugar: {foodEntity.Nutrient.CarbsSaturated}g)\n";
+                result += $"  Protein: {foodEntity.Nutrient.ProteinTotal}g\n";
+                result += $"  Salt: {foodEntity.Nutrient.SaltTotal}g\n";
+            }
+            else
+            {
+                result += "No nutrient information available.\n";
+            }
+
+            // Print related ingredients, if there are none, it prints that there are none
+            if (foodEntity.IngredientsAsComplete.Any())
+            {
+                result += "Ingredients:\n";
+                foreach (var ingredient in foodEntity.IngredientsAsComplete)
+                {
+                    result += $"  Ingredient: {ingredient.FoodPart.Name}\n";
+                }
+            }
+            else
+            {
+                result += "No ingredients listed.\n";
+            }
+
+            return result;
+        }
+    }
+
     public class Program_Food
     {
         private static readonly string argTestsNutrients = "nutrientsTests";
@@ -795,46 +842,16 @@ namespace Food
             {
                 // Simple query to get all food data along with related nutrients
                 var foodsWithNutrients = context.Foods
-                    .Include(f => f.Nutrient)  // Include related nutrients
-                    .Include(f => f.IngredientsAsComplete)  // Include ingredients
-                        .ThenInclude(i => i.FoodPart)  // Include the details of each ingredient
+                    .Include(f => f.Nutrient)  // Includes nutrients of this food
+                    .Include(f => f.IngredientsAsComplete)  // This includes ingredients (foods)
+                        .ThenInclude(i => i.FoodPart)  // This includes the details of each ingredient
                     .ToList();
 
-                // Print all the retrieved food entities
-                foreach (var food in foodsWithNutrients)
+                // Print all the retrieved food entities by first casting them to
+                // domain for easier CSharp workings
+                foreach (FoodEntity foodEntity in foodsWithNutrients)
                 {
-                    Console.WriteLine($"Food ID: {food.FoodId}");
-                    Console.WriteLine($"Name: {food.Name}");
-                    Console.WriteLine($"Weight: {food.Weight}g");
-                    Console.WriteLine($"Description: {food.Description}");
-                    if (food.Nutrient != null)
-                    {
-                        Console.WriteLine($"Nutritional Info:");
-                        Console.WriteLine($"  Energy: {food.Nutrient.EnergyKcal} kcal / {food.Nutrient.EnergyKj} kJ");
-                        Console.WriteLine($"  Total Fat: {food.Nutrient.FatTotal}g (Saturated: {food.Nutrient.FatSaturated}g)");
-                        Console.WriteLine($"  Total Carbs: {food.Nutrient.CarbsTotal}g (Sugar: {food.Nutrient.CarbsSaturated}g)");
-                        Console.WriteLine($"  Protein: {food.Nutrient.ProteinTotal}g");
-                        Console.WriteLine($"  Salt: {food.Nutrient.SaltTotal}g");
-                    }
-                    else
-                    {
-                        Console.WriteLine("No nutrient information available.");
-                    }
-
-                    // Print related ingredients
-                    if (food.IngredientsAsComplete.Any())
-                    {
-                        Console.WriteLine("Ingredients:");
-                        foreach (var ingredient in food.IngredientsAsComplete)
-                        {
-                            Console.WriteLine($"  Ingredient: {ingredient.FoodPart.Name}");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("No ingredients listed.");
-                    }
-
+                    Console.WriteLine(FoodEntityParser.ParseEntityHumanReadable(foodEntity));
                     Console.WriteLine("-------------------");
                 }
             }

@@ -173,8 +173,13 @@ namespace Food_Database_Base
 
     public class FoodDbContext : DbContext
     {
-        public DbSet<NutrientEntity> Nutrients { get; set; }
+        /// <summary>
+        /// Food table entity, mapped so that I can add also <see cref="NutrientEntity"/> and/or <see cref="IngredientEntity"/> with this when
+        /// aforementioned entities are defined,
+        /// but also I can simply add only <see cref="FoodEntity"/>
+        /// </summary>
         public DbSet<FoodEntity> Foods { get; set; }
+        public DbSet<NutrientEntity> Nutrients { get; set; }
         public DbSet<IngredientEntity> Ingredients { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -234,14 +239,14 @@ namespace Food_Database_Base
         /// Maps a <see cref="Nutrients"/> domain model to a <see cref="NutrientEntity"/> for database storage.
         /// </summary>
         /// <param name="model">The <see cref="Nutrients"/> domain model to be mapped.</param>
-        /// <param name="foodId">The ID of the food item associated with this nutrient data.</param>
+        /// <param name="foodId">The ID of the food item associated with this nutrient data. If database has autoincrement, this is not needed.</param>
         /// <returns>A <see cref="NutrientEntity"/> instance populated with data from the <paramref name="model"/>.</returns>
         /// <remarks>
         /// - The <see cref="EnergyKcal"/> and <see cref="EnergyKj"/> properties are cast to <c>int</c> as the database stores energy values as integers.
         /// - Other properties are cast to <c>double</c> to match the database schema for precision.
         /// - Ensure that the explicit casting does not result in data loss or precision issues.
         /// </remarks>
-        public static NutrientEntity MapToEntity(this Nutrients model, int foodId)
+        public static NutrientEntity MapToEntity(this Nutrients model, int foodId = -1)
         {
             return new NutrientEntity
             {
@@ -300,7 +305,7 @@ namespace Food_Database_Base
         {
             var entity = new FoodEntity
             {
-                FoodId = model.Id,
+                // I can't add ID in this case, because it breaks database foreignkey,...
                 Name = model.Name,
                 Weight = (double)model.Weight,
                 Description = model.Description,

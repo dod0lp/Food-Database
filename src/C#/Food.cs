@@ -33,7 +33,7 @@ namespace Food
         /// <returns></returns>
         public static double RoundUpToNDecimalPlaces(double number, int N)
         {
-            return Convert.ToSingle(Math.Ceiling(number * lookup_powers_10[N]) / lookup_powers_10[N]);
+            return Math.Ceiling(number * lookup_powers_10[N]) / lookup_powers_10[N];
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Food
         public static double RoundUpTo2DecimalPlaces(double number)
         {
             // return RoundUpToNDecimalPlaces(number, 2);
-            return Convert.ToSingle(Math.Ceiling(number * 100) / 100);
+            return Math.Ceiling(number * 100) / 100;
         }
     }
 
@@ -67,6 +67,7 @@ namespace Food
 
             // Separate table, foreign key ID - Nutrients
             NutrientContent = nutrientContent;
+            // NutrientContent = nutrientContent ?? new Nutrients(new(0), new(0), new(0), new(0), new(0));
 
             // Separate table, foreign key combination of food and other food ID, where first one will be main food,
             // other ID will be one ingredient - other food - food is simply an ingredient
@@ -707,8 +708,18 @@ namespace Food
     }
 
 
+    /// <summary>
+    /// Provides methods for parsing and formatting <see cref="Food_Database_Base.FoodEntity"/> instances into human-readable strings.
+    /// </summary>
     public static class FoodEntityParser
     {
+        /// <summary>
+        /// Converts a <see cref="Food_Database_Base.FoodEntity"/> instance into a human-readable string representation of food.
+        /// </summary>
+        /// <param name="foodEntity">The <see cref="Food_Database_Base.FoodEntity"/> instance to be formatted.</param>
+        /// <returns>A string that presents the details of the <see cref="Food_Database_Base.FoodEntity"/> <paramref name="foodEntity"/> in a readable format,
+        /// including its <see cref="FoodEntity.Name"/>, <see cref="FoodEntity.Weight"/>, <see cref="FoodEntity.Description"/>,
+        /// <see cref="FoodEntity.Nutrient"/>, and <see cref="FoodEntity.IngredientsAsComplete"/>.</returns>
         public static string ParseEntityHumanReadable(Food_Database_Base.FoodEntity foodEntity)
         {
             string result = "";
@@ -756,6 +767,7 @@ namespace Food
         public static void Main(string[] args)
         {
             bool testsNutrients = false;
+            bool databaseExamples = false;
 
             if (args.Length > 0)
             {
@@ -780,7 +792,7 @@ namespace Food
                     new Fat(30, 15),
                     new Carbohydrates(70, 40),
                     new Protein(20),
-                    new Salt(3.5F)
+                    new Salt(3.5)
                 );
 
                 Nutrients nutrients2 = new(
@@ -788,12 +800,12 @@ namespace Food
                     new Fat(20, 10),
                     new Carbohydrates(50, 30),
                     new Protein(15),
-                    new Salt(2.5F)
+                    new Salt(2.5)
                 );
 
                 Nutrients resultAddNutrients = nutrients1 + nutrients2;
                 Nutrients resultSubtractNutrients = nutrients1 - nutrients2;
-                Nutrients resultScaleNutrients = 0.5F * nutrients1;
+                Nutrients resultScaleNutrients = 0.5 * nutrients1;
 
                 Console.WriteLine(nutrients1);
                 Console.WriteLine(nutrients2);
@@ -803,12 +815,12 @@ namespace Food
                 Console.WriteLine($"Result of scaling (Nutrients):\n{resultScaleNutrients}");
 
                 // Rounding up tests
-                Fat fat2 = new (10.22222F, 9.333F);
+                Fat fat2 = new (10.22222, 9.333);
                 Console.WriteLine(fat2);
-                Carbohydrates carbs1 = new(132.1321321F, 25.43891F);
+                Carbohydrates carbs1 = new(132.1321321, 25.43891);
                 Console.WriteLine(carbs1);
 
-                const double numberToRoundup = 10.123456789F;
+                const double numberToRoundup = 10.123456789;
                 Console.WriteLine($"\nRounding up {numberToRoundup}:");
                 for (int i = 0; i < 9; i++)
                 {
@@ -818,11 +830,11 @@ namespace Food
 
 
                 Nutrients nutrientPotato = new(
-                        new Energy(313F),
-                        new Fat(0.1F, 0.02F),
-                        new Carbohydrates(23.2F, 0.5F),
-                        new Protein(3.1F),
-                        new Salt(0.004F)
+                        new Energy(313),
+                        new Fat(0.1F, 0.02),
+                        new Carbohydrates(23.2, 0.5),
+                        new Protein(3.1),
+                        new Salt(0.004)
                     );
 
                 Food foodPotato = new(-1, "Potato", 100, nutrientPotato, "Root vegetable");
@@ -838,25 +850,91 @@ namespace Food
                 Console.WriteLine(nutrientPotatoFromEntity);
             }
 
-            using (var context = new FoodDbContext())
+            if (!databaseExamples)
             {
-                // Simple query to get all food data along with related nutrients
-                var foodsWithNutrients = context.Foods
-                    .Include(f => f.Nutrient)  // Includes nutrients of this food
-                    .Include(f => f.IngredientsAsComplete)  // This includes ingredients (foods)
-                        .ThenInclude(i => i.FoodPart)  // This includes the details of each ingredient
-                    .ToList();
-
-                // Print all the retrieved food entities by first casting them to
-                // domain for easier CSharp workings
-                foreach (FoodEntity foodEntity in foodsWithNutrients)
+                using (var context = new FoodDbContext())
                 {
-                    Console.WriteLine(FoodEntityParser.ParseEntityHumanReadable(foodEntity));
-                    Console.WriteLine("-------------------");
-                }
-            }
+                    // Simple query to get all food data along with related nutrients
+                    var foodsWithNutrients = context.Foods
+                        .Include(f => f.Nutrient)  // Includes nutrients of this food
+                        .Include(f => f.IngredientsAsComplete)  // This includes ingredients (foods)
+                            .ThenInclude(i => i.FoodPart)  // This includes the details of each ingredient
+                        .ToList();
 
-            Console.ReadKey();
+                    // Print all the retrieved food entities by first casting them to
+                    // domain for easier CSharp workings
+                    foreach (FoodEntity foodEntity in foodsWithNutrients)
+                    {
+                        Console.WriteLine(FoodEntityParser.ParseEntityHumanReadable(foodEntity));
+                        Console.WriteLine("-------------------");
+                    }
+
+                    Nutrients peasNutrients = new(
+                        new Energy(81),
+                        new Fat(0.4, 0.1),
+                        new Carbohydrates(14, 6),
+                        new Protein(5),
+                        new Salt(0.05)
+                    );
+
+                    Food peasFood = new Food(-1, "Pea", 100, peasNutrients, "Green little balls.");
+                    FoodEntity peasFoodEntity = peasFood.MapToEntity();
+                    context.Foods.Add(peasFoodEntity);
+                    context.SaveChanges();
+                    int peasId = peasFoodEntity.FoodId;
+                    var peasIngredients = new List<IngredientEntity>
+                    {
+                        new IngredientEntity
+                        {
+                            FoodIdComplete = peasId,
+                            FoodIdPart = peasId
+                        }
+                    };
+                    context.Ingredients.AddRange(peasIngredients);
+                    context.SaveChanges();
+
+                    Console.WriteLine("Food item added successfully.\n");
+
+                    var carrotsEntity = new FoodEntity
+                    {
+                        Name = "Carrots",
+                        Weight = 150.0,
+                        Description = "An orange root vegetable.",
+                        Nutrient = new NutrientEntity
+                        {
+                            EnergyKcal = 200,
+                            EnergyKj = 800,
+                            FatTotal = 1.0,
+                            FatSaturated = 2.0,
+                            CarbsTotal = 30.0,
+                            CarbsSaturated = 5.0,
+                            ProteinTotal = 2.0,
+                            SaltTotal = 0.2
+                        }
+                    };
+
+                    context.Foods.Add(carrotsEntity);
+                    context.SaveChanges();
+
+                    int carrotsId = carrotsEntity.FoodId;
+
+                    var carrotsIngredients = new List<IngredientEntity>
+                    {
+                        new IngredientEntity
+                        {
+                            FoodIdComplete = carrotsId,
+                            FoodIdPart = carrotsId
+                        }
+                    };
+
+                    context.Ingredients.AddRange(carrotsIngredients);
+                    context.SaveChanges();
+
+                    Console.WriteLine("Food item added successfully.\n");
+                }
+
+                Console.ReadKey();
+            }
         }
     }
 }

@@ -57,6 +57,8 @@ namespace Food
         public List<Food> Ingredients { get; set; }
         public string Description { get; set; }
 
+        public Food() { }
+
         public Food(int id, string name, double weight, Nutrients nutrientContent, string description)
         {
             // Main table - Food
@@ -101,7 +103,7 @@ namespace Food
 
         public string ToReadableString(Food food)
         {
-            string foodInfo = $"ID: {food.Id}\nName: {food.Name}\nWeight: {food.Weight}\nNutrients: {food.NutrientContent}\n"
+            string foodInfo = $"ID: {food.Id}\nName: {food.Name}\nWeight: {food.Weight}\nNutrients: {food.NutrientContent}"
                 +
                 $"Description: {food.Description}\n";
 
@@ -114,6 +116,66 @@ namespace Food
         public override string ToString()
         {
             return ToReadableString(this);
+        }
+
+        /// <summary>
+        /// Combines two <see cref="Food"/> objects by adding their <see cref="Food.Weight"/>, 
+        /// <see cref="Food.NutrientContent"/>, and merging their <see cref="Food.Ingredients"/> lists. 
+        /// The result is a new <see cref="Food"/> object with a default <see cref="Food.Id"/> of -1 
+        /// and one of the original <see cref="Food.Name"/> values.
+        /// </summary>
+        /// <param name="food1">The first <see cref="Food"/> object.</param>
+        /// <param name="food2">The second <see cref="Food"/> object.</param>
+        /// <returns>A new <see cref="Food"/> object with combined weight, nutrients, and ingredients.</returns>
+        public static Food operator +(Food food1, Food food2)
+        {
+            return new Food
+            {
+                Id = -1,
+                Name = food1.Name ?? food2.Name,
+                Weight = food1.Weight + food2.Weight,
+                NutrientContent = food1.NutrientContent + food2.NutrientContent,
+                Ingredients = food1.Ingredients.Union(food2.Ingredients).ToList(),  // Simple union of ingredients
+                Description = ""
+            };
+        }
+
+        /// <summary>
+        /// Scales a <see cref="Food"/> object by multiplying its <see cref="Food.Weight"/>, 
+        /// <see cref="Food.NutrientContent"/>, and scaling each item in the <see cref="Food.Ingredients"/> list 
+        /// by a specified factor.
+        /// </summary>
+        /// <param name="factor">The factor by which to scale the food.</param>
+        /// <param name="food">The <see cref="Food"/> object to be scaled.</param>
+        /// <returns>A new <see cref="Food"/> object scaled by the factor.</returns>
+        public static Food operator *(double factor, Food food)
+        {
+            // Scale the ingredients before returning scaled food
+            List<Food> scaledIngredients = food.Ingredients
+                .Select(ingredient => factor * ingredient)
+                .ToList();
+
+            return new Food
+            {
+                Id = food.Id,
+                Name = food.Name,
+                Weight = food.Weight * factor,
+                NutrientContent = food.NutrientContent * factor,
+                Ingredients = scaledIngredients,
+                Description = food.Description
+            };
+        }
+
+        /// <summary>
+        /// Scales a <see cref="Food"/> object by multiplying its properties by a specified factor.
+        /// This is a convenience method to support both factor-first and food-first multiplication.
+        /// </summary>
+        /// <param name="food">The <see cref="Food"/> object to be scaled.</param>
+        /// <param name="factor">The factor by which to scale the food.</param>
+        /// <returns>A new <see cref="Food"/> object scaled by the factor.</returns>
+        public static Food operator *(Food food, double factor)
+        {
+            return factor * food;
         }
     }
 
@@ -356,8 +418,18 @@ namespace Food
     }
 
     /// <summary>
-    /// Represents nutritional information
+    /// Represents a nutrient with a specific total amount. 
+    /// Supports various arithmetic operations such as addition, subtraction, and scaling through overloaded operators.
     /// </summary>
+    /// <remarks>
+    /// The <see cref="Nutrient"/> class allows users to perform the following operations:
+    /// <list type="bullet">
+    ///     <item><description>Addition (+): Combines the total amounts of two <see cref="Nutrient"/> instances.</description></item>
+    ///     <item><description>Subtraction (-): Subtracts the total amount of one <see cref="Nutrient"/> from another.</description></item>
+    ///     <item><description>Multiplication (*): Scales a <see cref="Nutrient"/> instance by a specified factor.</description></item>
+    /// </list>
+    /// This class ensures that the total amount of the nutrient is always rounded to two decimal places when initialized or modified.
+    /// </remarks>
     public class Nutrient
     {
         /// <summary>
@@ -828,7 +900,8 @@ namespace Food
         public static void Main(string[] args)
         {
             bool testsNutrients = false;
-            bool databaseExamples = false;
+            bool databaseExamples_Basics = false;
+            bool databaseExamples_Scales = false;
 
             if (args.Length > 0)
             {
@@ -911,7 +984,7 @@ namespace Food
                 Console.WriteLine(nutrientPotatoFromEntity);
             }
 
-            if (!databaseExamples)
+            if (databaseExamples_Basics)
             {
                 using (var context = new FoodDbContext())
                 {
@@ -989,8 +1062,26 @@ namespace Food
 
                     Console.WriteLine("Food item added successfully.\n");*/
                 }
+            }
 
-                Console.ReadKey();
+            if (databaseExamples_Scales)
+            {
+                using (var context = new FoodDbContext())
+                {
+                    DB_DataParser dbParser = new(context);
+                    List<FoodEntity> foodsWithNutrients = dbParser.GetAllFoodEntity();
+
+                    Food food1 = foodsWithNutrients[0].MapToDomain();
+                    Food food2 = foodsWithNutrients[1].MapToDomain();
+
+                    Food food3 = food1 + food2;
+
+                    food3.Name = "AppleChicken";
+                    food3.Description = "Apple with chicken.";
+
+                    dbParser.InsertFoodFromDomain(food3);
+                    dbParser.InsertFoodFromDomain(0.5 * food3);
+                }
             }
         }
     }

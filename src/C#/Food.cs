@@ -955,6 +955,15 @@ namespace Food
         }
 
         /// <summary>
+        /// Retrieves one <see cref="FoodEntity"/> instance from the database, including related nutrient and ingredient data, based on ID.
+        /// </summary>
+        /// <returns><see cref="FoodEntity"/>, or can return null if none found.</returns>
+        public FoodEntity? GetFoodEntityById(int id)
+        {
+            return context.Foods.SingleOrDefault(f => f.FoodId == id);
+        }
+
+        /// <summary>
         /// Inserts a new <see cref="FoodEntity"/> into the database, created from the provided <see cref="Food"/> domain model.
         /// </summary>
         /// <param name="food">The <see cref="Food"/> domain model to be inserted into the database.</param>
@@ -982,7 +991,7 @@ namespace Food
         {
             bool testsNutrients = false;
             bool databaseExamples_Basics = false;
-            bool databaseExamples_Scales = false;
+            bool databaseExamples_Scales_ReturnById = false;
 
             if (args.Length > 0)
             {
@@ -1150,7 +1159,7 @@ namespace Food
                 }
             }
 
-            if (databaseExamples_Scales)
+            if (databaseExamples_Scales_ReturnById)
             {
                 using (var context = new FoodDbContext())
                 {
@@ -1166,7 +1175,13 @@ namespace Food
                     food3.Description = "Apple with chicken.";
 
                     dbParser.InsertFoodFromDomain(food3);
-                    dbParser.InsertFoodFromDomain(0.5 * food3);
+                    int newId = dbParser.InsertFoodFromDomain(0.5 * food3);
+
+                    FoodEntity? newEntity = dbParser.GetFoodEntityById(newId);
+                    if (newEntity != null)
+                    {
+                        Console.WriteLine(newEntity.MapToDomain());
+                    }
                 }
             }
         }

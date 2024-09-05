@@ -38,7 +38,7 @@
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Location = new Point(3, 3);
             dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(1418, 356);
+            dataGridView1.Size = new Size(1772, 356);
             dataGridView1.TabIndex = 0;
             // 
             // textBox1
@@ -53,7 +53,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1433, 914);
+            ClientSize = new Size(1878, 914);
             Controls.Add(textBox1);
             Controls.Add(dataGridView1);
             Name = "Form1";

@@ -10,7 +10,10 @@ namespace CSharp_FrontEnd
     {
         private FoodDbContext dbContext;
         private DB_DataParser dbParser;
-        private int foodEdit = -1;
+        private int foodEdit1 = -1;
+        private int foodEdit2 = -1;
+        const string btnTextFoodEdit1 = "Food1";
+        const string btnTextFoodEdit2 = "Food2";
 
         public Form1()
         {
@@ -41,27 +44,45 @@ namespace CSharp_FrontEnd
             dataGridView1.Columns.Add("Description", "Description");
             dataGridView1.Columns.Add("Contains", "Contains");
 
-            const string btnText = "Edit&Add";
-            DataGridViewButtonColumn buttonColumn = new DataGridViewButtonColumn
-            {
-                Name = btnText,
-                HeaderText = btnText,
-                Text = btnText,
-                UseColumnTextForButtonValue = true
-            };
-            dataGridView1.Columns.Add(buttonColumn);
+            AddEditFoodButtons();
 
             // Add event handler for cell content click
-            dataGridView1.CellContentClick += DataGridView1_CellContentClick;
+            dataGridView1.CellContentClick += DataGridView1_CheckFood;
         }
 
-        private void DataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void AddEditFoodButtons()
         {
-            if (e.ColumnIndex == dataGridView1.Columns["Action"].Index && e.RowIndex >= 0)
+            DataGridViewButtonColumn buttonFood1 = new DataGridViewButtonColumn
+            {
+                Name = btnTextFoodEdit1,
+                HeaderText = btnTextFoodEdit1,
+                Text = btnTextFoodEdit1,
+                UseColumnTextForButtonValue = true
+            };
+            dataGridView1.Columns.Add(buttonFood1);
+
+            DataGridViewButtonColumn buttonFood2 = new DataGridViewButtonColumn
+            {
+                Name = btnTextFoodEdit2,
+                HeaderText = btnTextFoodEdit2,
+                Text = btnTextFoodEdit2,
+                UseColumnTextForButtonValue = true
+            };
+            dataGridView1.Columns.Add(buttonFood2);
+        }
+
+        private void DataGridView1_CheckFood(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == dataGridView1.Columns[btnTextFoodEdit1].Index && e.RowIndex >= 0)
             {
                 var rowId = dataGridView1.Rows[e.RowIndex].Cells["Id"].Value.ToString();
+                foodEdit1 = Convert.ToInt32(rowId);
+            }
 
-                foodEdit = Convert.ToInt32(rowId);
+            if (e.ColumnIndex == dataGridView1.Columns[btnTextFoodEdit2].Index && e.RowIndex >= 0)
+            {
+                var rowId = dataGridView1.Rows[e.RowIndex].Cells["Id"].Value.ToString();
+                foodEdit1 = Convert.ToInt32(rowId);
             }
         }
 
@@ -85,7 +106,8 @@ namespace CSharp_FrontEnd
                 row.Cells[i].Value = foodInfoList[i];
             }
 
-            row.Cells[dataGridView1.Columns["Action"].Index].Value = "Save";
+            row.Cells[dataGridView1.Columns[btnTextFoodEdit1].Index].Value = btnTextFoodEdit1;
+            row.Cells[dataGridView1.Columns[btnTextFoodEdit2].Index].Value = btnTextFoodEdit2;
             dataGridView1.Rows.Add(row);
         }
 

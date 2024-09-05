@@ -762,13 +762,61 @@ namespace Food
 
     public class DB_DataParser
     {
-        public static List<FoodEntity> GetAllFoodEntity(Food_Database_Base.FoodDbContext context)
+        /// <summary>
+        /// The database context used for operations with the food database.
+        /// </summary>
+        /// <remarks>
+        /// - This private readonly field holds the instance of <see cref="FoodDbContext"/> that is used to interact with the database.
+        /// - It is initialized via the constructor and cannot be changed afterwards.
+        /// </remarks>
+        private readonly FoodDbContext context;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DB_DataParser"/> class with the specified <see cref="FoodDbContext"/>.
+        /// </summary>
+        /// <param name="context">The <see cref="FoodDbContext"/> instance to be used for database operations.</param>
+        /// <remarks>
+        /// - The provided <see cref="FoodDbContext"/> is assigned to the private field <see cref="context"/>.
+        /// - This context is used for querying and saving <see cref="FoodEntity"/> instances to the database.
+        /// </remarks>
+        public DB_DataParser(FoodDbContext context)
+        {
+            this.context = context;
+        }
+
+        /// <summary>
+        /// Retrieves all <see cref="FoodEntity"/> instances from the database, including related nutrient and ingredient data.
+        /// </summary>
+        /// <returns>A list of <see cref="FoodEntity"/> objects, each populated with its associated <see cref="NutrientEntity"/> and <see cref="IngredientEntity"/> details.</returns>
+        /// <remarks>
+        /// - The method uses <see cref="System.Linq"/> to eagerly load related data for nutrients and ingredients.
+        /// - Ingredients are included using <see cref="System.Linq"/> and <see cref="Microsoft.EntityFrameworkCoreProperty"/> to include details about the ingredients (foods) associated with each <see cref="FoodEntity"/>.
+        /// </remarks>
+        public List<FoodEntity> GetAllFoodEntity()
         {
             return context.Foods
                 .Include(f => f.Nutrient)  // Includes nutrients of this food
                 .Include(f => f.IngredientsAsComplete)  // This includes ingredients (foods)
                     .ThenInclude(i => i.FoodPart)  // This includes the details of each ingredient
                 .ToList();
+        }
+
+        /// <summary>
+        /// Inserts a new <see cref="FoodEntity"/> into the database, created from the provided <see cref="Food"/> domain model.
+        /// </summary>
+        /// <param name="food">The <see cref="Food"/> domain model to be inserted into the database.</param>
+        /// <returns>The primary key ID of the newly inserted <see cref="FoodEntity"/>.</returns>
+        /// <remarks>
+        /// - The method maps the provided <see cref="Food"/> domain model to a <see cref="FoodEntity"/> using <see cref="Food.Food.MapToEntity"/>.
+        /// - The <see cref="FoodEntity"/> is then added to the database context and saved using <see cref="Microsoft.EntityFrameworkCore"/>.
+        /// - The ID of the newly inserted entity is returned, which corresponds to the database-generated primary key.
+        /// </remarks>
+        public int InsertFoodFromDomain(Food food)
+        {
+            FoodEntity foodEntity = food.MapToEntity();
+            context.Foods.Add(foodEntity);
+            context.SaveChanges();
+            return foodEntity.FoodId;
         }
     }
 
@@ -867,17 +915,18 @@ namespace Food
             {
                 using (var context = new FoodDbContext())
                 {
-                    var foodsWithNutrients = DB_DataParser.GetAllFoodEntity(context);
+                    DB_DataParser dbParser = new(context);
+                    List<FoodEntity> foodsWithNutrients = dbParser.GetAllFoodEntity();
 
-                    // Print all the retrieved food entities by first casting them to
-                    // domain for easier CSharp workings
+                    // Simply print all the retrieved food entities
                     foreach (FoodEntity foodEntity in foodsWithNutrients)
                     {
-                        Console.WriteLine(FoodEntityStringParser.ParseEntityHumanReadable(foodEntity));
+                        //Console.WriteLine(FoodEntityStringParser.ParseEntityHumanReadable(foodEntity));
                         Console.WriteLine("-------------------");
+                        Console.WriteLine(foodEntity.MapToDomain().ToString());
                     }
 
-                    Nutrients peasNutrients = new(
+                    /*Nutrients peasNutrients = new(
                         new Energy(81),
                         new Fat(0.4, 0.1),
                         new Carbohydrates(14, 6),
@@ -938,7 +987,7 @@ namespace Food
                     context.Ingredients.AddRange(carrotsIngredients);
                     context.SaveChanges();
 
-                    Console.WriteLine("Food item added successfully.\n");
+                    Console.WriteLine("Food item added successfully.\n");*/
                 }
 
                 Console.ReadKey();

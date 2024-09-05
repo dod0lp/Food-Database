@@ -711,7 +711,7 @@ namespace Food
     /// <summary>
     /// Provides methods for parsing and formatting <see cref="Food_Database_Base.FoodEntity"/> instances into human-readable strings.
     /// </summary>
-    public static class FoodEntityParser
+    public static class FoodEntityStringParser
     {
         /// <summary>
         /// Converts a <see cref="Food_Database_Base.FoodEntity"/> instance into a human-readable string representation of food.
@@ -759,6 +759,19 @@ namespace Food
             return result;
         }
     }
+
+    public class DB_DataParser
+    {
+        public static List<FoodEntity> GetAllFoodEntity(Food_Database_Base.FoodDbContext context)
+        {
+            return context.Foods
+                .Include(f => f.Nutrient)  // Includes nutrients of this food
+                .Include(f => f.IngredientsAsComplete)  // This includes ingredients (foods)
+                    .ThenInclude(i => i.FoodPart)  // This includes the details of each ingredient
+                .ToList();
+        }
+    }
+
 
     public class Program_Food
     {
@@ -854,18 +867,13 @@ namespace Food
             {
                 using (var context = new FoodDbContext())
                 {
-                    // Simple query to get all food data along with related nutrients
-                    var foodsWithNutrients = context.Foods
-                        .Include(f => f.Nutrient)  // Includes nutrients of this food
-                        .Include(f => f.IngredientsAsComplete)  // This includes ingredients (foods)
-                            .ThenInclude(i => i.FoodPart)  // This includes the details of each ingredient
-                        .ToList();
+                    var foodsWithNutrients = DB_DataParser.GetAllFoodEntity(context);
 
                     // Print all the retrieved food entities by first casting them to
                     // domain for easier CSharp workings
                     foreach (FoodEntity foodEntity in foodsWithNutrients)
                     {
-                        Console.WriteLine(FoodEntityParser.ParseEntityHumanReadable(foodEntity));
+                        Console.WriteLine(FoodEntityStringParser.ParseEntityHumanReadable(foodEntity));
                         Console.WriteLine("-------------------");
                     }
 
@@ -897,9 +905,9 @@ namespace Food
 
                     var carrotsEntity = new FoodEntity
                     {
-                        Name = "Carrots",
+                        Name = "Peach",
                         Weight = 150.0,
-                        Description = "An orange root vegetable.",
+                        Description = "An orange fruit that is not an orange.",
                         Nutrient = new NutrientEntity
                         {
                             EnergyKcal = 200,

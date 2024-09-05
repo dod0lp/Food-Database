@@ -116,7 +116,7 @@ namespace Food
         public static List<string> ToStringList(Food food)
         {
             // Create an array of strings with the specific format
-            string[] foodInfoArray = new string[]
+            List<string> foodInfoList = new()
             {
                 $"{food.Id}",
                 $"{food.Name}",
@@ -136,7 +136,6 @@ namespace Food
                 $"{food.Description}"
             };
 
-            var foodInfoList = foodInfoArray.ToList();
             var ingredientsInfo = food.Ingredients.Select(ingredient => ingredient.Name).ToList();
 
             string allIngredients = string.Join(",", ingredientsInfo);
@@ -150,6 +149,49 @@ namespace Food
             foodInfoList.Add(foodInfo);
 
             return foodInfoList;
+        }
+
+        public static Food FromStringList(List<string> list)
+        {
+            if (list == null || list.Count < 11)
+            {
+                throw new ArgumentException("List must contain at least 11 elements.");
+            }
+
+            Food food = new Food
+            {
+                Id = int.Parse(list[0]),
+                Name = list[1],
+                Weight = double.Parse(list[2]),
+                NutrientContent = new Nutrients
+                {
+                    Energy = new Energy
+                    {
+                        Kcal = double.Parse(list[3]),
+                        KJ = double.Parse(list[4])
+                    },
+                    FatContent = new Fat
+                    {
+                        Total = double.Parse(list[5])
+                    },
+                    CarbohydrateContent = new Carbohydrates
+                    {
+                        Total = double.Parse(list[6]),
+                        Sugar = double.Parse(list[7])
+                    },
+                    Protein = new Protein
+                    {
+                        Total = double.Parse(list[8])
+                    },
+                    Salt = new Salt
+                    {
+                        Total = double.Parse(list[9])
+                    }
+                },
+                Description = list[10]
+            };
+
+            return food;
         }
 
         public override string ToString()

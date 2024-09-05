@@ -50,6 +50,7 @@ namespace CSharp_FrontEnd
         private void InitDatagridFoodInfoAllFood()
         {
             dataGridViewAllFood.Rows.Clear();
+
             InitDatagridFoodInfo(dataGridViewAllFood);
             dataGridViewAllFood.CellContentClick += DataGridView1_CheckFood;
             dataGridViewAllFood.ReadOnly = true;
@@ -92,7 +93,7 @@ namespace CSharp_FrontEnd
             }
         }
 
-        private void AddFoodDomainToDatagrid1(Food.Food foodDomain)
+        private void AddFoodDomainToDatagridAllFood(Food.Food foodDomain)
         {
             var foodInfoList = Food.Food.ToStringList(foodDomain);
 
@@ -117,9 +118,56 @@ namespace CSharp_FrontEnd
             dataGridViewAllFood.Rows.Add(row);
         }
 
+        private void ConfigureDataGridView(DataGridView datagrid)
+        {
+            datagrid.Rows.Clear();
+        }
+
+        private void InitializeEditDataGrids()
+        {
+            InitDatagridFoodInfo(dataGridFood1, false);
+            InitDatagridFoodInfo(dataGridFood2, false);
+            InitDatagridFoodInfo(dataGridFoodFinal, false);
+
+            ConfigureDataGridView(dataGridFood1);
+            ConfigureDataGridView(dataGridFood2);
+            ConfigureDataGridView(dataGridFoodFinal);
+        }
+
+        private void EnsureSingleRowAndUpdate(DataGridView dataGridView, Food.Food foodDomain)
+        {
+            var foodInfoList = Food.Food.ToStringList(foodDomain);
+            dataGridView.Rows.Clear();
+
+            dataGridView.Rows.Add();
+
+            if (dataGridView.Rows.Count > 0 && !dataGridView.Rows[0].IsNewRow)
+            {
+                DataGridViewRow row = dataGridView.Rows[0];
+
+                if (foodInfoList.Count > row.Cells.Count)
+                {
+                    MessageBox.Show("The number of values exceeds the number of columns.");
+                    return;
+                }
+
+                for (int i = 0; i < foodInfoList.Count; i++)
+                {
+                    if (i < row.Cells.Count)
+                    {
+                        row.Cells[i].Value = foodInfoList[i];
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("No rows available to update.");
+            }
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            InitializeEditDataGrids();
             LoadAllFoods();
         }
 
@@ -141,7 +189,7 @@ namespace CSharp_FrontEnd
                     foreach (FoodEntity foodEntity in foodsWithNutrients)
                     {
                         Food.Food foodDomain = foodEntity.MapToDomain();
-                        AddFoodDomainToDatagrid1(foodDomain);
+                        AddFoodDomainToDatagridAllFood(foodDomain);
                     }
                 }
             }
@@ -156,11 +204,6 @@ namespace CSharp_FrontEnd
             // Dispose of the DbContext when the form is closing
             dbContext?.Dispose();
             base.OnFormClosing(e);
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }

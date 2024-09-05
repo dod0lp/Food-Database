@@ -29,43 +29,70 @@
         private void InitializeComponent()
         {
             dataGridViewAllFood = new DataGridView();
-            textBox1 = new TextBox();
+            dataGridFood1 = new DataGridView();
+            dataGridFood2 = new DataGridView();
+            dataGridFoodFinal = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)dataGridViewAllFood).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridFood1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridFood2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridFoodFinal).BeginInit();
             SuspendLayout();
             // 
-            // dataGridView1
+            // dataGridViewAllFood
             // 
             dataGridViewAllFood.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewAllFood.Location = new Point(3, 3);
-            dataGridViewAllFood.Name = "dataGridView1";
+            dataGridViewAllFood.Name = "dataGridViewAllFood";
             dataGridViewAllFood.Size = new Size(1772, 356);
             dataGridViewAllFood.TabIndex = 0;
             // 
-            // textBox1
+            // dataGridFood1
             // 
-            textBox1.Location = new Point(62, 523);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(1059, 23);
-            textBox1.TabIndex = 1;
-            textBox1.TextChanged += textBox1_TextChanged;
+            dataGridFood1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridFood1.Location = new Point(3, 533);
+            dataGridFood1.Name = "dataGridFood1";
+            dataGridFood1.Size = new Size(1511, 56);
+            dataGridFood1.TabIndex = 1;
+            // 
+            // dataGridFood2
+            // 
+            dataGridFood2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridFood2.Location = new Point(3, 613);
+            dataGridFood2.Name = "dataGridFood2";
+            dataGridFood2.Size = new Size(1511, 57);
+            dataGridFood2.TabIndex = 2;
+            // 
+            // dataGridFoodFinal
+            // 
+            dataGridFoodFinal.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridFoodFinal.Location = new Point(3, 739);
+            dataGridFoodFinal.Name = "dataGridFoodFinal";
+            dataGridFoodFinal.Size = new Size(1511, 55);
+            dataGridFoodFinal.TabIndex = 3;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1878, 914);
-            Controls.Add(textBox1);
+            Controls.Add(dataGridFoodFinal);
+            Controls.Add(dataGridFood2);
+            Controls.Add(dataGridFood1);
             Controls.Add(dataGridViewAllFood);
             Name = "Form1";
             Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)dataGridViewAllFood).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridFood1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridFood2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridFoodFinal).EndInit();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
 
         private DataGridView dataGridViewAllFood;
-        private TextBox textBox1;
+        private DataGridView dataGridFood1;
+        private DataGridView dataGridFood2;
+        private DataGridView dataGridFoodFinal;
     }
 }

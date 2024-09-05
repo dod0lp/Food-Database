@@ -1,4 +1,7 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
+using Food_Database_Base;
+using Microsoft.EntityFrameworkCore;
 
 namespace Food
 {
@@ -30,7 +33,7 @@ namespace Food
         /// <returns></returns>
         public static double RoundUpToNDecimalPlaces(double number, int N)
         {
-            return Math.Ceiling(number * lookup_powers_10[N]) / lookup_powers_10[N];
+            return Convert.ToSingle(Math.Ceiling(number * lookup_powers_10[N]) / lookup_powers_10[N]);
         }
 
         /// <summary>
@@ -41,7 +44,7 @@ namespace Food
         public static double RoundUpTo2DecimalPlaces(double number)
         {
             // return RoundUpToNDecimalPlaces(number, 2);
-            return Math.Ceiling(number * 100) / 100;
+            return Convert.ToSingle(Math.Ceiling(number * 100) / 100);
         }
     }
 
@@ -71,7 +74,12 @@ namespace Food
             Ingredients = new List<Food>();
         }
 
+<<<<<<< HEAD
         public Food(int id, string name, double weight, Nutrients nutrientContent, string description, List<Food> ingredients) : this(id, name, weight, nutrientContent, description)
+=======
+        public Food(int id, string name, double weight, Nutrients nutrientContent, string description, List<Food> ingredients)
+            : this(id, name, weight, nutrientContent, description)
+>>>>>>> sql-setup
         {
             Ingredients = ingredients;
         }
@@ -92,6 +100,18 @@ namespace Food
             }
 
             return false;
+        }
+
+        public string ToReadableString(Food food)
+        {
+            return $"ID: {food.Id}\nName: {food.Name}\nWeight: {food.Weight}\nNutrients: {food.NutrientContent}\n"
+                +
+                $"Number of Ingredients: {food.Ingredients.Count}\nDescription: {food.Description}";
+        }
+
+        public override string ToString()
+        {
+            return ToReadableString(this);
         }
     }
 
@@ -223,7 +243,7 @@ namespace Food
     /// </summary>
     public struct Energy
     {
-        private static readonly double KcalToKjFactor = 4.184;
+        private static readonly double KcalToKjFactor = 4.184F;
 
         private int kcal;
         private int kj;
@@ -717,7 +737,7 @@ namespace Food
                     new Fat(30, 15),
                     new Carbohydrates(70, 40),
                     new Protein(20),
-                    new Salt(3.5)
+                    new Salt(3.5F)
                 );
 
                 Nutrients nutrients2 = new(
@@ -725,12 +745,12 @@ namespace Food
                     new Fat(20, 10),
                     new Carbohydrates(50, 30),
                     new Protein(15),
-                    new Salt(2.5)
+                    new Salt(2.5F)
                 );
 
                 Nutrients resultAddNutrients = nutrients1 + nutrients2;
                 Nutrients resultSubtractNutrients = nutrients1 - nutrients2;
-                Nutrients resultScaleNutrients = 0.5 * nutrients1;
+                Nutrients resultScaleNutrients = 0.5F * nutrients1;
 
                 Console.WriteLine(nutrients1);
                 Console.WriteLine(nutrients2);
@@ -740,19 +760,90 @@ namespace Food
                 Console.WriteLine($"Result of scaling (Nutrients):\n{resultScaleNutrients}");
 
                 // Rounding up tests
-                Fat fat2 = new (10.22222, 9.333);
+                Fat fat2 = new (10.22222F, 9.333F);
                 Console.WriteLine(fat2);
-                Carbohydrates carbs1 = new(132.1321321, 25.43891);
+                Carbohydrates carbs1 = new(132.1321321F, 25.43891F);
                 Console.WriteLine(carbs1);
 
-                const double numberToRoundup = 10.123456789;
+                const double numberToRoundup = 10.123456789F;
                 Console.WriteLine($"\nRounding up {numberToRoundup}:");
                 for (int i = 0; i < 9; i++)
                 {
                     Console.Write($"{i} decimal places: ");
                     Console.WriteLine(NumberOperations.RoundUpToNDecimalPlaces(numberToRoundup, i));
                 }
+
+
+                Nutrients nutrientPotato = new(
+                        new Energy(313F),
+                        new Fat(0.1F, 0.02F),
+                        new Carbohydrates(23.2F, 0.5F),
+                        new Protein(3.1F),
+                        new Salt(0.004F)
+                    );
+
+                Food foodPotato = new(-1, "Potato", 100, nutrientPotato, "Root vegetable");
+
+                FoodEntity foodPotatoEntity = foodPotato.MapToEntity();
+                Food foodPotatoFromEntity = foodPotatoEntity.MapToDomain();
+                Console.WriteLine(foodPotato);
+                Console.WriteLine(foodPotatoFromEntity);
+
+                NutrientEntity nutrientPotatoEntity = nutrientPotato.MapToEntity(foodPotato.Id);
+                Nutrients nutrientPotatoFromEntity = nutrientPotatoEntity.MapToDomain();
+                Console.WriteLine(nutrientPotato);
+                Console.WriteLine(nutrientPotatoFromEntity);
             }
+
+            using (var context = new FoodDbContext())
+            {
+                // Simple query to get all food data along with related nutrients
+                var foodsWithNutrients = context.Foods
+                    .Include(f => f.Nutrient)  // Include related nutrients
+                    .Include(f => f.IngredientsAsComplete)  // Include ingredients
+                        .ThenInclude(i => i.FoodPart)  // Include the details of each ingredient
+                    .ToList();
+
+                // Print all the retrieved food entities
+                foreach (var food in foodsWithNutrients)
+                {
+                    Console.WriteLine($"Food ID: {food.FoodId}");
+                    Console.WriteLine($"Name: {food.Name}");
+                    Console.WriteLine($"Weight: {food.Weight}g");
+                    Console.WriteLine($"Description: {food.Description}");
+                    if (food.Nutrient != null)
+                    {
+                        Console.WriteLine($"Nutritional Info:");
+                        Console.WriteLine($"  Energy: {food.Nutrient.EnergyKcal} kcal / {food.Nutrient.EnergyKj} kJ");
+                        Console.WriteLine($"  Total Fat: {food.Nutrient.FatTotal}g (Saturated: {food.Nutrient.FatSaturated}g)");
+                        Console.WriteLine($"  Total Carbs: {food.Nutrient.CarbsTotal}g (Sugar: {food.Nutrient.CarbsSaturated}g)");
+                        Console.WriteLine($"  Protein: {food.Nutrient.ProteinTotal}g");
+                        Console.WriteLine($"  Salt: {food.Nutrient.SaltTotal}g");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No nutrient information available.");
+                    }
+
+                    // Print related ingredients
+                    if (food.IngredientsAsComplete.Any())
+                    {
+                        Console.WriteLine("Ingredients:");
+                        foreach (var ingredient in food.IngredientsAsComplete)
+                        {
+                            Console.WriteLine($"  Ingredient: {ingredient.FoodPart.Name}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No ingredients listed.");
+                    }
+
+                    Console.WriteLine("-------------------");
+                }
+            }
+
+            Console.ReadKey();
         }
     }
 }

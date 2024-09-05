@@ -9,7 +9,7 @@ namespace Food_Database_Base
     {
         public static string MakeConnectionString(string server, string database, string user, string password)
         {
-            return $"Server={server};Database={database};User={user};Password={password};";
+            return $"Server={server};Database={database};User={user};Password={password};TrustServerCertificate=True;";
         }
     }
     
@@ -53,22 +53,22 @@ namespace Food_Database_Base
         public int EnergyKj { get; set; }
 
         [Column("Fat_Total")]
-        public float FatTotal { get; set; }
+        public double FatTotal { get; set; }
 
         [Column("Fat_Saturated")]
-        public float FatSaturated { get; set; }
+        public double FatSaturated { get; set; }
 
         [Column("Carbs_Total")]
-        public float CarbsTotal { get; set; }
+        public double CarbsTotal { get; set; }
 
         [Column("Carbs_Saturated")]
-        public float CarbsSaturated { get; set; }
+        public double CarbsSaturated { get; set; }
 
         [Column("Protein_Total")]
-        public float ProteinTotal { get; set; }
+        public double ProteinTotal { get; set; }
 
         [Column("Salt_Total")]
-        public float SaltTotal { get; set; }
+        public double SaltTotal { get; set; }
 
 
         // Navigation property to Food
@@ -80,14 +80,14 @@ namespace Food_Database_Base
     public class FoodEntity
     {
         [Key]
-        [Column("Food_ID")]
+        [Column("ID")]
         public int FoodId { get; set; }
 
         [Column("Name")]
         public string Name { get; set; }
 
         [Column("Weight")]
-        public float Weight { get; set; }
+        public double Weight { get; set; }
 
         [Column("Description")]
         public string Description { get; set; }
@@ -168,27 +168,27 @@ namespace Food_Database_Base
         }
 
         // Maping from Domain to Entity model
-        // it is explicitly casted as float, because in DB it is float
+        // it is explicitly casted as double, because in DB it is double
         // hope this wont break anything
         public static NutrientEntity MapToEntity(this Nutrients model, int foodId)
         {
             return new NutrientEntity
             {
                 FoodId = foodId,
-                // Energykcal is int in database, in Domain model it is float, but it is being explicitly cast as 'int'
+                // Energykcal is int in database, in Domain model it is double, but it is being explicitly cast as 'int'
                 // when using setter
                 EnergyKcal = (int)model.Energy.Kcal,
                 EnergyKj = (int)model.Energy.KJ,
 
-                FatTotal = (float)model.FatContent.Total,
-                FatSaturated = (float)model.FatContent.Saturated,
+                FatTotal = (double)model.FatContent.Total,
+                FatSaturated = (double)model.FatContent.Saturated,
 
-                CarbsTotal = (float)model.CarbohydrateContent.Total,
-                CarbsSaturated = (float)model.CarbohydrateContent.Sugar,
+                CarbsTotal = (double)model.CarbohydrateContent.Total,
+                CarbsSaturated = (double)model.CarbohydrateContent.Sugar,
 
-                ProteinTotal = (float)model.Protein.Total,
+                ProteinTotal = (double)model.Protein.Total,
                 
-                SaltTotal = (float)model.Salt.Total
+                SaltTotal = (double)model.Salt.Total
             };
         }
     }
@@ -215,7 +215,11 @@ namespace Food_Database_Base
             {
                 FoodId = model.Id,
                 Name = model.Name,
+<<<<<<< HEAD
                 Weight = (float)model.Weight,
+=======
+                Weight = (double)model.Weight,
+>>>>>>> sql-setup
                 Description = model.Description,
                 Nutrient = model.NutrientContent.MapToEntity(model.Id),
                 IngredientsAsPart = new HashSet<IngredientEntity>()

@@ -10,8 +10,8 @@ namespace CSharp_FrontEnd
     {
         private FoodDbContext dbContext;
         private DB_DataParser dbParser;
-        private int foodEdit1 = -1;
-        private int foodEdit2 = -1;
+        private int foodEditID1 = -1;
+        private int foodEditID2 = -1;
         const string btnTextFoodEdit1 = "Food1";
         const string btnTextFoodEdit2 = "Food2";
 
@@ -24,30 +24,36 @@ namespace CSharp_FrontEnd
             Load += Form1_Load;
         }
 
-        private void InitDatagrid1()
+        private void InitDatagridFoodInfo(DataGridView datagrid, bool readOnly = true)
         {
-            dataGridView1.Columns.Add("Id", "ID");
-            dataGridView1.Columns.Add("Name", "Name");
-            dataGridView1.Columns.Add("Weight", "Weight");
-            dataGridView1.Columns.Add("Kcal", "Kcal");
-            dataGridView1.Columns.Add("kJ", "kJ");
+            datagrid.Columns.Add("Id", "ID");
+            datagrid.Columns.Add("Name", "Name");
+            datagrid.Columns.Add("Weight", "Weight");
+            datagrid.Columns.Add("Kcal", "Kcal");
+            datagrid.Columns.Add("kJ", "kJ");
 
-            dataGridView1.Columns.Add("Fat", "Fat");
-            dataGridView1.Columns.Add("SaturatedFat", "Saturated Fat");
+            datagrid.Columns.Add("Fat", "Fat");
+            datagrid.Columns.Add("SaturatedFat", "Saturated Fat");
 
-            dataGridView1.Columns.Add("Carbs", "Carbs");
-            dataGridView1.Columns.Add("Sugars", "Sugars");
+            datagrid.Columns.Add("Carbs", "Carbs");
+            datagrid.Columns.Add("Sugars", "Sugars");
 
-            dataGridView1.Columns.Add("Protein", "Protein");
-            dataGridView1.Columns.Add("Salt", "Salt");
+            datagrid.Columns.Add("Protein", "Protein");
+            datagrid.Columns.Add("Salt", "Salt");
 
-            dataGridView1.Columns.Add("Description", "Description");
-            dataGridView1.Columns.Add("Contains", "Contains");
+            datagrid.Columns.Add("Description", "Description");
+            datagrid.Columns.Add("Contains", "Contains");
 
+            datagrid.ReadOnly = readOnly;
+        }
+
+        private void InitDatagridFoodInfoAllFood()
+        {
+            dataGridViewAllFood.Rows.Clear();
+            InitDatagridFoodInfo(dataGridViewAllFood);
+            dataGridViewAllFood.CellContentClick += DataGridView1_CheckFood;
+            dataGridViewAllFood.ReadOnly = true;
             AddEditFoodButtons();
-
-            // Add event handler for cell content click
-            dataGridView1.CellContentClick += DataGridView1_CheckFood;
         }
 
         private void AddEditFoodButtons()
@@ -59,7 +65,7 @@ namespace CSharp_FrontEnd
                 Text = btnTextFoodEdit1,
                 UseColumnTextForButtonValue = true
             };
-            dataGridView1.Columns.Add(buttonFood1);
+            dataGridViewAllFood.Columns.Add(buttonFood1);
 
             DataGridViewButtonColumn buttonFood2 = new DataGridViewButtonColumn
             {
@@ -68,21 +74,21 @@ namespace CSharp_FrontEnd
                 Text = btnTextFoodEdit2,
                 UseColumnTextForButtonValue = true
             };
-            dataGridView1.Columns.Add(buttonFood2);
+            dataGridViewAllFood.Columns.Add(buttonFood2);
         }
 
         private void DataGridView1_CheckFood(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == dataGridView1.Columns[btnTextFoodEdit1].Index && e.RowIndex >= 0)
+            if (e.ColumnIndex == dataGridViewAllFood.Columns[btnTextFoodEdit1].Index && e.RowIndex >= 0)
             {
-                var rowId = dataGridView1.Rows[e.RowIndex].Cells["Id"].Value.ToString();
-                foodEdit1 = Convert.ToInt32(rowId);
+                var rowId = dataGridViewAllFood.Rows[e.RowIndex].Cells["Id"].Value.ToString();
+                foodEditID1 = Convert.ToInt32(rowId);
             }
 
-            if (e.ColumnIndex == dataGridView1.Columns[btnTextFoodEdit2].Index && e.RowIndex >= 0)
+            if (e.ColumnIndex == dataGridViewAllFood.Columns[btnTextFoodEdit2].Index && e.RowIndex >= 0)
             {
-                var rowId = dataGridView1.Rows[e.RowIndex].Cells["Id"].Value.ToString();
-                foodEdit1 = Convert.ToInt32(rowId);
+                var rowId = dataGridViewAllFood.Rows[e.RowIndex].Cells["Id"].Value.ToString();
+                foodEditID2 = Convert.ToInt32(rowId);
             }
         }
 
@@ -91,7 +97,7 @@ namespace CSharp_FrontEnd
             var foodInfoList = Food.Food.ToStringList(foodDomain);
 
             var row = new DataGridViewRow();
-            row.CreateCells(dataGridView1);
+            row.CreateCells(dataGridViewAllFood);
 
             if (foodInfoList.Count > row.Cells.Count)
             {
@@ -106,9 +112,9 @@ namespace CSharp_FrontEnd
                 row.Cells[i].Value = foodInfoList[i];
             }
 
-            row.Cells[dataGridView1.Columns[btnTextFoodEdit1].Index].Value = btnTextFoodEdit1;
-            row.Cells[dataGridView1.Columns[btnTextFoodEdit2].Index].Value = btnTextFoodEdit2;
-            dataGridView1.Rows.Add(row);
+            row.Cells[dataGridViewAllFood.Columns[btnTextFoodEdit1].Index].Value = btnTextFoodEdit1;
+            row.Cells[dataGridViewAllFood.Columns[btnTextFoodEdit2].Index].Value = btnTextFoodEdit2;
+            dataGridViewAllFood.Rows.Add(row);
         }
 
 
@@ -124,9 +130,7 @@ namespace CSharp_FrontEnd
                 using (dbContext)
                 {
                     List<FoodEntity> foodsWithNutrients = dbParser.GetAllFoodEntity();
-                    dataGridView1.Rows.Clear();
-
-                    InitDatagrid1();
+                    InitDatagridFoodInfoAllFood();
 
                     if (foodsWithNutrients == null || foodsWithNutrients.Count == 0)
                     {

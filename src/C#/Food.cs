@@ -964,6 +964,23 @@ namespace Food
         }
 
         /// <summary>
+        /// Retrieves one <see cref="Food"/> instance from the database, casting from <see cref="FoodEntity"/>, including related nutrient and ingredient data, based on ID.
+        /// </summary>
+        /// <param name="id">ID of entity to lookup</param>
+        /// <returns><see cref="FoodEntity"/>, or can return null if none found.</returns>
+        public Food? GetFoodDomainModelById(int id)
+        {
+            var foodEntity = GetFoodEntityById(id);
+
+            if (foodEntity == null)
+            {
+                return null;
+            }
+
+            return foodEntity.MapToDomain();
+        }
+
+        /// <summary>
         /// Inserts a new <see cref="FoodEntity"/> into the database, created from the provided <see cref="Food"/> domain model.
         /// </summary>
         /// <param name="food">The <see cref="Food"/> domain model to be inserted into the database.</param>

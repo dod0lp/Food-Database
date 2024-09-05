@@ -111,7 +111,39 @@ namespace Food
             string foodsContained = string.Join("\n", Ingredients.Select(food => food.Name));
 
             return foodInfo + foodsContained;
+        }
 
+        public static List<string> ToStringList(Food food)
+        {
+            // Create an array of strings with the specific format
+            string[] foodInfoArray = new string[]
+            {
+                $"{food.Id}",
+                $"{food.Name}",
+                $"{food.Weight}",
+                $"{food.NutrientContent.Energy.Kcal}",
+                $"{food.NutrientContent.Energy.KJ}",
+
+                $"{food.NutrientContent.FatContent.Total}",
+                $"{food.NutrientContent.FatContent.Total}",
+
+                $"{food.NutrientContent.CarbohydrateContent.Total}",
+                $"{food.NutrientContent.CarbohydrateContent.Sugar}",
+
+                $"{food.NutrientContent.Protein.Total}",
+                $"{food.NutrientContent.Salt.Total}",
+
+                $"{food.Description}"
+            };
+
+            var foodInfoList = foodInfoArray.ToList();
+            var ingredientsInfo = food.Ingredients.Select(ingredient => ingredient.Name).ToList();
+
+            string allIngredients = string.Join(",", ingredientsInfo);
+            string foodInfo = $"Contains: {allIngredients}";
+            foodInfoList.Add(foodInfo);
+
+            return foodInfoList;
         }
 
         public override string ToString()
@@ -996,8 +1028,13 @@ namespace Food
                     foreach (FoodEntity foodEntity in foodsWithNutrients)
                     {
                         //Console.WriteLine(FoodEntityStringParser.ParseEntityHumanReadable(foodEntity));
-                        Console.WriteLine("-------------------");
-                        Console.WriteLine(foodEntity.MapToDomain().ToString());
+                        // Console.WriteLine("-------------------");
+                        // Console.WriteLine(foodEntity.MapToDomain().ToString());
+                        var x = Food.ToStringList(foodEntity.MapToDomain());
+                        foreach (var y in x)
+                        {
+                            Console.WriteLine(y);
+                        }
                     }
 
                     /*Nutrients peasNutrients = new(
@@ -1086,4 +1123,4 @@ namespace Food
             }
         }
     }
-}
+} 

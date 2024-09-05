@@ -130,12 +130,16 @@ namespace Food_Database_Base
             optionsBuilder.UseSqlServer(DB_Food_Descriptors.ConnectionString);
         }
 
+        /// <summary>
+        /// Configures entities and keys based on database relations defined in documentation of database in<br></br>
+        /// entity relation diagram
+        /// </summary>
+        /// <param name="modelBuilder">Model builder instance</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<IngredientEntity>()
                 .HasKey(i => new { i.FoodIdComplete, i.FoodIdPart });
 
-            // Simply configure key relations
             modelBuilder.Entity<NutrientEntity>()
                 .HasOne(n => n.Food)
                 .WithOne(f => f.Nutrient)
@@ -153,9 +157,16 @@ namespace Food_Database_Base
         }
     }
 
+    /// <summary>
+    /// Represents a class for mapping of Domain (C#) to Entity (database) models, and vice-versa.
+    /// </summary>
     public static class NutrientMappingExtensions
     {
-        // simple Mapping from Entity to Domain
+        /// <summary>
+        /// Maps a <see cref="NutrientEntity"/> to a <see cref="Nutrients"/> domain model.
+        /// </summary>
+        /// <param name="entity">The <see cref="NutrientEntity"/> instance to be mapped.</param>
+        /// <returns>A <see cref="Nutrients"/> domain model populated with data from the <paramref name="entity"/>.</returns>
         public static Nutrients MapToDomain(this NutrientEntity entity)
         {
             return new Nutrients(
@@ -167,9 +178,17 @@ namespace Food_Database_Base
             );
         }
 
-        // Maping from Domain to Entity model
-        // it is explicitly casted as double, because in DB it is double
-        // hope this wont break anything
+        /// <summary>
+        /// Maps a <see cref="Nutrients"/> domain model to a <see cref="NutrientEntity"/> for database storage.
+        /// </summary>
+        /// <param name="model">The <see cref="Nutrients"/> domain model to be mapped.</param>
+        /// <param name="foodId">The ID of the food item associated with this nutrient data.</param>
+        /// <returns>A <see cref="NutrientEntity"/> instance populated with data from the <paramref name="model"/>.</returns>
+        /// <remarks>
+        /// - The <see cref="EnergyKcal"/> and <see cref="EnergyKj"/> properties are cast to <c>int</c> as the database stores energy values as integers.
+        /// - Other properties are cast to <c>double</c> to match the database schema for precision.
+        /// - Ensure that the explicit casting does not result in data loss or precision issues.
+        /// </remarks>
         public static NutrientEntity MapToEntity(this Nutrients model, int foodId)
         {
             return new NutrientEntity
@@ -195,7 +214,11 @@ namespace Food_Database_Base
 
     public static class FoodMappingExtensions
     {
-        // Map FoodEntity to Food (Domain)
+        /// <summary>
+        /// Maps a <see cref="FoodEntity"/> to a <see cref="Food.Food"/> domain model.
+        /// </summary>
+        /// <param name="entity">The <see cref="FoodEntity"/> instance to be mapped.</param>
+        /// <returns>A <see cref="Food.Food"/> domain model populated with data from the <paramref name="entity"/>.</returns>
         public static Food.Food MapToDomain(this FoodEntity entity)
         {
             return new Food.Food(
@@ -208,7 +231,16 @@ namespace Food_Database_Base
             );
         }
 
-        // Map Food (Domain) to FoodEntity
+        /// <summary>
+        /// Maps a <see cref="Food.Food"/> domain model to a <see cref="FoodEntity"/> for database storage.
+        /// </summary>
+        /// <param name="model">The <see cref="Food.Food"/> domain model to be mapped.</param>
+        /// <returns>A <see cref="FoodEntity"/> instance populated with data from the <paramref name="model"/>.</returns>
+        /// <remarks>
+        /// - The <see cref="Weight"/> property is cast to <c>double</c> to match the database schema, which may store weight as a floating-point number.
+        /// - The <see cref="Nutrient"/> property is mapped using <see cref="Nutrients.MapToEntity(int)"/> and associates the food item ID with the nutrient data.
+        /// - Ingredients are mapped to a set of <see cref="IngredientEntity"/> instances, with each ingredient linked back to the food entity.
+        /// </remarks>
         public static FoodEntity MapToEntity(this Food.Food model)
         {
             var entity = new FoodEntity

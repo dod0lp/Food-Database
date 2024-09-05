@@ -78,19 +78,25 @@ namespace CSharp_FrontEnd
             dataGridViewAllFood.Columns.Add(buttonFood2);
         }
 
+        private void DataGridFoodEditCheck(object sender, DataGridViewCellEventArgs e, string btnTextFoodEdit, ref int foodEditID, DataGridView datagrid)
+        {
+            if (e.ColumnIndex == dataGridViewAllFood.Columns[btnTextFoodEdit].Index && e.RowIndex >= 0)
+            {
+                var rowId = dataGridViewAllFood.Rows[e.RowIndex].Cells["Id"].Value.ToString();
+                foodEditID = Convert.ToInt32(rowId);
+
+                var foodToEdit = dbParser.GetFoodDomainModelById(foodEditID);
+                if (foodToEdit != null)
+                {
+                    EnsureSingleRowAndUpdate(datagrid, foodToEdit);
+                }
+            }
+        }
+
         private void DataGridView1_CheckFood(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == dataGridViewAllFood.Columns[btnTextFoodEdit1].Index && e.RowIndex >= 0)
-            {
-                var rowId = dataGridViewAllFood.Rows[e.RowIndex].Cells["Id"].Value.ToString();
-                foodEditID1 = Convert.ToInt32(rowId);
-            }
-
-            if (e.ColumnIndex == dataGridViewAllFood.Columns[btnTextFoodEdit2].Index && e.RowIndex >= 0)
-            {
-                var rowId = dataGridViewAllFood.Rows[e.RowIndex].Cells["Id"].Value.ToString();
-                foodEditID2 = Convert.ToInt32(rowId);
-            }
+            DataGridFoodEditCheck(sender, e, btnTextFoodEdit1, ref foodEditID1, dataGridFood1);
+            DataGridFoodEditCheck(sender, e, btnTextFoodEdit2, ref foodEditID2, dataGridFood2);
         }
 
         private void AddFoodDomainToDatagridAllFood(Food.Food foodDomain)
@@ -175,22 +181,19 @@ namespace CSharp_FrontEnd
         {
             try
             {
-                using (dbContext)
+                List<FoodEntity> foodsWithNutrients = dbParser.GetAllFoodEntity();
+                InitDatagridFoodInfoAllFood();
+
+                if (foodsWithNutrients == null || foodsWithNutrients.Count == 0)
                 {
-                    List<FoodEntity> foodsWithNutrients = dbParser.GetAllFoodEntity();
-                    InitDatagridFoodInfoAllFood();
+                    MessageBox.Show("No data found.");
+                    return;
+                }
 
-                    if (foodsWithNutrients == null || foodsWithNutrients.Count == 0)
-                    {
-                        MessageBox.Show("No data found.");
-                        return;
-                    }
-
-                    foreach (FoodEntity foodEntity in foodsWithNutrients)
-                    {
-                        Food.Food foodDomain = foodEntity.MapToDomain();
-                        AddFoodDomainToDatagridAllFood(foodDomain);
-                    }
+                foreach (FoodEntity foodEntity in foodsWithNutrients)
+                {
+                    Food.Food foodDomain = foodEntity.MapToDomain();
+                    AddFoodDomainToDatagridAllFood(foodDomain);
                 }
             }
             catch (Exception ex)
@@ -201,8 +204,6 @@ namespace CSharp_FrontEnd
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            // Dispose of the DbContext when the form is closing
-            dbContext?.Dispose();
             base.OnFormClosing(e);
         }
     }

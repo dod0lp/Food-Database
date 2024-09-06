@@ -172,6 +172,12 @@ namespace Food_Database_Base
         public FoodEntity FoodPart { get; set; }
     }
 
+    /// <summary>
+    /// A <see cref="DbContext"/> instance for setting up a session and smooth workign with database.
+    /// </summary>
+    /// <remarks>
+    /// - If configured correctly, will be good smooth experience using Model/Entity
+    /// </remarks>
     public class FoodDbContext : DbContext
     {
         /// <summary>

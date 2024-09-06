@@ -48,17 +48,60 @@ namespace Food
         }
     }
 
+    /// <summary>
+    /// Class describing Food - each food has its <see cref="Ingredients"/> - it is simply other <see cref="Food"/>
+    /// </summary>
+    /// <remarks>
+    /// - Contains vague description of database. Database model is defined in <see cref="Food_Database_Base"/>
+    /// </remarks>
     public class Food
     {
+        /// <summary>
+        /// Gets or sets the unique identifier for the <see cref="Food"/> item.
+        /// </summary>
         public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the <see cref="Food"/> item.
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="Weight"/> of the <see cref="Food"/> item in grams.
+        /// </summary>
         public double Weight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the nutrient content of the <see cref="Food"/>, which contains information such as energy, fat, carbohydrates, and more.
+        /// </summary>
         public Nutrients NutrientContent { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list of <see cref="Ingredients"/> for the <see cref="Food"/> item. Each ingredient is another <see cref="Food"/> object.
+        /// </summary>
         public List<Food> Ingredients { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="Description"/> of the <see cref="Food"/> item.
+        /// </summary>
         public string Description { get; set; }
 
-        public Food() { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Food"/> class.
+        /// </summary>
+        /// <remarks>
+        /// - Should not be used as an instance. Only exists because of compatibility issues.
+        /// </remarks>
+        private Food() { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Food"/> class with specified parameters.
+        /// </summary>
+        /// <param name="id">The unique identifier for the food.</param>
+        /// <param name="name">The name of the food.</param>
+        /// <param name="weight">The weight of the food in grams.</param>
+        /// <param name="nutrientContent">The nutrient content of the food.</param>
+        /// <param name="description">A description of the food.</param>
         public Food(int id, string name, double weight, Nutrients nutrientContent, string description)
         {
             // Main table - Food
@@ -77,18 +120,41 @@ namespace Food
             Ingredients = new List<Food>();
         }
 
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Food"/> class with specified parameters and ingredients.
+        /// </summary>
+        /// <param name="id">The unique identifier for the food.</param>
+        /// <param name="name">The name of the food.</param>
+        /// <param name="weight">The weight of the food in grams.</param>
+        /// <param name="nutrientContent">The nutrient content of the food.</param>
+        /// <param name="description">A description of the food.</param>
+        /// <param name="ingredients">A list of other food items that are ingredients of this food.</param>
         public Food(int id, string name, double weight, Nutrients nutrientContent, string description, List<Food> ingredients)
             : this(id, name, weight, nutrientContent, description)
         {
             Ingredients = ingredients;
         }
 
+        /// <summary>
+        /// Adds an ingredient to the list of <see cref="Ingredients"/> for this <see cref="Food"/>.
+        /// </summary>
+        /// <remarks>
+        /// - The ingredient is simply other <see cref="Food"/>.
+        /// </remarks>
+        /// <param name="food">The food item to add as an ingredient.</param>
         public void AddIngredient(Food food)
         {
             Ingredients.Add(food);
         }
 
+        /// <summary>
+        /// Removes an ingredient from the list of ingredients by its ID.
+        /// </summary>
+        /// <param name="foodId">The ID of the food item to remove from the ingredients list.</param>
+        /// <remarks>
+        /// - Barely used for database work.
+        /// </remarks>
+        /// <returns>True if the ingredient was found and removed; otherwise, false.</returns>
         public bool RemoveIngredient(int foodId)
         {
             var ingredient = Ingredients.FirstOrDefault(f => f.Id == foodId);
@@ -102,22 +168,37 @@ namespace Food
             return false;
         }
 
-        public string ToReadableString(Food food)
+        /// <summary>
+        /// Converts the food object into a human-readable string format.
+        /// </summary>
+        /// <param name="food">The food object to convert to a readable string.</param>
+        /// <returns>A string containing detailed information about the food and its ingredients.</returns>
+        public static string ToReadableString(Food food)
         {
             string foodInfo = $"ID: {food.Id}\nName: {food.Name}\nWeight: {food.Weight}\nNutrients: {food.NutrientContent}"
                 +
                 $"Description: {food.Description}\n";
 
 
-            string foodsContained = "";
+            string foodsContained = "Contains: ";
             if (food.Ingredients != null)
             {
                 foodsContained = string.Join("\n", food.Ingredients.Select(food => food.Name));
             }
 
+            if (foodsContained == "Contains: ")
+            {
+                foodsContained = "";
+            }
+
             return foodInfo + foodsContained;
         }
 
+        /// <summary>
+        /// Converts a food object into a list of strings representing its properties.
+        /// </summary>
+        /// <param name="food">The food object to convert.</param>
+        /// <returns>A list of strings representing the <see cref="Food"/>'s properties and ingredients in human-readable format but in <see cref="List{Food}"/></returns>
         public static List<string> ToStringList(Food food)
         {
             // Create an array of strings with the specific format
@@ -146,10 +227,7 @@ namespace Food
             {
                 ingredientsInfo = food.Ingredients.Select(ingredient => ingredient.Name).ToList();
             }
-            catch
-            {
-
-            }
+            catch { }
 
             string allIngredients = string.Join(",", ingredientsInfo);
             string foodInfo = $"Contains: {allIngredients}";
@@ -164,6 +242,12 @@ namespace Food
             return foodInfoList;
         }
 
+        /// <summary>
+        /// Converts a list of strings into a <see cref="Food"/> object.
+        /// </summary>
+        /// <param name="list">A list of strings representing a food's properties.</param>
+        /// <returns>A <see cref="Food"/> object initialized with the data from the string list.</returns>
+        /// <exception cref="ArgumentException">Thrown if the provided list does not contain at least 11 elements.</exception>
         public static Food FromStringList(List<string> list)
         {
             if (list == null || list.Count < 11)
@@ -208,6 +292,10 @@ namespace Food
             return food;
         }
 
+        /// <summary>
+        /// Returns a string that represents the current food object in human-readable format.
+        /// </summary>
+        /// <returns>A string containing detailed information about the <see cref="Food"/> and its <see cref="Ingredients"/>.</returns>
         public override string ToString()
         {
             return ToReadableString(this);
@@ -298,8 +386,6 @@ namespace Food
         }
     }
 
-    // TODO: Describe this in database with simply double/int in sense of database 'FatContent_Total' + 'FatContent_Saturated'
-    // will be like 'Fat' structure in C#
     /// <summary>
     /// <see cref="Nutrients"/> content of certain <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>
     /// <br></br>
@@ -951,6 +1037,9 @@ namespace Food
         }
     }
 
+    /// <summary>
+    /// Class for retrieving/inserting database data
+    /// </summary>
     public class DB_DataParser
     {
         /// <summary>
@@ -1040,21 +1129,11 @@ namespace Food
 
     public class Program_Food
     {
-        private static readonly string argTestsNutrients = "nutrientsTests";
-
         public static void Main(string[] args)
         {
             bool testsNutrients = false;
             bool databaseExamples_Basics = false;
             bool databaseExamples_Scales_ReturnById = false;
-
-            if (args.Length > 0)
-            {
-                if (args[0] == argTestsNutrients)
-                {
-                    testsNutrients = true;
-                }
-            }
 
             if (testsNutrients)
             {

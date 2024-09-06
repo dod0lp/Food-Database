@@ -59,25 +59,9 @@ namespace CSharp_FrontEnd
 
         private Food.Food? MakeRowIDToFoodDomain(DataGridView datagrid)
         {
-            var list = new List<string>();
-
             var foodId = Convert.ToInt32(datagrid.Rows[0].Cells["Id"].Value.ToString());
 
             return dbParser.GetFoodDomainModelById(foodId);
-
-            /*foreach (DataGridViewCell cell in row.Cells)
-            {
-                list.Add(cell.Value?.ToString() ?? string.Empty);
-            }
-
-            try
-            {
-                return Food.Food.FromStringList(list);
-            }
-            catch
-            {
-                return null;
-            }*/
         }
 
         private void AddEditFoodButtons()
@@ -133,11 +117,7 @@ namespace CSharp_FrontEnd
 
             if (food1 != null && food2 != null)
             {
-                var retFood = food1 + food2;
-                MessageBox.Show($"Food 1:\n {food1.ToString()}");
-                MessageBox.Show($"Food 2:\n {food2.ToString()}");
-                MessageBox.Show($"Final food:\n {retFood.ToString()}");
-                return retFood;
+                return food1 + food2;
             }
 
             if (food1 != null)

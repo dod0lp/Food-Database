@@ -28,7 +28,7 @@ namespace Food_Database_Base
     public static class DB_Food_Descriptors
     {
         // TODO: Possibly make it so that those variables for food database are read from '.env' docker file
-        // apparently not a good practice and this needs to be saved in launcsettings.json or similar
+        // apparently not a good practice and this needs to be saved in launchsettings.json or similar
         private static readonly string server = "localhost";
         private static readonly string database = "db_food";
         private static readonly string user = "BackendCSharp";
@@ -142,10 +142,10 @@ namespace Food_Database_Base
         public double Weight { get; set; }
 
         [Column("Description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         // Navigation property to Nutrient
-        public NutrientEntity Nutrient { get; set; }
+        public NutrientEntity? Nutrient { get; set; }
 
         // Navigation properties for Ingredients
         public ICollection<IngredientEntity> IngredientsAsPart { get; set; } = new HashSet<IngredientEntity>();
@@ -415,6 +415,23 @@ namespace Food_Database_Base
                 .Include(f => f.IngredientsAsComplete)  // This includes ingredients (foods)
                     .ThenInclude(i => i.FoodPart)  // This includes the details of each ingredient
                 .ToList();
+        }
+
+        /// <summary>
+        /// Retrieves all <see cref="FoodEntity"/> instances from the database, including related nutrient and ingredient data using async.
+        /// </summary>
+        /// <returns>A list of <see cref="FoodEntity"/> objects, each populated with its associated <see cref="NutrientEntity"/> and <see cref="IngredientEntity"/> details.</returns>
+        /// <remarks>
+        /// - The method uses <see cref="System.Linq"/> to eagerly load related data for nutrients and ingredients.
+        /// - Ingredients are included using <see cref="System.Linq"/> and <see cref="Microsoft.EntityFrameworkCoreProperty"/> to include details about the ingredients (foods) associated with each <see cref="FoodEntity"/>.
+        /// </remarks>
+        public async Task<List<FoodEntity>> GetAllFoodEntityAsync()
+        {
+            return await context.Foods
+                .Include(f => f.Nutrient)
+                .Include(f => f.IngredientsAsComplete)
+                    .ThenInclude(i => i.FoodPart)
+                .ToListAsync();
         }
 
         /// <summary>

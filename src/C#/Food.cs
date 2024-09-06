@@ -888,7 +888,6 @@ namespace Food
         /// <returns>A new <see cref="Protein"/> instance with summed protein values.</returns>
         public static Protein operator +(Protein p1, Protein p2)
         {
-            // This is with use of inheritance, but.... nvm
             // return new Protein(((Nutrient)p1 + (Nutrient)p2).Total);
             return new Protein(p1.Total + p2.Total);
         }

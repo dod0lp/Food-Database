@@ -200,7 +200,6 @@ namespace CSharp_FrontEnd
                 {
                     int retId = dbParser.InsertFoodFromDomain(food);
                     dbParser.InsertFoodMappings(retId);
-                    MessageBox.Show(Convert.ToString(retId));
                 }
                 catch
                 {
@@ -311,11 +310,11 @@ namespace CSharp_FrontEnd
         private void Form1_Load(object sender, EventArgs e)
         {
             InitializeEditDataGrids();
-            LoadAllFoods();
+            LoadAllFoodsAsync();
         }
 
         /// <summary>
-        /// Prints all foods in database into a row/columns list
+        /// Prints all foods in database into a row/columns list.
         /// </summary>
         private void LoadAllFoods()
         {
@@ -343,6 +342,39 @@ namespace CSharp_FrontEnd
         }
 
         /// <summary>
+        /// Prints all foods in database into a row/columns list asynchronously.
+        /// </summary>
+        private async void LoadAllFoodsAsync()
+        {
+            try
+            {
+                // Load data in a separate thread to avoid blocking the UI
+                List<FoodEntity> foodsWithNutrients = await Task.Run(() => dbParser.GetAllFoodEntityAsync());
+
+                InitDatagridFoodInfoAllFood();
+
+                if (foodsWithNutrients == null || foodsWithNutrients.Count == 0)
+                {
+                    MessageBox.Show("No data found.");
+                    return;
+                }
+
+                foreach (FoodEntity foodEntity in foodsWithNutrients)
+                {
+                    // Map the entity to the domain object
+                    Food.Food foodDomain = foodEntity.MapToDomain();
+
+                    // Add to the datagrid (execute on UI thread if necessary)
+                    AddFoodDomainToDatagridAllFood(foodDomain);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while loading data: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Dispose resources
         /// </summary>
         /// <param name="e">Event</param>
@@ -354,7 +386,7 @@ namespace CSharp_FrontEnd
 
         private void refreshDatabaseButton_Click(object sender, EventArgs e)
         {
-            LoadAllFoods();
+            LoadAllFoodsAsync();
         }
 
         private void textBox3_TextChanged(object sender, EventArgs e)

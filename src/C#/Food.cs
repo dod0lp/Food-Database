@@ -1124,7 +1124,55 @@ namespace Food
             context.SaveChanges();
             return foodEntity.FoodId;
         }
+
+        /// <summary>
+        /// Inserts a new <see cref="IngredientEntity"/> into the database, created from the provided <see cref="Food.Id"/> domain model.
+        /// </summary>
+        /// <param name="id">he primary key ID of the newly inserted <see cref="FoodEntity"/>. Turning into the database as 1:1 mapping.</param>
+        /// <remarks>
+        /// - The method maps the provided <see cref="Food.Id"/> domain model to a <see cref="Food.Id"/> using <see cref="Food.Food.MapToEntity"/>.
+        /// </remarks>
+        public void InsertFoodMappings(int id)
+        {
+            List<int> listPartIds = GetFoodPartIdsByCompleteFoodId(id);
+            var ingredients = new List<IngredientEntity>();
+
+            foreach (var partId in listPartIds)
+            {
+                ingredients.Add(new IngredientEntity
+                {
+                    FoodIdComplete = id,
+                    FoodIdPart = partId
+                });
+            }
+            ingredients.Add(new IngredientEntity
+            {
+                FoodIdComplete = id,
+                FoodIdPart = id
+            });
+
+            context.Ingredients.AddRange(ingredients);
+            context.SaveChanges();
+        }
+
+        /// <summary>
+        /// Gets IDs of all pairs that this <paramref name="foodIdComplete"/> is CompleteID
+        /// </summary>
+        /// <param name="foodIdComplete">Complete ID of which I want to have all foods it's made out of</param>
+        /// <returns></returns>
+        public List<int> GetFoodPartIdsByCompleteFoodId(int foodIdComplete)
+        {
+            var x = context.Foods
+                .Where(f => f.FoodId == foodIdComplete)
+                .Include(f => f.IngredientsAsComplete)
+                    .ThenInclude(i => i.FoodPart)
+                .SelectMany(f => f.IngredientsAsComplete.Select(i => i.FoodPart.FoodId))
+                .ToList();
+
+            return x;
+        }
     }
+
 
 
     public class Program_Food
@@ -1322,6 +1370,8 @@ namespace Food
                     {
                         Console.WriteLine(newFood);
                     }
+
+                    dbParser.GetFoodPartIdsByCompleteFoodId(1002);
                 }
             }
         }

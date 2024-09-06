@@ -1,0 +1,11 @@
+Simple graphical interface, but for more clarity:
+
+You insert into database by using row "Food to Insert", by filling out columns.
+ID row is not needed.
+Description row is not needed
+Contains is not needed to fillout
+
+By clicking Food1 or Food2 buttons, you can insert those foods into its respective slots so you can combine them, or simply insert one of them
+into row with inserting into database, and then editing them.
+
+By "refresh" button you refresh data from database

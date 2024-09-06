@@ -33,6 +33,7 @@
             dataGridFood2 = new DataGridView();
             dataGridFoodFinal = new DataGridView();
             btnCombineFoods = new Button();
+            btnInsertIntoDB = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridViewAllFood).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridFood1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridFood2).BeginInit();
@@ -81,11 +82,22 @@
             btnCombineFoods.UseVisualStyleBackColor = true;
             btnCombineFoods.Click += buttonCombineFood_Click;
             // 
+            // btnInsertIntoDB
+            // 
+            btnInsertIntoDB.Location = new Point(1690, 771);
+            btnInsertIntoDB.Name = "btnInsertIntoDB";
+            btnInsertIntoDB.Size = new Size(157, 23);
+            btnInsertIntoDB.TabIndex = 5;
+            btnInsertIntoDB.Text = "Insert into database";
+            btnInsertIntoDB.UseVisualStyleBackColor = true;
+            btnInsertIntoDB.Click += btnInsertIntoDB_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1878, 914);
+            Controls.Add(btnInsertIntoDB);
             Controls.Add(btnCombineFoods);
             Controls.Add(dataGridFoodFinal);
             Controls.Add(dataGridFood2);
@@ -107,5 +119,6 @@
         private DataGridView dataGridFood2;
         private DataGridView dataGridFoodFinal;
         private Button btnCombineFoods;
+        private Button btnInsertIntoDB;
     }
 }

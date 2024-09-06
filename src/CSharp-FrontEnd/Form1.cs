@@ -57,11 +57,15 @@ namespace CSharp_FrontEnd
             AddEditFoodButtons();
         }
 
-        private Food.Food? ConvertRowToFoodDomain(DataGridViewRow row)
+        private Food.Food? MakeRowIDToFoodDomain(DataGridView datagrid)
         {
             var list = new List<string>();
 
-            foreach (DataGridViewCell cell in row.Cells)
+            var foodId = Convert.ToInt32(datagrid.Rows[0].Cells["Id"].Value.ToString());
+
+            return dbParser.GetFoodDomainModelById(foodId);
+
+            /*foreach (DataGridViewCell cell in row.Cells)
             {
                 list.Add(cell.Value?.ToString() ?? string.Empty);
             }
@@ -73,7 +77,7 @@ namespace CSharp_FrontEnd
             catch
             {
                 return null;
-            }
+            }*/
         }
 
         private void AddEditFoodButtons()
@@ -119,22 +123,23 @@ namespace CSharp_FrontEnd
 
             if (datagrid1.Rows.Count > 0)
             {
-                food1 = ConvertRowToFoodDomain(datagrid1.Rows[0]);
+                food1 = MakeRowIDToFoodDomain(datagrid1);
             }
 
             if (datagrid2.Rows.Count > 0)
             {
-                food2 = ConvertRowToFoodDomain(datagrid2.Rows[0]);
+                food2 = MakeRowIDToFoodDomain(datagrid2);
             }
 
             if (food1 != null && food2 != null)
             {
-                MessageBox.Show(food1.ToString());
-                MessageBox.Show(food2.ToString());
-                MessageBox.Show((food1 + food2).ToString());
-                return food1 + food2;
+                var retFood = food1 + food2;
+                MessageBox.Show($"Food 1:\n {food1.ToString()}");
+                MessageBox.Show($"Food 2:\n {food2.ToString()}");
+                MessageBox.Show($"Final food:\n {retFood.ToString()}");
+                return retFood;
             }
-            
+
             if (food1 != null)
             {
                 return food1;
@@ -155,6 +160,16 @@ namespace CSharp_FrontEnd
             if (food != null)
             {
                 EnsureSingleRowAndUpdate(dataGridFoodFinal, food);
+            }
+        }
+
+        private void btnInsertIntoDB_Click(object sender, EventArgs e)
+        {
+            Food.Food? food = MakeRowIDToFoodDomain(dataGridFoodFinal);
+
+            if (food != null)
+            {
+                dbParser.InsertFoodFromDomain(food);
             }
         }
 

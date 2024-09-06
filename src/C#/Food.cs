@@ -108,9 +108,12 @@ namespace Food
                 +
                 $"Description: {food.Description}\n";
 
+
             string foodsContained = "";
-            if (Ingredients != null)
-            foodsContained = string.Join("\n", Ingredients.Select(food => food.Name));
+            if (food.Ingredients != null)
+            {
+                foodsContained = string.Join("\n", food.Ingredients.Select(food => food.Name));
+            }
 
             return foodInfo + foodsContained;
         }
@@ -222,24 +225,38 @@ namespace Food
         public static Food operator +(Food food1, Food food2)
         {
             List<Food> ingredients = new();
-            try
-            {
-                ingredients = food1.Ingredients.Union(food2.Ingredients).ToList(); // Simple union of ingredients
-            }
-            catch (Exception)
-            {
 
+            if (food1.Ingredients != null && food2.Ingredients != null)
+            {
+                ingredients = food1.Ingredients.Union(food2.Ingredients).ToList();
+            }
+            else if (food1.Ingredients != null)
+            {
+                ingredients = food1.Ingredients;
+            }
+            else if (food2.Ingredients != null)
+            {
+                ingredients = food2.Ingredients;
             }
 
-            return new Food
+            Food food = new Food
             {
                 Id = -1,
                 Name = food1.Name ?? food2.Name,
                 Weight = food1.Weight + food2.Weight,
                 NutrientContent = food1.NutrientContent + food2.NutrientContent,
-                Ingredients = ingredients,
-                Description = ""
+                Description = "",
+                Ingredients = ingredients
             };
+
+            food.AddIngredient(food1);
+            food.AddIngredient(food2);
+
+            // Remove duplicates by this clever trick
+            HashSet<Food> uniqueIngredients = new HashSet<Food>(ingredients);
+            List<Food> finalIngredients = uniqueIngredients.ToList();
+
+            return food;
         }
 
         /// <summary>
@@ -1093,7 +1110,7 @@ namespace Food
 
                 Nutrients nutrientPotato = new(
                         new Energy(313),
-                        new Fat(0.1F, 0.02),
+                        new Fat(0.1, 0.02),
                         new Carbohydrates(23.2, 0.5),
                         new Protein(3.1),
                         new Salt(0.004)
@@ -1221,8 +1238,8 @@ namespace Food
                         Console.WriteLine(newEntity.MapToDomain());
                     }
 
-                    Food newFood = dbParser.GetFoodDomainModelById(newId);
-                    if (newEntity != null)
+                    Food? newFood = dbParser.GetFoodDomainModelById(newId);
+                    if (newFood != null)
                     {
                         Console.WriteLine(newFood);
                     }

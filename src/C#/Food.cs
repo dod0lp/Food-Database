@@ -108,7 +108,9 @@ namespace Food
                 +
                 $"Description: {food.Description}\n";
 
-            string foodsContained = string.Join("\n", Ingredients.Select(food => food.Name));
+            string foodsContained = "";
+            if (Ingredients != null)
+            foodsContained = string.Join("\n", Ingredients.Select(food => food.Name));
 
             return foodInfo + foodsContained;
         }
@@ -172,23 +174,24 @@ namespace Food
                     },
                     FatContent = new Fat
                     {
-                        Total = double.Parse(list[5])
+                        Total = double.Parse(list[5]),
+                        Saturated = double.Parse(list[6])
                     },
                     CarbohydrateContent = new Carbohydrates
                     {
-                        Total = double.Parse(list[6]),
-                        Sugar = double.Parse(list[7])
+                        Total = double.Parse(list[7]),
+                        Sugar = double.Parse(list[8])
                     },
                     Protein = new Protein
                     {
-                        Total = double.Parse(list[8])
+                        Total = double.Parse(list[9])
                     },
                     Salt = new Salt
                     {
-                        Total = double.Parse(list[9])
+                        Total = double.Parse(list[10])
                     }
                 },
-                Description = list[10]
+                Description = list[11]
             };
 
             return food;
@@ -210,13 +213,23 @@ namespace Food
         /// <returns>A new <see cref="Food"/> object with combined weight, nutrients, and ingredients.</returns>
         public static Food operator +(Food food1, Food food2)
         {
+            List<Food> ingredients = new();
+            try
+            {
+                ingredients = food1.Ingredients.Union(food2.Ingredients).ToList(); // Simple union of ingredients
+            }
+            catch (Exception)
+            {
+
+            }
+
             return new Food
             {
                 Id = -1,
                 Name = food1.Name ?? food2.Name,
                 Weight = food1.Weight + food2.Weight,
                 NutrientContent = food1.NutrientContent + food2.NutrientContent,
-                Ingredients = food1.Ingredients.Union(food2.Ingredients).ToList(),  // Simple union of ingredients
+                Ingredients = ingredients,
                 Description = ""
             };
         }

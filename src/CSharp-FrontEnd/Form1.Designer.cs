@@ -32,6 +32,7 @@
             dataGridFood1 = new DataGridView();
             dataGridFood2 = new DataGridView();
             dataGridFoodFinal = new DataGridView();
+            btnCombineFoods = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridViewAllFood).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridFood1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridFood2).BeginInit();
@@ -70,11 +71,22 @@
             dataGridFoodFinal.Size = new Size(1511, 55);
             dataGridFoodFinal.TabIndex = 3;
             // 
+            // btnCombineFoods
+            // 
+            btnCombineFoods.Location = new Point(1690, 533);
+            btnCombineFoods.Name = "btnCombineFoods";
+            btnCombineFoods.Size = new Size(157, 23);
+            btnCombineFoods.TabIndex = 4;
+            btnCombineFoods.Text = "Combine foods";
+            btnCombineFoods.UseVisualStyleBackColor = true;
+            btnCombineFoods.Click += buttonCombineFood_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1878, 914);
+            Controls.Add(btnCombineFoods);
             Controls.Add(dataGridFoodFinal);
             Controls.Add(dataGridFood2);
             Controls.Add(dataGridFood1);
@@ -94,5 +106,6 @@
         private DataGridView dataGridFood1;
         private DataGridView dataGridFood2;
         private DataGridView dataGridFoodFinal;
+        private Button btnCombineFoods;
     }
 }

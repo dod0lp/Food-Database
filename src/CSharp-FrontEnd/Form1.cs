@@ -57,6 +57,25 @@ namespace CSharp_FrontEnd
             AddEditFoodButtons();
         }
 
+        private Food.Food? ConvertRowToFoodDomain(DataGridViewRow row)
+        {
+            var list = new List<string>();
+
+            foreach (DataGridViewCell cell in row.Cells)
+            {
+                list.Add(cell.Value?.ToString() ?? string.Empty);
+            }
+
+            try
+            {
+                return Food.Food.FromStringList(list);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private void AddEditFoodButtons()
         {
             DataGridViewButtonColumn buttonFood1 = new DataGridViewButtonColumn
@@ -90,6 +109,52 @@ namespace CSharp_FrontEnd
                 {
                     EnsureSingleRowAndUpdate(datagrid, foodToEdit);
                 }
+            }
+        }
+
+        private Food.Food? MakeFoodFromTwoSelected(DataGridView datagrid1, DataGridView datagrid2)
+        {
+            Food.Food? food1 = null;
+            Food.Food? food2 = null;
+
+            if (datagrid1.Rows.Count > 0)
+            {
+                food1 = ConvertRowToFoodDomain(datagrid1.Rows[0]);
+            }
+
+            if (datagrid1.Rows.Count > 0)
+            {
+                food2 = ConvertRowToFoodDomain(datagrid2.Rows[0]);
+            }
+
+            if (food1 != null && food2 != null)
+            {
+                MessageBox.Show(food1.ToString());
+                MessageBox.Show(food2.ToString());
+                MessageBox.Show((food1 + food2).ToString());
+                return food1 + food2;
+            }
+            
+            if (food1 != null)
+            {
+                return food1;
+            }
+
+            if (food2 != null)
+            {
+                return food2;
+            }
+
+            return null;
+        }
+
+        private void buttonCombineFood_Click(object sender, EventArgs e)
+        {
+            Food.Food? food = MakeFoodFromTwoSelected(dataGridFood1, dataGridFood2);
+
+            if (food != null)
+            {
+                EnsureSingleRowAndUpdate(dataGridFoodFinal, food);
             }
         }
 

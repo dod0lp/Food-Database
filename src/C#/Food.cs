@@ -1042,11 +1042,11 @@ namespace Food
     {
         public static void Main(string[] args)
         {
-            bool testsNutrients = false;
+            bool exampleNutrients = false;
             bool databaseExamples_Basics = false;
             bool databaseExamples_Scales_ReturnById = false;
 
-            if (testsNutrients)
+            if (exampleNutrients)
             {
                 Fat fat1 = new(10, 7);
                 Console.WriteLine(fat1.Total);
@@ -1139,7 +1139,7 @@ namespace Food
                         }
                     }
 
-                    /*Nutrients peasNutrients = new(
+                    Nutrients peasNutrients = new(
                         new Energy(81),
                         new Fat(0.4, 0.1),
                         new Carbohydrates(14, 6),
@@ -1200,7 +1200,7 @@ namespace Food
                     context.Ingredients.AddRange(carrotsIngredients);
                     context.SaveChanges();
 
-                    Console.WriteLine("Food item added successfully.\n");*/
+                    Console.WriteLine("Food item added successfully.\n");
                 }
             }
 

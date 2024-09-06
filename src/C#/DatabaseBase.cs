@@ -90,7 +90,6 @@ namespace Food_Database_Base
         public const string TableFoodIngredients = "Ingredients";
     }
 
-    // TODO: MapToDomain & MapToEntity for those classes
 
     [Table(DB_Food_Descriptors.TableNutrients)]
     public class NutrientEntity

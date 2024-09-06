@@ -373,4 +373,140 @@ namespace Food_Database_Base
             return entity;
         }
     }
+
+    /// <summary>
+    /// Class for retrieving/inserting database data
+    /// </summary>
+    public class DB_DataParser
+    {
+        /// <summary>
+        /// The database context used for operations with the food database.
+        /// </summary>
+        /// <remarks>
+        /// - This private readonly field holds the instance of <see cref="FoodDbContext"/> that is used to interact with the database.
+        /// - It is initialized via the constructor and cannot be changed afterwards.
+        /// </remarks>
+        private readonly FoodDbContext context;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DB_DataParser"/> class with the specified <see cref="FoodDbContext"/>.
+        /// </summary>
+        /// <param name="context">The <see cref="FoodDbContext"/> instance to be used for database operations.</param>
+        /// <remarks>
+        /// - The provided <see cref="FoodDbContext"/> is assigned to the private field <see cref="context"/>.
+        /// - This context is used for querying and saving <see cref="FoodEntity"/> instances to the database.
+        /// </remarks>
+        public DB_DataParser(FoodDbContext context)
+        {
+            this.context = context;
+        }
+
+        /// <summary>
+        /// Retrieves all <see cref="FoodEntity"/> instances from the database, including related nutrient and ingredient data.
+        /// </summary>
+        /// <returns>A list of <see cref="FoodEntity"/> objects, each populated with its associated <see cref="NutrientEntity"/> and <see cref="IngredientEntity"/> details.</returns>
+        /// <remarks>
+        /// - The method uses <see cref="System.Linq"/> to eagerly load related data for nutrients and ingredients.
+        /// - Ingredients are included using <see cref="System.Linq"/> and <see cref="Microsoft.EntityFrameworkCoreProperty"/> to include details about the ingredients (foods) associated with each <see cref="FoodEntity"/>.
+        /// </remarks>
+        public List<FoodEntity> GetAllFoodEntity()
+        {
+            return context.Foods
+                .Include(f => f.Nutrient)  // Includes nutrients of this food
+                .Include(f => f.IngredientsAsComplete)  // This includes ingredients (foods)
+                    .ThenInclude(i => i.FoodPart)  // This includes the details of each ingredient
+                .ToList();
+        }
+
+        /// <summary>
+        /// Retrieves one <see cref="FoodEntity"/> instance from the database, including related nutrient and ingredient data, based on ID.
+        /// </summary>
+        /// <returns><see cref="FoodEntity"/>, or can return null if none found.</returns>
+        public FoodEntity? GetFoodEntityById(int id)
+        {
+            return context.Foods.SingleOrDefault(f => f.FoodId == id);
+        }
+
+        /// <summary>
+        /// Retrieves one <see cref="Food"/> instance from the database, casting from <see cref="FoodEntity"/>, including related nutrient and ingredient data, based on ID.
+        /// </summary>
+        /// <param name="id">ID of entity to lookup</param>
+        /// <returns><see cref="Food"/>, or can return null if none found.</returns>
+        public Food.Food? GetFoodDomainModelById(int id)
+        {
+            var foodEntity = GetFoodEntityById(id);
+
+            if (foodEntity == null)
+            {
+                return null;
+            }
+
+            return foodEntity.MapToDomain();
+        }
+
+        /// <summary>
+        /// Inserts a new <see cref="FoodEntity"/> into the database, created from the provided <see cref="Food"/> domain model.
+        /// </summary>
+        /// <param name="food">The <see cref="Food"/> domain model to be inserted into the database.</param>
+        /// <returns>The primary key ID of the newly inserted <see cref="FoodEntity"/>.</returns>
+        /// <remarks>
+        /// - The method maps the provided <see cref="Food"/> domain model to a <see cref="FoodEntity"/> using <see cref="Food.Food.MapToEntity"/>.
+        /// - The <see cref="FoodEntity"/> is then added to the database context and saved using <see cref="Microsoft.EntityFrameworkCore"/>.
+        /// - The ID of the newly inserted entity is returned, which corresponds to the database-generated primary key.
+        /// </remarks>
+        public int InsertFoodFromDomain(Food.Food food)
+        {
+            FoodEntity foodEntity = food.MapToEntity();
+            context.Foods.Add(foodEntity);
+            context.SaveChanges();
+            return foodEntity.FoodId;
+        }
+
+        /// <summary>
+        /// Inserts a new <see cref="IngredientEntity"/> into the database, created from the provided <see cref="Food.Id"/> domain model.
+        /// </summary>
+        /// <param name="id">he primary key ID of the newly inserted <see cref="FoodEntity"/>. Turning into the database as 1:1 mapping.</param>
+        /// <remarks>
+        /// - The method maps the provided <see cref="Food.Id"/> domain model to a <see cref="Food.Id"/> using <see cref="Food.Food.MapToEntity"/>.
+        /// </remarks>
+        public void InsertFoodMappings(int id)
+        {
+            List<int> listPartIds = GetFoodPartIdsByCompleteFoodId(id);
+            var ingredients = new List<IngredientEntity>();
+
+            foreach (var partId in listPartIds)
+            {
+                ingredients.Add(new IngredientEntity
+                {
+                    FoodIdComplete = id,
+                    FoodIdPart = partId
+                });
+            }
+            ingredients.Add(new IngredientEntity
+            {
+                FoodIdComplete = id,
+                FoodIdPart = id
+            });
+
+            context.Ingredients.AddRange(ingredients);
+            context.SaveChanges();
+        }
+
+        /// <summary>
+        /// Gets IDs of all pairs that this <paramref name="foodIdComplete"/> is CompleteID
+        /// </summary>
+        /// <param name="foodIdComplete">Complete ID of which I want to have all foods it's made out of</param>
+        /// <returns></returns>
+        public List<int> GetFoodPartIdsByCompleteFoodId(int foodIdComplete)
+        {
+            var x = context.Foods
+                .Where(f => f.FoodId == foodIdComplete)
+                .Include(f => f.IngredientsAsComplete)
+                    .ThenInclude(i => i.FoodPart)
+                .SelectMany(f => f.IngredientsAsComplete.Select(i => i.FoodPart.FoodId))
+                .ToList();
+
+            return x;
+        }
+    }
 }

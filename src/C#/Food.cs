@@ -138,7 +138,15 @@ namespace Food
                 $"{food.Description}"
             };
 
-            var ingredientsInfo = food.Ingredients.Select(ingredient => ingredient.Name).ToList();
+            List<string> ingredientsInfo = new();
+            try
+            {
+                ingredientsInfo = food.Ingredients.Select(ingredient => ingredient.Name).ToList();
+            }
+            catch
+            {
+
+            }
 
             string allIngredients = string.Join(",", ingredientsInfo);
             string foodInfo = $"Contains: {allIngredients}";

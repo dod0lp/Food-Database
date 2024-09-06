@@ -122,7 +122,7 @@ namespace CSharp_FrontEnd
                 food1 = ConvertRowToFoodDomain(datagrid1.Rows[0]);
             }
 
-            if (datagrid1.Rows.Count > 0)
+            if (datagrid2.Rows.Count > 0)
             {
                 food2 = ConvertRowToFoodDomain(datagrid2.Rows[0]);
             }

@@ -9,7 +9,7 @@ COPY startup.sh ${WORK_DIR}
 COPY init.sql ${WORK_DIR}
 COPY ./init-scripts/ ${WORK_DIR}/init-scripts/
 
-EXPOSE 1433
+EXPOSE ${DATABASE_PORT}
 
 RUN chmod +x ${WORK_DIR}/startup.sh
 CMD sh -c "${WORK_DIR}/startup.sh"

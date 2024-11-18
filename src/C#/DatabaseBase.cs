@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using DotNetEnv;
 
 namespace Food_Database_Base
 {
@@ -27,12 +28,18 @@ namespace Food_Database_Base
     /// </summary>
     public static class DB_Food_Descriptors
     {
+        static DB_Food_Descriptors()
+        {
+            // Specify the relative path to the .env file
+            DotNetEnv.Env.Load("config/app.env");
+        }
+
         // TODO: Possibly make it so that those variables for food database are read from '.env' docker file
         // apparently not a good practice and this needs to be saved in launchsettings.json or similar
-        private static readonly string server = "localhost";
-        private static readonly string database = "db_food";
-        private static readonly string user = "BackendCSharp";
-        private static readonly string password = "Password@123";
+        private static readonly string server = Environment.GetEnvironmentVariable("DB_SERVER") ?? "localhost";
+        private static readonly string database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "db_food";
+        private static readonly string user = Environment.GetEnvironmentVariable("DB_USER") ?? "BackendCSharp";
+        private static readonly string password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Password@123";
 
         /// <summary>
         /// The connection string used to connect to the food database.
@@ -123,7 +130,6 @@ namespace Food_Database_Base
         public double SaltTotal { get; set; }
 
 
-        // Navigation property to Food
         [ForeignKey("FoodId")]
         public FoodEntity Food { get; set; }
     }
@@ -144,10 +150,8 @@ namespace Food_Database_Base
         [Column("Description")]
         public string? Description { get; set; }
 
-        // Navigation property to Nutrient
         public NutrientEntity? Nutrient { get; set; }
 
-        // Navigation properties for Ingredients
         public ICollection<IngredientEntity> IngredientsAsPart { get; set; } = new HashSet<IngredientEntity>();
         public ICollection<IngredientEntity> IngredientsAsComplete { get; set; } = new HashSet<IngredientEntity>();
     }
@@ -163,7 +167,6 @@ namespace Food_Database_Base
         [Column("Food_ID_Part")]
         public int FoodIdPart { get; set; }
 
-        // Navigation properties
         [ForeignKey("FoodIdComplete")]
         public FoodEntity FoodComplete { get; set; }
 

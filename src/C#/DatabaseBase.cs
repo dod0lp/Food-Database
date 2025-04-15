@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using DotNetEnv;
 
 namespace Food_Database_Base
 {
@@ -27,12 +28,18 @@ namespace Food_Database_Base
     /// </summary>
     public static class DB_Food_Descriptors
     {
+        static DB_Food_Descriptors()
+        {
+            // relative path to the .env file, to be refactored into some const string
+            DotNetEnv.Env.Load("config/app.env");
+        }
+
         // TODO: Possibly make it so that those variables for food database are read from '.env' docker file
         // apparently not a good practice and this needs to be saved in launchsettings.json or similar
-        private static readonly string server = "localhost";
-        private static readonly string database = "db_food";
-        private static readonly string user = "BackendCSharp";
-        private static readonly string password = "Password@123";
+        private static readonly string server = Environment.GetEnvironmentVariable("DB_SERVER") ?? "localhost";
+        private static readonly string database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "db_food";
+        private static readonly string user = Environment.GetEnvironmentVariable("DB_USER") ?? "BackendCSharp";
+        private static readonly string password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Password@123";
 
         /// <summary>
         /// The connection string used to connect to the food database.
@@ -123,7 +130,6 @@ namespace Food_Database_Base
         public double SaltTotal { get; set; }
 
 
-        // Navigation property to Food
         [ForeignKey("FoodId")]
         public FoodEntity Food { get; set; }
     }
@@ -144,10 +150,8 @@ namespace Food_Database_Base
         [Column("Description")]
         public string? Description { get; set; }
 
-        // Navigation property to Nutrient
         public NutrientEntity? Nutrient { get; set; }
 
-        // Navigation properties for Ingredients
         public ICollection<IngredientEntity> IngredientsAsPart { get; set; } = new HashSet<IngredientEntity>();
         public ICollection<IngredientEntity> IngredientsAsComplete { get; set; } = new HashSet<IngredientEntity>();
     }
@@ -163,7 +167,6 @@ namespace Food_Database_Base
         [Column("Food_ID_Part")]
         public int FoodIdPart { get; set; }
 
-        // Navigation properties
         [ForeignKey("FoodIdComplete")]
         public FoodEntity FoodComplete { get; set; }
 
@@ -191,6 +194,9 @@ namespace Food_Database_Base
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(DB_Food_Descriptors.ConnectionString);
+
+            optionsBuilder.EnableSensitiveDataLogging();
+            optionsBuilder.LogTo(Console.WriteLine);
         }
 
         /// <summary>
@@ -262,10 +268,10 @@ namespace Food_Database_Base
             return new NutrientEntity
             {
                 FoodId = foodId,
-                // Energykcal is int in database, in Domain model it is double, but it is being explicitly cast as 'int'
+                // Energykcal is int in database, in Domain model it is double, but it is being explicitly cast as 'int', rounded up.
                 // when using setter
-                EnergyKcal = (int)model.Energy.Kcal,
-                EnergyKj = (int)model.Energy.KJ,
+                EnergyKcal = (int)Math.Ceiling(model.Energy.Kcal),
+                EnergyKj = (int)Math.Ceiling(model.Energy.KJ),
 
                 FatTotal = (double)model.FatContent.Total,
                 FatSaturated = (double)model.FatContent.Saturated,
@@ -351,27 +357,14 @@ namespace Food_Database_Base
                 Weight = (double)model.Weight,
                 Description = model.Description,
                 Nutrient = model.NutrientContent.MapToEntity(model.Id),
-                IngredientsAsPart = new HashSet<IngredientEntity>()
+                IngredientsAsPart = new HashSet<IngredientEntity>(),
+                IngredientsAsComplete = new HashSet<IngredientEntity>()
             };
-
-            // Map Ingredients
-            if (model.Ingredients != null)
-            {
-                foreach (var ingredient in model.Ingredients)
-                {
-                    entity.IngredientsAsPart.Add(new IngredientEntity
-                    {
-                        FoodIdComplete = model.Id,
-                        FoodIdPart = ingredient.Id,
-                        FoodComplete = entity,
-                        FoodPart = ingredient.MapToEntity()
-                    });
-                }
-            }
 
             return entity;
         }
     }
+
 
     /// <summary>
     /// Class for retrieving/inserting database data
@@ -475,7 +468,37 @@ namespace Food_Database_Base
             FoodEntity foodEntity = food.MapToEntity();
             context.Foods.Add(foodEntity);
             context.SaveChanges();
+
+            UpdateIngredientEntities(food, foodEntity.FoodId);
             return foodEntity.FoodId;
+        }
+
+        public void UpdateIngredientEntities(Food.Food combinedFood, int foodId)
+        {
+            if (combinedFood.Ingredients is null || combinedFood.Ingredients.Count == 0)
+            {
+                return;
+            }
+
+            var encounteredIngredientPairs = new HashSet<(int FoodIdComplete, int FoodIdPart)>();
+            foreach (var ingredient in combinedFood.Ingredients)
+            {
+                var ingredientPair = (foodId, ingredient.Id);
+
+                if (!encounteredIngredientPairs.Contains(ingredientPair))
+                {
+                    var ingredientEntity = new IngredientEntity
+                    {
+                        FoodIdComplete = foodId,
+                        FoodIdPart = ingredient.Id
+                    };
+
+                    context.Ingredients.Add(ingredientEntity);
+                    encounteredIngredientPairs.Add(ingredientPair);
+                }
+            }
+
+            context.SaveChanges();
         }
 
         /// <summary>
@@ -485,7 +508,7 @@ namespace Food_Database_Base
         /// <remarks>
         /// - The method maps the provided <see cref="Food.Id"/> domain model to a <see cref="Food.Id"/> using <see cref="Food.Food.MapToEntity"/>.
         /// </remarks>
-        public void InsertFoodMappings(int id)
+        public void InsertFoodMappingsFromEntity(int id)
         {
             List<int> listPartIds = GetFoodPartIdsByCompleteFoodId(id);
             var ingredients = new List<IngredientEntity>();
@@ -498,6 +521,7 @@ namespace Food_Database_Base
                     FoodIdPart = partId
                 });
             }
+
             ingredients.Add(new IngredientEntity
             {
                 FoodIdComplete = id,

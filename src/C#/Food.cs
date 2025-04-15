@@ -337,12 +337,17 @@ namespace Food
                 Ingredients = ingredients
             };
 
-            food.AddIngredient(food1);
-            food.AddIngredient(food2);
+            // if Foods that are combined into this Food are counted as ingredients already
+            if (food.Ingredients.Count == 0)
+            {
+                food.AddIngredient(food1);
+                food.AddIngredient(food2);
+            }
 
             // Remove duplicates by this clever trick
-            HashSet<Food> uniqueIngredients = new HashSet<Food>(ingredients);
+            /*HashSet<Food> uniqueIngredients = new HashSet<Food>(food.Ingredients);
             List<Food> finalIngredients = uniqueIngredients.ToList();
+            food.Ingredients = finalIngredients;*/
 
             return food;
         }
@@ -1041,9 +1046,10 @@ namespace Food
     {
         public static void Main(string[] args)
         {
+            //comparison operator for Food, Nutrients
             bool exampleNutrients = false;
             bool databaseExamples_Basics = false;
-            bool databaseExamples_Scales_ReturnById = false;
+            bool databaseExamples_Scales_ReturnById = true;
 
             if (exampleNutrients)
             {
@@ -1164,7 +1170,7 @@ namespace Food
 
                     Console.WriteLine("Food item added successfully.\n");
 
-                    var carrotsEntity = new FoodEntity
+                    var peachEntity = new FoodEntity
                     {
                         Name = "Peach",
                         Weight = 150.0,
@@ -1182,21 +1188,21 @@ namespace Food
                         }
                     };
 
-                    context.Foods.Add(carrotsEntity);
+                    context.Foods.Add(peachEntity);
                     context.SaveChanges();
 
-                    int carrotsId = carrotsEntity.FoodId;
+                    int peachId = peachEntity.FoodId;
 
-                    var carrotsIngredients = new List<IngredientEntity>
+                    var peachIngredients = new List<IngredientEntity>
                     {
                         new IngredientEntity
                         {
-                            FoodIdComplete = carrotsId,
-                            FoodIdPart = carrotsId
+                            FoodIdComplete = peachId,
+                            FoodIdPart = peachId
                         }
                     };
 
-                    context.Ingredients.AddRange(carrotsIngredients);
+                    context.Ingredients.AddRange(peachIngredients);
                     context.SaveChanges();
 
                     Console.WriteLine("Food item added successfully.\n");
@@ -1210,17 +1216,18 @@ namespace Food
                     DB_DataParser dbParser = new(context);
                     List<FoodEntity> foodsWithNutrients = dbParser.GetAllFoodEntity();
 
-                    Food food1 = foodsWithNutrients[0].MapToDomain();
-                    Food food2 = foodsWithNutrients[1].MapToDomain();
+                    Food food1 = foodsWithNutrients[59].MapToDomain();
+                    Food food2 = foodsWithNutrients[60].MapToDomain();
 
                     Food food3 = food1 + food2;
 
-                    food3.Name = "AppleChicken";
-                    food3.Description = "Apple with chicken.";
+                    food3.Name = "CombineFood1+2";
+                    food3.Description = "Food 1 + Food 2.";
 
-                    dbParser.InsertFoodFromDomain(food3);
-                    int newId = dbParser.InsertFoodFromDomain(0.5 * food3);
+                    int newId1 = dbParser.InsertFoodFromDomain(food3);
 
+                    /*int newId = dbParser.InsertFoodFromDomain(0.5 * food3);
+                    dbParser.InsertFoodMappings(newId);
                     FoodEntity? newEntity = dbParser.GetFoodEntityById(newId);
                     if (newEntity != null)
                     {
@@ -1231,9 +1238,9 @@ namespace Food
                     if (newFood != null)
                     {
                         Console.WriteLine(newFood);
-                    }
+                    }*/
 
-                    dbParser.GetFoodPartIdsByCompleteFoodId(1002);
+                    // dbParser.GetFoodPartIdsByCompleteFoodId(2);
                 }
             }
         }

@@ -199,7 +199,7 @@ namespace CSharp_FrontEnd
                 try
                 {
                     int retId = dbParser.InsertFoodFromDomain(food);
-                    dbParser.InsertFoodMappings(retId);
+                    dbParser.InsertFoodMappingsFromEntity(retId);
                 }
                 catch
                 {

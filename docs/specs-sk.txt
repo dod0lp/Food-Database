@@ -1,0 +1,44 @@
+Základné technické špecifikácie:
+Full-Stack C# + EntityFramework aplikácia s Docker nasadením.
+
+Chcem, aby sa to dalo nasadiť jediným, možno dvoma-troma, príkazmi pre docker.
+
+Docker s inicializáciou MicrosoftSQL databázy, kde sa modulárne dajú pridať nové skripty na generáciu nových tabuliek, administrátorov, či nastavovanie foreign keys atď.
+Teda sa jednoducho pridajú skripty pre inicializáciu nových Tables - alebo akýkoľvek SQL príkaz potrebný na jednoduché rozšírenie aplikácie.
+
+(C#-backend je akoby admin databáze)
+Back-end je EntityFramework spolu s MSQL.
+Teda s EntityFrameworkom to prevádzam do C# class-es (mám vlastnú knižnicu pre reprezentáciu "domény")
+pre jednoduchšiu prácu s týmito dátami v C#, a potom naspäť pomocou EF to prevediem do databázových dát.
+(Domain [c# class] <-> Entity [sql data])
+
+Na front-end mám v pláne Angular, ale teraz táto verzia aplikácie beží na C# Win Forms jednoduchej tabulkovej a tlačítkovej správe údajov databáze.
+Takisto mám v pláne pridať užívateľov cez nejaký premade C# service alebo tak.
+Chcem to prepojiť cez C# ASP.NET.
+
+===================================================
+
+Stručný popis:
+Je to niečo ako aplikácia na recepty s ukazovaním kalórii a nutričných hodnôt vo výslednom jedle.
+
+Ako to chcem implementovať, detaily sa môžu zmeniť:
+Dáta v databáze sú jednotlivé suroviny/prísady do jedál (technicky každá surovina je jedlo), a jedlá ktoré sa z týchto surovín budú skladať
+(nejaké jedlo sa môže skladať z viacerých iných jedál - využitie foreign keys).
+Aplikácia bude zostrojovať nejaké jedlá a suroviny [jedlo = surovina v databázy] a to ukladať do databazy ak uživatel klikne na napr. tlačítko uložiť pri hotovom jedle,
+alebo načítavať z databazy na dalšie použitie do inych jedál, alebo len na jednoduché zistenie nutričných hodnôt pri určitých hmotnostiach tohto jedla.
+Tieto jedla sa môžu dať "skladať" do komplexnejšieho jedla, ktore vo výsledku ukáže kalórie celeho tohto jedla, a ich celkové výživové udaje.
+
+Technickejší popis čo už funguje:
+Išlo o prácu s C# takže popis je hlavne o C# funkciách. Tieto jedlá sa prevádzajú do Food Class, a tam sú aj "vlastné operátory", teda ak dám VýslednéJedlo = (1 * Surovina_1) + (1 * Surovina_2),
+tak z toho vyjde nejaká iná surovina, čo bude vo výsledku to jedlo alebo zmes surovín, ten výsledok bude mať váhu súčet týchto dvoch surovín, a takisto výživové údaje - kalórie, sacharidy atď,
+z týchto dvoch surovín (toto by bolo ale nejak nanormované, že celkový výsledok nebude ich súčet, ale že jedlo bude mať v základe výživové údaje na napríklad 100gramov).
+A teda keďže v tom príklade som uviedol (1* Surovina), tak vďaka tým operátorom to môže byť aj napríklad že ak norma je 100g jedno jedlo, tak ak dám (0.5 * TotoJedlo), tak to bude
+akoby sa z tohto jedla stalo 50g, a toto pôjde skombinovať s nejakým iným jedlom - surovinou, napríklad tých (1 * Surovina), teda to bude 100g tejto suroviny,
+a výsledné jedlo bude mať akoby 150g, a napríklad nutričné hodnoty sa pri vložení do databáze nanormujú na 100g výsledného jedla podla pomerov týchto surovín.
+
+Možné rozšírenia:
+-   Hlavne čo by som chcel je, že tá aplikácia bude mať užívateľov [asi ten ASP.NET to bude mať]
+-   Pridať parser/datascraper na dáta zo zdrojov aby aplikácia mala viacej údajov a možností.
+-   Každý užívateľ si môže pridávať vlastné jedlá ktoré vytvoril. [toto funguje už teraz, ale len pre jedného užívateľa .exe aplikácie]
+-   Každý užívateľ si môže pridávať vlastné oblúbené "obaly" jedál, teda oblúbené hmotnosti
+-   Pridať možnosť nejak si uložiť cenu jedla, aby sa to dalo prepočítať na napríklad 1 balenie

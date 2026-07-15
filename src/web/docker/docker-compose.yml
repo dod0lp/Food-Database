@@ -3,14 +3,14 @@ services:
     build:
       context: ./../sql
       dockerfile: Dockerfile
-    container_name: sqlserver
+    container_name: sqlserver_food
     environment:
       - SA_PASSWORD=${SA_PASSWORD}
       - ACCEPT_EULA=${ACCEPT_EULA}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - DB_SERVER=${DATABASE_ADDRESS},${DATABASE_PORT}
+      - DB_SERVER=${DB_ADDRESS},${DB_PORT}
     ports:
       - "1433:1433"
     volumes:

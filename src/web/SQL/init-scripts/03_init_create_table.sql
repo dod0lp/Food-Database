@@ -1,48 +1,87 @@
-USE [$(DB_NAME)];
-GO
+ USE [master];
+ GO
 
-/*IF OBJECT_ID('dbo.Food', 'U') IS NOT NULL
-    DROP TABLE dbo.Food;
-GO
-
-IF OBJECT_ID('dbo.Nutrients', 'U') IS NOT NULL
-    DROP TABLE dbo.Nutrients;
-GO
-
-IF OBJECT_ID('dbo.Ingredients', 'U') IS NOT NULL
-    DROP TABLE dbo.Ingredients;
-GO*/
-
-CREATE TABLE dbo.Food (
-    ID INT PRIMARY KEY IDENTITY(1, 1),
-    Name NVARCHAR(100) NOT NULL,
-    Weight FLOAT NOT NULL,
-    Description NVARCHAR(4000)
+CREATE TABLE Users
+(
+    Id INT IDENTITY(1,1) NOT NULL
+        CONSTRAINT PK_Users PRIMARY KEY
 );
-GO
 
-CREATE TABLE dbo.Nutrients (
-    Food_ID INT PRIMARY KEY,
-    Energy_Kcal INT NOT NULL,
-    Energy_Kj INT NOT NULL,
-    Fat_Total FLOAT NOT NULL,
-    Fat_Saturated FLOAT NOT NULL,
-    Carbs_Total FLOAT NOT NULL,
-    Carbs_Saturated FLOAT NOT NULL,
-    Protein_Total FLOAT NOT NULL,
-    Salt_Total FLOAT NOT NULL,
+CREATE TABLE Food
+(
+    Id INT IDENTITY(1,1) NOT NULL
+        CONSTRAINT PK_Food PRIMARY KEY,
 
-    CONSTRAINT FK_Food_Nutrients FOREIGN KEY (Food_ID) REFERENCES dbo.Food(ID)
+    Name NVARCHAR(200) NOT NULL,
+
+    -- Nutritional values per 100 g
+    EnergyKcal DECIMAL(8,2) NULL,
+    FatG DECIMAL(8,2) NULL,
+    SaturatedFatG DECIMAL(8,2) NULL,
+    CarbohydrateG DECIMAL(8,2) NULL,
+    SugarsG DECIMAL(8,2) NULL,
+    FibreG DECIMAL(8,2) NULL,
+    ProteinG DECIMAL(8,2) NULL,
+    SaltG DECIMAL(8,2) NULL,
+
+    -- NULL = base food / manually defined food
+    -- Non-NULL = user-created food
+    CreatedByUserId INT NULL
+        CONSTRAINT FK_Food_CreatedByUser
+        REFERENCES Users(Id),
+
+    CONSTRAINT CK_Food_Nutrients
+        CHECK (
+            (EnergyKcal IS NULL OR EnergyKcal >= 0) AND
+            (FatG IS NULL OR FatG >= 0) AND
+            (SaturatedFatG IS NULL OR SaturatedFatG >= 0) AND
+            (CarbohydrateG IS NULL OR CarbohydrateG >= 0) AND
+            (SugarsG IS NULL OR SugarsG >= 0) AND
+            (FibreG IS NULL OR FibreG >= 0) AND
+            (ProteinG IS NULL OR ProteinG >= 0) AND
+            (SaltG IS NULL OR SaltG >= 0)
+        )
 );
-GO
 
-CREATE TABLE dbo.Ingredients (
-    Food_ID_Complete INT NOT NULL,
-    Food_ID_Part     INT NOT NULL,
-    
-    CONSTRAINT PK_Ingredients PRIMARY KEY (Food_ID_Complete, Food_ID_Part),
-    
-    CONSTRAINT FK_Ingredients_Food_Complete FOREIGN KEY (Food_ID_Complete) REFERENCES dbo.Food(ID),
-    CONSTRAINT FK_Ingredients_Food_Part FOREIGN KEY (Food_ID_Part) REFERENCES dbo.Food(ID)
+CREATE TABLE UserFood
+(
+    UserId INT NOT NULL
+        CONSTRAINT FK_UserFood_User
+        REFERENCES Users(Id),
+
+    FoodId INT NOT NULL
+        CONSTRAINT FK_UserFood_Food
+        REFERENCES Food(Id),
+
+    -- User-specific price, per 100 g
+    PriceEur DECIMAL(10,4) NULL,
+
+    CONSTRAINT PK_UserFood
+        PRIMARY KEY (UserId, FoodId),
+
+    CONSTRAINT CK_UserFood_Price
+        CHECK (PriceEur IS NULL OR PriceEur >= 0)
 );
-GO
+
+CREATE TABLE FoodIngredient
+(
+    FoodId INT NOT NULL
+        CONSTRAINT FK_FoodIngredient_Food
+        REFERENCES Food(Id),
+
+    IngredientFoodId INT NOT NULL
+        CONSTRAINT FK_FoodIngredient_IngredientFood
+        REFERENCES Food(Id),
+
+    -- Amount of the ingredient used in the composed food
+    AmountG DECIMAL(10,2) NOT NULL,
+
+    CONSTRAINT PK_FoodIngredient
+        PRIMARY KEY (FoodId, IngredientFoodId),
+
+    CONSTRAINT CK_FoodIngredient_Amount
+        CHECK (AmountG > 0),
+
+    CONSTRAINT CK_FoodIngredient_NotSelf
+        CHECK (FoodId <> IngredientFoodId)
+);

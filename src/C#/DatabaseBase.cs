@@ -70,7 +70,7 @@ namespace Food_Database_Base
         /// This constant defines the maximum number of characters allowed for the food name.
         /// If the name exceeds this length, it may be truncated or cause an error when saving to the database.
         /// </remarks>
-        public const int MaxFoodNameLength = 100;
+        public const int MaxFoodNameLength = 200;
 
         /// <summary>
         /// The name of the table in the database that stores food items.
@@ -120,8 +120,8 @@ namespace Food_Database_Base
         [Column("Carbs_Total")]
         public double CarbsTotal { get; set; }
 
-        [Column("Carbs_Saturated")]
-        public double CarbsSaturated { get; set; }
+        [Column("Carbs_Sugar")]
+        public double CarbsSugar { get; set; }
 
         [Column("Protein_Total")]
         public double ProteinTotal { get; set; }
@@ -246,7 +246,7 @@ namespace Food_Database_Base
             return new Nutrients(
                 new Energy(entity.EnergyKcal),
                 new Fat(entity.FatTotal, entity.FatSaturated),
-                new Carbohydrates(entity.CarbsTotal, entity.CarbsSaturated),
+                new Carbohydrates(entity.CarbsTotal, entity.CarbsSugar),
                 new Protein(entity.ProteinTotal),
                 new Salt(entity.SaltTotal)
             );
@@ -277,7 +277,7 @@ namespace Food_Database_Base
                 FatSaturated = (double)model.FatContent.Saturated,
 
                 CarbsTotal = (double)model.CarbohydrateContent.Total,
-                CarbsSaturated = (double)model.CarbohydrateContent.Sugar,
+                CarbsSugar = (double)model.CarbohydrateContent.Sugar,
 
                 ProteinTotal = (double)model.Protein.Total,
                 

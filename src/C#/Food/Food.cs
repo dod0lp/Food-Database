@@ -379,7 +379,7 @@ namespace Food
                 result += $"Nutritional Info:\n";
                 result += $"  Energy: {foodEntity.Nutrient.EnergyKcal} kcal / {foodEntity.Nutrient.EnergyKj} kJ\n";
                 result += $"  Total Fat: {foodEntity.Nutrient.FatTotal}g (Saturated: {foodEntity.Nutrient.FatSaturated}g)\n";
-                result += $"  Total Carbs: {foodEntity.Nutrient.CarbsTotal}g (Sugar: {foodEntity.Nutrient.CarbsSaturated}g)\n";
+                result += $"  Total Carbs: {foodEntity.Nutrient.CarbsTotal}g (Sugar: {foodEntity.Nutrient.CarbsSugar}g)\n";
                 result += $"  Protein: {foodEntity.Nutrient.ProteinTotal}g\n";
                 result += $"  Salt: {foodEntity.Nutrient.SaltTotal}g\n";
             }
@@ -547,7 +547,7 @@ namespace Food
                             FatTotal = 1.0,
                             FatSaturated = 2.0,
                             CarbsTotal = 30.0,
-                            CarbsSaturated = 5.0,
+                            CarbsSugar = 5.0,
                             ProteinTotal = 2.0,
                             SaltTotal = 0.2
                         }

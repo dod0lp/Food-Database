@@ -1,5 +1,5 @@
- USE [master];
- GO
+USE [$(DB_NAME)];
+GO
 
 CREATE TABLE Users
 (

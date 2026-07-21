@@ -1,0 +1,5 @@
+User can do following:
+Choose already exisitng (non-user specified) food as his favorite.
+Create new food as his favorite.
+Set weight of his favorite food multiple times (package size, ingredient size).
+Set price for his favorite food for each size.

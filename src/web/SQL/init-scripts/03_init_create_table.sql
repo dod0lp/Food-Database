@@ -45,19 +45,19 @@ BEGIN
 END;
 
 -- User's favorite food
-IF OBJECT_ID(N'dbo.UserFoodFavorite', N'U') IS NULL
+IF OBJECT_ID(N'dbo.UserFoodFavorites', N'U') IS NULL
 BEGIN
-    CREATE TABLE UserFoodFavorite
+    CREATE TABLE UserFoodFavorites
     (
         User_Id INT NOT NULL
-            CONSTRAINT FK_UserFoodFavorite_User
+            CONSTRAINT FK_UserFoodFavorites_User
             REFERENCES Users(Id),
 
         Food_Id INT NOT NULL
-            CONSTRAINT FK_UserFoodFavorite_Food
+            CONSTRAINT FK_UserFoodFavorites_Food
             REFERENCES Food(Id),
 
-        CONSTRAINT PK_UserFoodFavorite
+        CONSTRAINT PK_UserFoodFavorites
             PRIMARY KEY (User_Id, Food_Id)
     );
 END;
@@ -95,8 +95,7 @@ BEGIN
             REFERENCES Food(Id),
 
         -- Based on weight easily decompose food ingredients
-        -- Since not null, maybe by default work with 100, but it is up to app/backend
-        Weight_Total DECIMAL(16,4) NOT NULL,
+        Weight_Total DECIMAL(16,4) NULL,
         Price_Eur DECIMAL(16,4) NULL,
 
         CONSTRAINT CK_UserFood_Price
@@ -107,31 +106,49 @@ BEGIN
     );
 END;
 
-IF OBJECT_ID(N'dbo.FoodIngredient', N'U') IS NULL
+IF OBJECT_ID(N'dbo.FoodIngredients', N'U') IS NULL
 BEGIN
-    CREATE TABLE FoodIngredient
+    CREATE TABLE FoodIngredients
     (
         -- Main food that is complete, same ID be multiple times
         Food_Id INT NOT NULL
-            CONSTRAINT FK_FoodIngredient_Food
+            CONSTRAINT FK_FoodIngredients_Food
             REFERENCES Food(Id),
 
         -- One of the ingredients in the main food
         Ingredient_Food_Id INT NOT NULL
-            CONSTRAINT FK_FoodIngredient_IngredientFood
+            CONSTRAINT FK_FoodIngredients_IngredientFood
             REFERENCES Food(Id),
 
         -- Amount of the ingredient used in the composed food
         -- Normalised for 100g
         Weight_Ingredient_Normalised DECIMAL(16,2) NOT NULL,
 
-        CONSTRAINT PK_FoodIngredient
+        CONSTRAINT PK_FoodIngredients
             PRIMARY KEY (Food_Id, Ingredient_Food_Id),
 
-        CONSTRAINT CK_FoodIngredient_Amount
+        CONSTRAINT CK_FoodIngredients_Amount
             CHECK (Weight_Ingredient_Normalised > 0),
 
-        CONSTRAINT CK_FoodIngredient_NotSelf
+        CONSTRAINT CK_FoodIngredients_NotSelf
             CHECK (Food_Id <> Ingredient_Food_Id)
     );
+END;
+
+IF OBJECT_ID(N'dbo.UserCreatedFood', N'U') IS NULL
+BEGIN
+    CREATE TABLE UserCreatedFood
+    (
+        Food_Id INT NOT NULL
+            CONSTRAINT PK_UserCreatedFood PRIMARY KEY
+            CONSTRAINT FK_UserCreatedFood_Food
+            REFERENCES Food(Id),
+
+        User_Id INT NOT NULL
+            CONSTRAINT FK_UserCreatedFood_User
+            REFERENCES Users(Id)
+    );
+
+    CREATE INDEX IX_UserCreatedFood_User_Id
+        ON UserCreatedFood(User_Id);
 END;

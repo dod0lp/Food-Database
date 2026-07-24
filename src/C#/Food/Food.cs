@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using Food_Database_Base;
+using oldFood_Database.Base;
 using Microsoft.EntityFrameworkCore;
 
 namespace Food
@@ -14,7 +14,7 @@ namespace Food
     /// Class describing Food - each food has its <see cref="Ingredients"/> - it is simply other <see cref="Food"/>
     /// </summary>
     /// <remarks>
-    /// - Contains vague description of database. Database model is defined in <see cref="Food_Database_Base"/>
+    /// - Contains vague description of database. Database model is defined in <see cref="oldFood_Database.Base"/>
     /// </remarks>
     public class Food
     {
@@ -355,18 +355,18 @@ namespace Food
 
 
     /// <summary>
-    /// Provides methods for parsing and formatting <see cref="Food_Database_Base.FoodEntity"/> instances into human-readable strings.
+    /// Provides methods for parsing and formatting <see cref="oldFood_Database.Base.FoodEntity"/> instances into human-readable strings.
     /// </summary>
     public static class FoodEntityStringParser
     {
         /// <summary>
-        /// Converts a <see cref="Food_Database_Base.FoodEntity"/> instance into a human-readable string representation of food.
+        /// Converts a <see cref="oldFood_Database.Base.FoodEntity"/> instance into a human-readable string representation of food.
         /// </summary>
-        /// <param name="foodEntity">The <see cref="Food_Database_Base.FoodEntity"/> instance to be formatted.</param>
-        /// <returns>A string that presents the details of the <see cref="Food_Database_Base.FoodEntity"/> <paramref name="foodEntity"/> in a readable format,
+        /// <param name="foodEntity">The <see cref="oldFood_Database.Base.FoodEntity"/> instance to be formatted.</param>
+        /// <returns>A string that presents the details of the <see cref="oldFood_Database.Base.FoodEntity"/> <paramref name="foodEntity"/> in a readable format,
         /// including its <see cref="FoodEntity.Name"/>, <see cref="FoodEntity.Weight"/>, <see cref="FoodEntity.Description"/>,
         /// <see cref="FoodEntity.Nutrient"/>, and <see cref="FoodEntity.IngredientsAsComplete"/>.</returns>
-        public static string ParseEntityHumanReadable(Food_Database_Base.FoodEntity foodEntity)
+        public static string ParseEntityHumanReadable(oldFood_Database.Base.FoodEntity foodEntity)
         {
             string result = "";
 

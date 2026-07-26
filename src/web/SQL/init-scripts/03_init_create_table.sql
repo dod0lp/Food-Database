@@ -62,22 +62,22 @@ BEGIN
     );
 END;
 
-IF OBJECT_ID(N'dbo.UserFoodRemark', N'U') IS NULL
+IF OBJECT_ID(N'dbo.UserFoodRemarks', N'U') IS NULL
 BEGIN
-    CREATE TABLE UserFoodRemark
+    CREATE TABLE UserFoodRemarks
     (
         User_Id INT NOT NULL
-            CONSTRAINT FK_UserFoodRemark_User
+            CONSTRAINT FK_UserFoodRemarks_User
             REFERENCES Users(Id),
 
         Food_Id INT NOT NULL
-            CONSTRAINT FK_UserFoodRemark_Food
+            CONSTRAINT FK_UserFoodRemarks_Food
             REFERENCES Food(Id),
 
         -- Each user has his own (optional) note for food
         Food_Remark NVARCHAR(4000) NULL,
 
-        CONSTRAINT PK_UserFoodRemark
+        CONSTRAINT PK_UserFoodRemarks
             PRIMARY KEY (User_Id, Food_Id)
     );
 END;

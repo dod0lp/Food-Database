@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using DotNetEnv;
 
-namespace oldFood_Database_Base
+namespace oldFood_Database.Base
 {
     public static class DB_Descriptors
     {

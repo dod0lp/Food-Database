@@ -22,4 +22,8 @@
       <PackageReference Include="DotNetEnv" Version="3.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Database\Operations\" />
+  </ItemGroup>
+
 </Project>

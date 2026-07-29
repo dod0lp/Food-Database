@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Food_Database.Models;
+namespace Food_Database.Base.Models;
 
 public partial class DB_FoodContext : DbContext
 {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Food_Database.Base;
 using System.ComponentModel.DataAnnotations.Schema;
+using Food_Database.Base;
 
-namespace Food_Database.Models;
+namespace Food_Database.Base.Models;
 
 [Table(DB_Food_Descriptors.Table.UserFoodRemarks)]
 public partial class UserFoodRemarks_DBEntity

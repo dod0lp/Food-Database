@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Food_Database.Base;
+
+using Food_Database;
 using Microsoft.EntityFrameworkCore;
 
 public class Program_Food

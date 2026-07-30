@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Food_Database.Base;
+namespace Food_Database.Descriptors;
 
 public static class DB_Descriptors
 {

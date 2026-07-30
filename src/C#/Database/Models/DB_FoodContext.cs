@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
+using Food_Database.Descriptors;
 
-namespace Food_Database.Base.Models;
+namespace Food_Database.Models;
 
 public partial class DB_FoodContext : DbContext
 {

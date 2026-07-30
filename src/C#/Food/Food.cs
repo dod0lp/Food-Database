@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using Food_Database.Base;
 using Microsoft.EntityFrameworkCore;
 
 namespace Food

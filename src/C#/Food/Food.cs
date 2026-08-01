@@ -53,7 +53,9 @@ namespace Food
         /// <remarks>
         /// - Should not be used as an instance. Only exists because of compatibility issues.
         /// </remarks>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         private Food() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Food"/> class with specified parameters.

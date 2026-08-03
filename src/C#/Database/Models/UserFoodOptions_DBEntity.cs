@@ -12,7 +12,7 @@ public partial class UserFoodOptions_DBEntity
 
     public int Food_Id { get; set; }
 
-    public decimal? Weight_Total { get; set; }
+    public decimal Weight_Total { get; set; }
 
     public decimal? Price_Eur { get; set; }
 

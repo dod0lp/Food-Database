@@ -77,7 +77,7 @@ public partial class DB_FoodContext : DbContext
 
         modelBuilder.Entity<UserFoodOptions_DBEntity>(entity =>
         {
-            entity.HasKey(e => new { e.User_Id, e.Food_Id });
+            entity.HasKey(e => new { e.User_Id, e.Food_Id, e.Weight_Total });
 
             entity.Property(e => e.Price_Eur).HasColumnType("decimal(16, 4)");
             entity.Property(e => e.Weight_Total).HasColumnType("decimal(16, 4)");

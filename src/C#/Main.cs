@@ -32,6 +32,9 @@ public static class Program_Food
             Console.WriteLine("3 - Create new food and favorite it");
             Console.WriteLine("4 - Favorite existing food");
             Console.WriteLine("5 - Show my favorites");
+            Console.WriteLine("6 - Set favorite food weight/price");
+            Console.WriteLine("7 - Show favorites with weight/price");
+            Console.WriteLine("8 - Run weight/price test");
             Console.WriteLine("0 - Exit");
             Console.WriteLine("==============================================");
             Console.Write("> ");
@@ -56,6 +59,17 @@ public static class Program_Food
 
                 case "5":
                     ShowFavorites(db, UserId);
+                    break;
+                case "6":
+                    SetFavoriteFoodOptions(db, UserId);
+                    break;
+
+                case "7":
+                    ShowFavoritesWithOptions(db, UserId);
+                    break;
+
+                case "8":
+                    TestFavoriteFoodOptions(db, UserId);
                     break;
 
                 case "0":
@@ -144,23 +158,43 @@ public static class Program_Food
         if (!int.TryParse(Console.ReadLine(), out int foodId))
             return;
 
-        Food_DBEntity? entity = db.Food
+        Food_DBEntity? food = db.Food
             .AsNoTracking()
             .SingleOrDefault(x => x.Id == foodId);
 
-        if (entity is null)
+        if (food is null)
         {
             Console.WriteLine("Food not found.");
             return;
         }
 
-        Food.Food food = entity.ToDomain();
-
         Console.WriteLine();
-        Console.WriteLine($"ID:          {food.Id}");
-        Console.WriteLine($"Name:        {food.Name}");
-        Console.WriteLine($"Weight:      {food.Weight} g");
-        Console.WriteLine($"Description: {food.Description}");
+        Console.WriteLine($"ID:            {food.Id}");
+        Console.WriteLine($"Name:          {food.Name}");
+        Console.WriteLine($"Description:   {food.Food_Description ?? "NULL"}");
+        Console.WriteLine();
+        Console.WriteLine("Nutrients per 100g:");
+        Console.WriteLine($"Energy:        {Format(food.Energy_Kcal, "kcal")}");
+        Console.WriteLine($"Fat:           {Format(food.Fat_Total, "g")}");
+        Console.WriteLine($"Saturated fat: {Format(food.Fat_Saturated, "g")}");
+        Console.WriteLine($"Carbohydrates: {Format(food.Carbs_Total, "g")}");
+        Console.WriteLine($"Sugar:         {Format(food.Carbs_Sugar, "g")}");
+        Console.WriteLine($"Protein:       {Format(food.Protein_Total, "g")}");
+        Console.WriteLine($"Salt:          {Format(food.Salt_Total, "g")}");
+    }
+
+    private static string Format(int? value, string unit)
+    {
+        return value.HasValue
+            ? $"{value.Value} {unit}"
+            : "-1";
+    }
+
+    private static string Format(decimal? value, string unit)
+    {
+        return value.HasValue
+            ? $"{value.Value} {unit}"
+            : "-1";
     }
 
     private static void CreateFoodAndFavorite(
@@ -293,5 +327,165 @@ public static class Program_Food
         {
             Console.WriteLine($"{food.Id}: {food.Name}");
         }
+    }
+
+    private static void SetFavoriteFoodOptions(
+    DB_FoodContext db,
+    int userId,
+    int foodId,
+    decimal weight,
+    decimal price)
+    {
+        bool favoriteExists = db.Users
+            .Where(x => x.Id == userId)
+            .SelectMany(x => x.Food)
+            .Any(x => x.Id == foodId);
+
+        if (!favoriteExists)
+        {
+            Console.WriteLine($"Food {foodId} is not a favorite of user {userId}.");
+            return;
+        }
+
+        UserFoodOptions_DBEntity? options = db.UserFoodOptions
+            .SingleOrDefault(x =>
+                x.User_Id == userId &&
+                x.Food_Id == foodId);
+
+        if (options is null)
+        {
+            options = new UserFoodOptions_DBEntity
+            {
+                User_Id = userId,
+                Food_Id = foodId,
+                Weight_Total = weight,
+                Price_Eur = price
+            };
+
+            db.UserFoodOptions.Add(options);
+        }
+        else
+        {
+            options.Weight_Total = weight;
+            options.Price_Eur = price;
+        }
+
+        db.SaveChanges();
+
+        Console.WriteLine(
+            $"Food {foodId}: {weight}g = {price:0.00} EUR");
+    }
+
+    private static void SetFavoriteFoodOptions(
+    DB_FoodContext db,
+    int userId)
+    {
+        ShowFavorites(db, userId);
+
+        Console.WriteLine();
+        Console.Write("Food ID: ");
+
+        if (!int.TryParse(Console.ReadLine(), out int foodId))
+            return;
+
+        Console.Write("Weight in grams: ");
+
+        if (!decimal.TryParse(Console.ReadLine(), out decimal weight))
+            return;
+
+        Console.Write("Price EUR: ");
+
+        if (!decimal.TryParse(Console.ReadLine(), out decimal price))
+            return;
+
+        if (weight < 0 || price < 0)
+        {
+            Console.WriteLine("Weight and price cannot be negative.");
+            return;
+        }
+
+        SetFavoriteFoodOptions(
+            db,
+            userId,
+            foodId,
+            weight,
+            price);
+    }
+
+    private static void ShowFavoritesWithOptions(
+    DB_FoodContext db,
+    int userId)
+    {
+        var favorites = db.Users
+            .AsNoTracking()
+            .Where(x => x.Id == userId)
+            .SelectMany(x => x.Food)
+            .Select(food => new
+            {
+                Food = food,
+
+                Options = food.UserFoodOptions
+                    .FirstOrDefault(x => x.User_Id == userId)
+            })
+            .OrderBy(x => x.Food.Id)
+            .ToList();
+
+        Console.WriteLine();
+
+        foreach (var item in favorites)
+        {
+            Console.WriteLine(
+                $"{item.Food.Id}: {item.Food.Name}");
+
+            // TODO: check this -- may cause problems something with nullability
+            Console.WriteLine(
+                $"  Weight: {(item.Options != null
+                    ? $"{item.Options.Weight_Total} g"
+                    : "not set")}");
+
+            Console.WriteLine(
+                $"  Price:  {(item.Options?.Price_Eur.HasValue == true
+                    ? $"{item.Options.Price_Eur.Value:0.00} EUR"
+                    : "not set")}");
+        }
+    }
+
+    private static void TestFavoriteFoodOptions(
+    DB_FoodContext db,
+    int userId)
+    {
+        int? foodId = db.Users
+            .Where(x => x.Id == userId)
+            .SelectMany(x => x.Food)
+            .Select(x => (int?)x.Id)
+            .FirstOrDefault();
+
+        if (foodId is null)
+        {
+            Console.WriteLine("User has no favorite foods.");
+            return;
+        }
+
+        Console.WriteLine("PACKAGE:");
+        SetFavoriteFoodOptions(
+            db,
+            userId,
+            foodId.Value,
+            weight: 500m,
+            price: 4.99m);
+
+        ShowFavoritesWithOptions(db, userId);
+
+        Console.WriteLine();
+        Console.WriteLine("INGREDIENT AMOUNT:");
+
+        SetFavoriteFoodOptions(
+            db,
+            userId,
+            foodId.Value,
+            weight: 150m,
+            price: 1.50m);
+
+        ShowFavoritesWithOptions(db, userId);
     }
 }

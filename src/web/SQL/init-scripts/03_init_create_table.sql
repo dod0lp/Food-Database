@@ -95,14 +95,15 @@ BEGIN
             REFERENCES Food(Id),
 
         -- Based on weight easily decompose food ingredients
-        Weight_Total DECIMAL(16,4) NULL,
+        Weight_Total DECIMAL(16,4) NOT NULL,
+        
         Price_Eur DECIMAL(16,4) NULL,
 
         CONSTRAINT CK_UserFood_Price
             CHECK (Price_Eur IS NULL OR Price_Eur >= 0),
 
         CONSTRAINT PK_UserFoodOptions
-            PRIMARY KEY (User_Id, Food_Id)
+            PRIMARY KEY (User_Id, Food_Id, Weight_Total)
     );
 END;
 

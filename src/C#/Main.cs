@@ -16,7 +16,9 @@ public static class Program_Food
     public static void Main(string[] args)
     {
         var options = new DbContextOptionsBuilder<DB_FoodContext>()
-            .UseSqlServer(DB_Food_Descriptors.ConnectionString)
+            .UseSqlServer(
+                DB_Food_Descriptors.ConnectionString,
+                sqlOptions => sqlOptions.EnableRetryOnFailure())
             .Options;
 
         using var db = new DB_FoodContext(options);
@@ -349,8 +351,7 @@ public static class Program_Food
 
         UserFoodOptions_DBEntity? options = db.UserFoodOptions
             .SingleOrDefault(x =>
-                x.User_Id == userId &&
-                x.Food_Id == foodId);
+                x.User_Id == userId && x.Food_Id == foodId && x.Weight_Total == weight);
 
         if (options is null)
         {

@@ -426,7 +426,8 @@ public static class Program_Food
                 Food = food,
 
                 Options = food.UserFoodOptions
-                    .FirstOrDefault(x => x.User_Id == userId)
+                    .Where(x => x.User_Id == userId)
+                    .ToList()
             })
             .OrderBy(x => x.Food.Id)
             .ToList();
@@ -438,16 +439,20 @@ public static class Program_Food
             Console.WriteLine(
                 $"{item.Food.Id}: {item.Food.Name}");
 
-            // TODO: check this -- may cause problems something with nullability
-            Console.WriteLine(
-                $"  Weight: {(item.Options != null
-                    ? $"{item.Options.Weight_Total} g"
-                    : "not set")}");
+            foreach (var option in item.Options)
+            {
+                // TODO: check this -- may cause problems something with nullability
+                Console.WriteLine(
+                    $"  Weight: {(option != null
+                        ? $"{option.Weight_Total} g"
+                        : "not set")}");
 
-            Console.WriteLine(
-                $"  Price:  {(item.Options?.Price_Eur.HasValue == true
-                    ? $"{item.Options.Price_Eur.Value:0.00} EUR"
-                    : "not set")}");
+                Console.WriteLine(
+                    $"  Price:  {(option?.Price_Eur.HasValue == true
+                        ? $"{option.Price_Eur.Value:0.00} EUR"
+                        : "not set")}");
+
+            }
         }
     }
 
@@ -473,7 +478,7 @@ public static class Program_Food
             userId,
             foodId.Value,
             weight: 500m,
-            price: 4.99m);
+            price: 3.00m);
 
         ShowFavoritesWithOptions(db, userId);
 

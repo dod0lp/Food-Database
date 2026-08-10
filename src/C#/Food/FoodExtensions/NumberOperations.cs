@@ -37,4 +37,30 @@ namespace Food
             return Math.Ceiling(number * 100) / 100;
         }
     }
+
+    public static class NutrientsExtensions
+    {
+        public static Nutrients RoundUp2decimal(this Nutrients nutrients)
+        {
+            return new Nutrients(
+                new Energy(
+                    NumberOperations.RoundUpTo2DecimalPlaces(nutrients.Energy.Kcal)
+                ),
+                new Fat(
+                    NumberOperations.RoundUpTo2DecimalPlaces(nutrients.FatContent.Total),
+                    NumberOperations.RoundUpTo2DecimalPlaces(nutrients.FatContent.Saturated)
+                ),
+                new Carbohydrates(
+                    NumberOperations.RoundUpTo2DecimalPlaces(nutrients.CarbohydrateContent.Total),
+                    NumberOperations.RoundUpTo2DecimalPlaces(nutrients.CarbohydrateContent.Sugar)
+                ),
+                new Protein(
+                    NumberOperations.RoundUpTo2DecimalPlaces(nutrients.Protein.Total)
+                ),
+                new Salt(
+                    NumberOperations.RoundUpTo2DecimalPlaces(nutrients.Salt.Total)
+                )
+            );
+        }
+    }
 }

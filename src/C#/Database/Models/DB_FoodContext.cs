@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
-using Food_Database.Descriptors;
+using Food_Database.Database.Descriptors;
 
 namespace Food_Database.Models;
 

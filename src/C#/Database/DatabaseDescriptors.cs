@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Food_Database.Descriptors;
+namespace Food_Database.Database.Descriptors;
 
 public static class DB_Descriptors
 {
@@ -74,6 +74,11 @@ public static class DB_Food_Descriptors
     /// If the name exceeds this length, it may be truncated or cause an error when saving to the database.
     /// </remarks>
     public const int MaxFoodNameLength = 200;
+
+    /// <summary>
+    /// Normalized weight for nutrients of <see cref="Models.Food_DBEntity"/> saved in the database.
+    /// </summary>
+    public const double NormalizedWeight = 100d;
 
 
     /// <summary>

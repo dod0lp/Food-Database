@@ -1,4 +1,5 @@
-﻿using Food_Database.Models;
+﻿using Food_Database.Database.Descriptors;
+using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -6,25 +7,24 @@ using System.Text;
 
 namespace Food_Database.Database.Operations
 {
+
     using Food;
+    using Food_Database.Database.Descriptors;
 
     public static class FoodMapper
     {
         private const double Unknown = -1d;
-        private const double NormalizedWeight = 100d;
 
         public static Food ToDomain(
             this Food_DBEntity entity,
-            double weight = NormalizedWeight)
+            double weight = DB_Food_Descriptors.NormalizedWeight)
         {
-            double factor = weight / NormalizedWeight;
+            double factor = weight / DB_Food_Descriptors.NormalizedWeight;
 
             Nutrients nutrients = CreateNutrients(entity);
 
-            if (factor != 1d)
-            {
-                nutrients = factor * nutrients;
-            }
+            // if it is 1 nothing changes
+            nutrients = factor * nutrients;
 
             return new Food(
                 id: entity.Id,
@@ -41,14 +41,14 @@ namespace Food_Database.Database.Operations
         {
             double weight = userOptions?.Weight_Total is decimal userWeight
                 ? (double)userWeight
-                : NormalizedWeight;
+                : DB_Food_Descriptors.NormalizedWeight;
 
             return entity.ToDomain(weight);
         }
 
         public static Food ToDomainWithIngredients(
             this Food_DBEntity entity,
-            double weight = NormalizedWeight)
+            double weight = DB_Food_Descriptors.NormalizedWeight)
         {
             return ToDomainWithIngredientsInternal(
                 entity,
@@ -67,7 +67,7 @@ namespace Food_Database.Database.Operations
             if (!path.Add(entity.Id))
                 return food;
 
-            double parentFactor = weight / NormalizedWeight;
+            double parentFactor = weight / DB_Food_Descriptors.NormalizedWeight;
 
             foreach (FoodIngredients_DBEntity relation in entity.FoodIngredientsFood)
             {
@@ -88,9 +88,16 @@ namespace Food_Database.Database.Operations
             return food;
         }
 
+        /// <summary>
+        /// Creates <see cref="Nutrients"> object from <see cref="Food_DBEntity"/> and rounds it up to 2 places as database logic.
+        /// </summary>
+        /// <remark>Because of nature where this is used -- creating from db object that shouldnt be manipulated --
+        /// this is probably not necessary because it should be 2 decimal places trunc by database.</remark>
+        /// <param name="entity">Database entity in EntityFramework</param>
+        /// <returns><see cref="Nutrients"/> object with rounded up decimals.</returns>
         private static Nutrients CreateNutrients(Food_DBEntity entity)
         {
-            return new Nutrients(
+            Nutrients nut = new Nutrients(
                 new Energy(Value(entity.Energy_Kcal)),
                 new Fat(
                     Value(entity.Fat_Total),
@@ -103,6 +110,8 @@ namespace Food_Database.Database.Operations
                 new Salt(
                     Value(entity.Salt_Total))
             );
+
+            return nut.RoundUp2decimal();
         }
 
         private static double Value(int? value)

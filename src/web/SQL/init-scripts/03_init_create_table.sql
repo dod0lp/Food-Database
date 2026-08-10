@@ -96,7 +96,7 @@ BEGIN
 
         -- Based on weight easily decompose food ingredients
         Weight_Total DECIMAL(16,4) NOT NULL,
-        
+
         Price_Eur DECIMAL(16,4) NULL,
 
         CONSTRAINT CK_UserFood_Price

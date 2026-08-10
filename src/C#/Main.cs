@@ -1,7 +1,7 @@
 ﻿using Food_Database;
 using Food;
 using Food_Database.Database.Operations;
-using Food_Database.Descriptors;
+using Food_Database.Database.Descriptors;
 using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
 using System;

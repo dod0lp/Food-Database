@@ -352,5 +352,23 @@ namespace Food
         {
             return factor * food;
         }
+
+        /// <summary>
+        /// Class representing favorite food to work with database with its options.
+        /// </summary>
+        public sealed class FavoriteFood
+        {
+            public Food Food { get; set; } = null!;
+            public List<FavoriteFoodOption> Options { get; set; } = new();
+        }
+
+        /// <summary>
+        /// Class representing option for favorite food to work with database.
+        /// </summary>
+        public sealed class FavoriteFoodOption
+        {
+            public double Weight { get; set; }
+            public decimal? PriceEur { get; set; }
+        }
     }
 }

@@ -62,6 +62,7 @@ public static class Program_Food
                 case "5":
                     ShowFavorites(db, UserId);
                     break;
+
                 case "6":
                     SetFavoriteFoodOptions(db, UserId);
                     break;

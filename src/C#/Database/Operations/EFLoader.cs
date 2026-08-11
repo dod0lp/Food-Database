@@ -1,16 +1,12 @@
-﻿using Food_Database.Models;
+﻿using Food_Database.Database.Descriptors;
+using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using Food_Database.Database.Descriptors;
 
 namespace Food_Database.Database.Operations
 {
     using Food;
-
-
+    using static Food.Food;
 
     public static class EFLoader
     {
@@ -157,6 +153,99 @@ namespace Food_Database.Database.Operations
                     .ToListAsync(cancellationToken);
 
                 return [.. entities.Select(x => x.ToDomainWithIngredients())];
+            }
+
+            /// <summary>
+            /// Function to get favorite <see cref="Food"/>s out of database for certain <see cref="Users_DBEntity.Id"/>.
+            /// </summary>
+            /// <param name="userId">ID of user.</param>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>List of <see cref="FavoriteFood"/> objects parsed from <see cref="Food_DBEntity"/>.</returns>
+            public async Task<List<FavoriteFood>> GetFavoritesWithOptionsAsync(
+                int userId,
+                CancellationToken cancellationToken = default)
+            {
+                List<Food_DBEntity> entities = await _db.Users
+                    .AsNoTracking()
+                    .Where(x => x.Id == userId)
+                    .SelectMany(x => x.Food)
+                    .Include(x => x.UserFoodOptions)
+                    .Include(x => x.FoodIngredientsFood)
+                        .ThenInclude(x => x.Ingredient_Food)
+                    .OrderBy(x => x.Id)
+                    .ToListAsync(cancellationToken);
+
+                return
+                    [.. entities
+                    .Select(entity => new FavoriteFood
+                    {
+                        Food = entity.ToDomainWithIngredients(),
+
+                        Options = [.. entity.UserFoodOptions
+                            .Where(x => x.User_Id == userId)
+                            .OrderBy(x => x.Weight_Total)
+                            .Select(x => new FavoriteFoodOption
+                            {
+                                Weight = (double)x.Weight_Total,
+                                PriceEur = x.Price_Eur
+                            })]
+                    })];
+            }
+
+            /// <summary>
+            /// Function to add <see cref="Food"/> into database to become <see cref="Food_DBEntity"/> and get its ID.
+            /// </summary>
+            /// <param name="food">Food domain object.</param>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>Added <see cref="Food"/> with its ID from database.</returns>
+            /// <exception cref="ArgumentOutOfRangeException"></exception>
+            public async Task<Food> AddFoodAsync(
+                Food food,
+                CancellationToken cancellationToken = default)
+            {
+                if (food.Weight <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(food.Weight));
+
+                Nutrients nutrientsPer100g =
+                    (DB_Food_Descriptors.NormalizedWeight / food.Weight) * food.NutrientContent;
+
+                var entity = new Food_DBEntity
+                {
+                    Name = food.Name,
+
+                    Food_Description = string.IsNullOrWhiteSpace(food.Description)
+                        ? null
+                        : food.Description,
+
+                    Energy_Kcal = (int?)Value(nutrientsPer100g.Energy.Kcal),
+
+                    Fat_Total = Value(nutrientsPer100g.FatContent.Total),
+                    Fat_Saturated = Value(nutrientsPer100g.FatContent.Saturated),
+
+                    Carbs_Total = Value(nutrientsPer100g.CarbohydrateContent.Total),
+                    Carbs_Sugar = Value(nutrientsPer100g.CarbohydrateContent.Sugar),
+
+                    Protein_Total = Value(nutrientsPer100g.Protein.Total),
+                    Salt_Total = Value(nutrientsPer100g.Salt.Total)
+                };
+
+                _db.Food.Add(entity);
+
+                await _db.SaveChangesAsync(cancellationToken);
+
+                food.Id = entity.Id;
+
+                return food;
+            }
+
+            /// <summary>
+            /// Helper function for clamping value<0 to null.
+            /// </summary>
+            private static decimal? Value(double value)
+            {
+                return value < 0
+                    ? null
+                    : (decimal)value;
             }
         }
     }

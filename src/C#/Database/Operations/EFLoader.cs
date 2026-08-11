@@ -1,10 +1,10 @@
 ﻿using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
+using System.Text;
+using Food_Database.Database.Descriptors;
 
 namespace Food_Database.Database.Operations
 {
@@ -64,6 +64,11 @@ namespace Food_Database.Database.Operations
                 _db = db;
             }
 
+            /// <summary>
+            /// Function to get <see cref="Food"/> out of database by <see cref="Food_DBEntity.Id"/>.
+            /// </summary>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns><see cref="Food"/> object parsed from <see cref="Food_DBEntity"/>.</returns>
             public async Task<Food?> GetFoodAsync(int foodId, CancellationToken cancellationToken = default)
             {
                 Food_DBEntity? entity = await _db.Food
@@ -77,6 +82,13 @@ namespace Food_Database.Database.Operations
                 return entity?.ToDomainWithIngredients();
             }
 
+            /// <summary>
+            /// Function to get <see cref="Food"/> out of database by <see cref="Food_DBEntity.Id"/> for certain <see cref="Users_DBEntity.Id"/>.
+            /// </summary>
+            /// <param name="foodId">ID of food.</param>
+            /// <param name="userId">ID of user.</param>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns><see cref="Food"/> object parsed from <see cref="Food_DBEntity"/>.</returns>
             public async Task<Food?> GetFoodForUserAsync(int foodId, int userId, CancellationToken cancellationToken = default)
             {
                 Food_DBEntity? entity = await _db.Food
@@ -97,9 +109,54 @@ namespace Food_Database.Database.Operations
 
                 double weight = options?.Weight_Total is decimal savedWeight
                     ? (double)savedWeight
-                    : 100d;
+                    : DB_Food_Descriptors.NormalizedWeight;
 
                 return entity.ToDomainWithIngredients(weight);
+            }
+
+            /// <summary>
+            /// Get number of <see cref="Food_DBEntity"/> in the database.
+            /// </summary>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>Number of <see cref="Food_DBEntity"/> in the database.</returns>
+            public async Task<int> GetFoodCountAsync(CancellationToken cancellationToken = default)
+            {
+                return 
+                    await _db.Food.CountAsync(cancellationToken);
+            }
+
+            /// <summary>
+            /// Function to get <see cref="Food"/> out of database in form of sequence for listing out food in order.
+            /// </summary>
+            /// <param name="from">Rank of element, non-index form.</param>
+            /// <param name="to">Up to what rank of element, non-index form.</param>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns><see cref="Food"/> objects in form of list, in the fixed order by id, from database.</returns>
+            public async Task<List<Food>> GetFoodsAsync(int from = 1, int to = 10,
+                CancellationToken cancellationToken = default)
+            {
+                if (from < 1)
+                {
+                    from = 1;
+                }
+
+                if (to < from)
+                {
+                    return new List<Food>();
+                }
+
+                int count = to - from + 1;
+
+                List<Food_DBEntity> entities = await _db.Food
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Skip(from - 1)
+                    .Take(count)
+                    .Include(x => x.FoodIngredientsFood)
+                        .ThenInclude(x => x.Ingredient_Food)
+                    .ToListAsync(cancellationToken);
+
+                return [.. entities.Select(x => x.ToDomainWithIngredients())];
             }
         }
     }

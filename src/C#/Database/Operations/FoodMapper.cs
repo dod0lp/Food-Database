@@ -114,14 +114,43 @@ namespace Food_Database.Database.Operations
             return nut.RoundUp2decimal();
         }
 
-        private static double Value(int? value)
-            => value.HasValue
-                ? value.Value
-                : Unknown;
+        public static void MapToEntity(
+            Food food,
+            Food_DBEntity entity)
+        {
+            if (food.Weight <= 0)
+                throw new ArgumentOutOfRangeException(nameof(food.Weight));
+
+            Nutrients nutrientsPer100g =
+                (DB_Food_Descriptors.NormalizedWeight / food.Weight) * food.NutrientContent;
+
+            entity.Name = food.Name;
+            entity.Food_Description = string.IsNullOrWhiteSpace(food.Description)
+                ? null
+                : food.Description;
+
+            entity.Energy_Kcal = (int?)Value(nutrientsPer100g.Energy.Kcal);
+
+            entity.Fat_Total = Value(nutrientsPer100g.FatContent.Total);
+            entity.Fat_Saturated = Value(nutrientsPer100g.FatContent.Saturated);
+
+            entity.Carbs_Total = Value(nutrientsPer100g.CarbohydrateContent.Total);
+            entity.Carbs_Sugar = Value(nutrientsPer100g.CarbohydrateContent.Sugar);
+
+            entity.Protein_Total = Value(nutrientsPer100g.Protein.Total);
+            entity.Salt_Total = Value(nutrientsPer100g.Salt.Total);
+        }
 
         private static double Value(decimal? value)
             => value.HasValue
                 ? (double)value.Value
                 : Unknown;
+
+        private static decimal? Value(double value)
+        {
+            return value < 0
+                ? null
+                : (decimal)value;
+        }
     }
 }

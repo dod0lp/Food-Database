@@ -10,7 +10,16 @@ namespace Food_Database.Database.Operations
 
     public static class EFLoader
     {
-        public static void NormalizeNegativeValues(Food food)
+        public static Nutrients NormalizeNutrients(Nutrients nutrients, double weight)
+        {
+            Nutrients nutrientsPer100g =
+                (DB_Food_Descriptors.NormalizedWeight / weight) * nutrients;
+
+            NormalizeNegativeValuesRecursive(nutrientsPer100g);
+            return nutrientsPer100g;
+        }
+
+        public static void NormalizeFood(Food food)
         {
             if (food.Weight < 0)
                 food.Weight = -1;
@@ -20,7 +29,7 @@ namespace Food_Database.Database.Operations
             food.NutrientContent = (Nutrients)nutrients;
 
             foreach (Food ingredient in food.Ingredients)
-                NormalizeNegativeValues(ingredient);
+                NormalizeFood(ingredient);
         }
 
         private static void NormalizeNegativeValuesRecursive(object obj)
@@ -203,11 +212,8 @@ namespace Food_Database.Database.Operations
                 Food food,
                 CancellationToken cancellationToken = default)
             {
-                if (food.Weight <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(food.Weight));
-
-                Nutrients nutrientsPer100g =
-                    (DB_Food_Descriptors.NormalizedWeight / food.Weight) * food.NutrientContent;
+                NormalizeFood(food);
+                Nutrients nutrientsPer100g = food.NutrientContent;
 
                 var entity = new Food_DBEntity
                 {

@@ -1,20 +1,11 @@
-﻿using Food_Database;
-using Food;
-using Food_Database.Database.Operations;
-using Food_Database.Database.Descriptors;
+﻿using Food_Database.Database.Descriptors;
 using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
 
-public static class Program_Food
-{
+public static class Program_Food {
     private const int UserId = 1;
 
-    public static void Main(string[] args)
-    {
+    public static void Main(string[] args) {
         var options = new DbContextOptionsBuilder<DB_FoodContext>()
             .UseSqlServer(
                 DB_Food_Descriptors.ConnectionString,
@@ -25,8 +16,7 @@ public static class Program_Food
 
         EnsureDummyData(db);
 
-        while (true)
-        {
+        while (true) {
             Console.WriteLine();
             Console.WriteLine("==============================================");
             Console.WriteLine("1 - Browse foods");
@@ -41,63 +31,58 @@ public static class Program_Food
             Console.WriteLine("==============================================");
             Console.Write("> ");
 
-            switch (Console.ReadLine())
-            {
+            switch (Console.ReadLine()) {
                 case "1":
-                    BrowseFoods(db);
-                    break;
+                BrowseFoods(db);
+                break;
 
                 case "2":
-                    GetFoodById(db);
-                    break;
+                GetFoodById(db);
+                break;
 
                 case "3":
-                    CreateFoodAndFavorite(db, UserId);
-                    break;
+                CreateFoodAndFavorite(db, UserId);
+                break;
 
                 case "4":
-                    FavoriteExistingFood(db, UserId);
-                    break;
+                FavoriteExistingFood(db, UserId);
+                break;
 
                 case "5":
-                    ShowFavorites(db, UserId);
-                    break;
+                ShowFavorites(db, UserId);
+                break;
 
                 case "6":
-                    SetFavoriteFoodOptions(db, UserId);
-                    break;
+                SetFavoriteFoodOptions(db, UserId);
+                break;
 
                 case "7":
-                    ShowFavoritesWithOptions(db, UserId);
-                    break;
+                ShowFavoritesWithOptions(db, UserId);
+                break;
 
                 case "8":
-                    TestFavoriteFoodOptions(db, UserId);
-                    break;
+                TestFavoriteFoodOptions(db, UserId);
+                break;
 
                 case "0":
-                    return;
+                return;
             }
         }
     }
 
-    private static void EnsureDummyData(DB_FoodContext db)
-    {
-        if (!db.Users.Any(x => x.Id == UserId))
-        {
+    private static void EnsureDummyData(DB_FoodContext db) {
+        if (!db.Users.Any(x => x.Id == UserId)) {
             var user = new Users_DBEntity();
             db.Users.Add(user);
             db.SaveChanges();
         }
 
-        if (db.Food.Any())
-        {
+        if (db.Food.Any()) {
             return;
         }
 
         db.Food.AddRange(
-            new Food_DBEntity
-            {
+            new Food_DBEntity {
                 Name = "Chicken Breast",
                 Food_Description = "Chicken breast",
                 Energy_Kcal = 165,
@@ -109,8 +94,7 @@ public static class Program_Food
                 Salt_Total = 0.2m
             },
 
-            new Food_DBEntity
-            {
+            new Food_DBEntity {
                 Name = "Rice",
                 Food_Description = "Cooked white rice",
                 Energy_Kcal = 130,
@@ -122,8 +106,7 @@ public static class Program_Food
                 Salt_Total = 0.01m
             },
 
-            new Food_DBEntity
-            {
+            new Food_DBEntity {
                 Name = "Egg",
                 Food_Description = "Whole egg",
                 Energy_Kcal = 155,
@@ -139,8 +122,7 @@ public static class Program_Food
         db.SaveChanges();
     }
 
-    private static void BrowseFoods(DB_FoodContext db)
-    {
+    private static void BrowseFoods(DB_FoodContext db) {
         var foods = db.Food
             .AsNoTracking()
             .OrderBy(x => x.Id)
@@ -148,14 +130,12 @@ public static class Program_Food
 
         Console.WriteLine();
 
-        foreach (var food in foods)
-        {
+        foreach (var food in foods) {
             Console.WriteLine($"{food.Id}: {food.Name}");
         }
     }
 
-    private static void GetFoodById(DB_FoodContext db)
-    {
+    private static void GetFoodById(DB_FoodContext db) {
         Console.Write("Food ID: ");
 
         if (!int.TryParse(Console.ReadLine(), out int foodId))
@@ -165,8 +145,7 @@ public static class Program_Food
             .AsNoTracking()
             .SingleOrDefault(x => x.Id == foodId);
 
-        if (food is null)
-        {
+        if (food is null) {
             Console.WriteLine("Food not found.");
             return;
         }
@@ -186,15 +165,13 @@ public static class Program_Food
         Console.WriteLine($"Salt:          {Format(food.Salt_Total, "g")}");
     }
 
-    private static string Format(int? value, string unit)
-    {
+    private static string Format(int? value, string unit) {
         return value.HasValue
             ? $"{value.Value} {unit}"
             : "-1";
     }
 
-    private static string Format(decimal? value, string unit)
-    {
+    private static string Format(decimal? value, string unit) {
         return value.HasValue
             ? $"{value.Value} {unit}"
             : "-1";
@@ -202,8 +179,7 @@ public static class Program_Food
 
     private static void CreateFoodAndFavorite(
         DB_FoodContext db,
-        int userId)
-    {
+        int userId) {
         Users_DBEntity? user = db.Users
             .Include(x => x.Food)
             .SingleOrDefault(x => x.Id == userId);
@@ -238,8 +214,7 @@ public static class Program_Food
         Console.Write("Salt / 100g: ");
         decimal.TryParse(Console.ReadLine(), out decimal salt);
 
-        var newFood = new Food_DBEntity
-        {
+        var newFood = new Food_DBEntity {
             Name = name,
             Energy_Kcal = kcal,
             Fat_Total = fat,
@@ -255,8 +230,7 @@ public static class Program_Food
         db.SaveChanges();
 
         // Mark this food as created by this user.
-        db.UserCreatedFood.Add(new UserCreatedFood_DBEntity
-        {
+        db.UserCreatedFood.Add(new UserCreatedFood_DBEntity {
             Food_Id = newFood.Id,
             User_Id = userId
         });
@@ -272,8 +246,7 @@ public static class Program_Food
 
     private static void FavoriteExistingFood(
         DB_FoodContext db,
-        int userId)
-    {
+        int userId) {
         BrowseFoods(db);
 
         Console.WriteLine();
@@ -292,14 +265,12 @@ public static class Program_Food
         Food_DBEntity? food = db.Food
             .SingleOrDefault(x => x.Id == foodId);
 
-        if (food is null)
-        {
+        if (food is null) {
             Console.WriteLine("Food not found.");
             return;
         }
 
-        if (user.Food.Any(x => x.Id == foodId))
-        {
+        if (user.Food.Any(x => x.Id == foodId)) {
             Console.WriteLine("Food is already a favorite.");
             return;
         }
@@ -314,8 +285,7 @@ public static class Program_Food
 
     private static void ShowFavorites(
         DB_FoodContext db,
-        int userId)
-    {
+        int userId) {
         Users_DBEntity? user = db.Users
             .AsNoTracking()
             .Include(x => x.Food)
@@ -326,8 +296,7 @@ public static class Program_Food
 
         Console.WriteLine();
 
-        foreach (Food_DBEntity food in user.Food.OrderBy(x => x.Id))
-        {
+        foreach (Food_DBEntity food in user.Food.OrderBy(x => x.Id)) {
             Console.WriteLine($"{food.Id}: {food.Name}");
         }
     }
@@ -337,15 +306,13 @@ public static class Program_Food
     int userId,
     int foodId,
     decimal weight,
-    decimal price)
-    {
+    decimal price) {
         bool favoriteExists = db.Users
             .Where(x => x.Id == userId)
             .SelectMany(x => x.Food)
             .Any(x => x.Id == foodId);
 
-        if (!favoriteExists)
-        {
+        if (!favoriteExists) {
             Console.WriteLine($"Food {foodId} is not a favorite of user {userId}.");
             return;
         }
@@ -354,10 +321,8 @@ public static class Program_Food
             .SingleOrDefault(x =>
                 x.User_Id == userId && x.Food_Id == foodId && x.Weight_Total == weight);
 
-        if (options is null)
-        {
-            options = new UserFoodOptions_DBEntity
-            {
+        if (options is null) {
+            options = new UserFoodOptions_DBEntity {
                 User_Id = userId,
                 Food_Id = foodId,
                 Weight_Total = weight,
@@ -365,9 +330,7 @@ public static class Program_Food
             };
 
             db.UserFoodOptions.Add(options);
-        }
-        else
-        {
+        } else {
             options.Weight_Total = weight;
             options.Price_Eur = price;
         }
@@ -380,8 +343,7 @@ public static class Program_Food
 
     private static void SetFavoriteFoodOptions(
     DB_FoodContext db,
-    int userId)
-    {
+    int userId) {
         ShowFavorites(db, userId);
 
         Console.WriteLine();
@@ -400,8 +362,7 @@ public static class Program_Food
         if (!decimal.TryParse(Console.ReadLine(), out decimal price))
             return;
 
-        if (weight < 0 || price < 0)
-        {
+        if (weight < 0 || price < 0) {
             Console.WriteLine("Weight and price cannot be negative.");
             return;
         }
@@ -416,14 +377,12 @@ public static class Program_Food
 
     private static void ShowFavoritesWithOptions(
     DB_FoodContext db,
-    int userId)
-    {
+    int userId) {
         var favorites = db.Users
             .AsNoTracking()
             .Where(x => x.Id == userId)
             .SelectMany(x => x.Food)
-            .Select(food => new
-            {
+            .Select(food => new {
                 Food = food,
 
                 Options = food.UserFoodOptions
@@ -435,13 +394,11 @@ public static class Program_Food
 
         Console.WriteLine();
 
-        foreach (var item in favorites)
-        {
+        foreach (var item in favorites) {
             Console.WriteLine(
                 $"{item.Food.Id}: {item.Food.Name}");
 
-            foreach (var option in item.Options)
-            {
+            foreach (var option in item.Options) {
                 // TODO: check this -- may cause problems something with nullability
                 Console.WriteLine(
                     $"  Weight: {(option != null
@@ -459,16 +416,14 @@ public static class Program_Food
 
     private static void TestFavoriteFoodOptions(
     DB_FoodContext db,
-    int userId)
-    {
+    int userId) {
         int? foodId = db.Users
             .Where(x => x.Id == userId)
             .SelectMany(x => x.Food)
             .Select(x => (int?)x.Id)
             .FirstOrDefault();
 
-        if (foodId is null)
-        {
+        if (foodId is null) {
             Console.WriteLine("User has no favorite foods.");
             return;
         }

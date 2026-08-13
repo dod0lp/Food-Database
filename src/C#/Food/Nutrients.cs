@@ -1,12 +1,10 @@
-namespace Food
-{
+namespace Food {
     /// <summary>
     /// <see cref="Nutrients"/> content of certain <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>
     /// <br></br>
     /// Represents nutritional information including <see cref="Energy"/>, <see cref="FatContent"/>, <see cref="CarbohydrateContent"/>, <see cref="Protein"/>, and <see cref="Salt"/> content.
     /// </summary>
-    public struct Nutrients
-    {
+    public struct Nutrients {
         /// <summary>
         /// Gets or sets the energy content of the <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>.
         /// </summary>
@@ -40,8 +38,7 @@ namespace Food
         /// <param name="carbohydrateContent">The carbohydrate content.</param>
         /// <param name="protein">The protein content.</param>
         /// <param name="salt">The salt content.</param>
-        public Nutrients(Energy energy, Fat fatContent, Carbohydrates carbohydrateContent, Protein protein, Salt salt)
-        {
+        public Nutrients(Energy energy, Fat fatContent, Carbohydrates carbohydrateContent, Protein protein, Salt salt) {
             Energy = energy;
             FatContent = fatContent;
             CarbohydrateContent = carbohydrateContent;
@@ -55,8 +52,7 @@ namespace Food
         /// <param name="n1">The first <see cref="Nutrients"/> instance.</param>
         /// <param name="n2">The second <see cref="Nutrients"/> instance.</param>
         /// <returns>A new <see cref="Nutrients"/> instance with summed nutritional values.</returns>
-        public static Nutrients operator +(Nutrients n1, Nutrients n2)
-        {
+        public static Nutrients operator +(Nutrients n1, Nutrients n2) {
             return new Nutrients(
                 n1.Energy + n2.Energy,
                 n1.FatContent + n2.FatContent,
@@ -72,8 +68,7 @@ namespace Food
         /// <param name="n1">The first <see cref="Nutrients"/> instance.</param>
         /// <param name="n2">The second <see cref="Nutrients"/> instance.</param>
         /// <returns>A new <see cref="Nutrients"/> instance with subtracted nutritional values.</returns>
-        public static Nutrients operator -(Nutrients n1, Nutrients n2)
-        {
+        public static Nutrients operator -(Nutrients n1, Nutrients n2) {
             return new Nutrients(
                 n1.Energy - n2.Energy,
                 n1.FatContent - n2.FatContent,
@@ -89,8 +84,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="nutrients">The <see cref="Nutrients"/> instance to scale.</param>
         /// <returns>A new <see cref="Nutrients"/> instance with scaled nutritional values.</returns>
-        public static Nutrients operator *(double factor, Nutrients nutrients)
-        {
+        public static Nutrients operator *(double factor, Nutrients nutrients) {
             return new Nutrients(
                 factor * nutrients.Energy,
                 factor * nutrients.FatContent,
@@ -106,8 +100,7 @@ namespace Food
         /// <param name="nutrients">The <see cref="Nutrients"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Nutrients"/> instance with scaled nutritional values.</returns>
-        public static Nutrients operator *(Nutrients nutrients, double factor)
-        {
+        public static Nutrients operator *(Nutrients nutrients, double factor) {
             return factor * nutrients;
         }
 
@@ -115,8 +108,7 @@ namespace Food
         /// Returns a string representation of the <see cref="Nutrients"/> instance, displaying its nutritional values.
         /// </summary>
         /// <returns>A string representation of the <see cref="Nutrients"/> instance.</returns>
-        public override readonly string ToString()
-        {
+        public override readonly string ToString() {
             return $"Energy: {Energy}\nFat: {FatContent}\nCarbohydrates: {CarbohydrateContent}\nProtein: {Protein}\nSalt: {Salt}\n";
         }
     }

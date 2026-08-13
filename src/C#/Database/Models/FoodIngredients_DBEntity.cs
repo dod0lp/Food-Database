@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Food_Database.Database.Descriptors;
 using System.ComponentModel.DataAnnotations.Schema;
-using Food_Database.Database.Descriptors;
 
 namespace Food_Database.Models;
 
 [Table(DB_Food_Descriptors.Table.FoodIngredients)]
-public partial class FoodIngredients_DBEntity
-{
+public partial class FoodIngredients_DBEntity {
     public int Food_Id { get; set; }
 
     public int Ingredient_Food_Id { get; set; }

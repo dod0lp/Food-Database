@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Food_Database.Database.Descriptors;
 using System.ComponentModel.DataAnnotations.Schema;
-using Food_Database.Database.Descriptors;
 
 namespace Food_Database.Models;
 
 [Table(DB_Food_Descriptors.Table.Users)]
-public partial class Users_DBEntity
-{
+public partial class Users_DBEntity {
     public int Id { get; set; }
 
     public virtual ICollection<UserCreatedFood_DBEntity> UserCreatedFood { get; set; } = new List<UserCreatedFood_DBEntity>();

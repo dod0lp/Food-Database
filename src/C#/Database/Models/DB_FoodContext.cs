@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
-using Food_Database.Database.Descriptors;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Food_Database.Models;
 
-public partial class DB_FoodContext : DbContext
-{
+public partial class DB_FoodContext : DbContext {
     public DB_FoodContext(DbContextOptions<DB_FoodContext> options)
-        : base(options)
-    {
+        : base(options) {
     }
 
     public virtual DbSet<Food_DBEntity> Food { get; set; }
@@ -25,10 +19,8 @@ public partial class DB_FoodContext : DbContext
 
     public virtual DbSet<Users_DBEntity> Users { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Food_DBEntity>(entity =>
-        {
+    protected override void OnModelCreating(ModelBuilder modelBuilder) {
+        modelBuilder.Entity<Food_DBEntity>(entity => {
             entity.Property(e => e.Carbs_Sugar).HasColumnType("decimal(16, 2)");
             entity.Property(e => e.Carbs_Total).HasColumnType("decimal(16, 2)");
             entity.Property(e => e.Fat_Saturated).HasColumnType("decimal(16, 2)");
@@ -39,8 +31,7 @@ public partial class DB_FoodContext : DbContext
             entity.Property(e => e.Salt_Total).HasColumnType("decimal(16, 2)");
         });
 
-        modelBuilder.Entity<FoodIngredients_DBEntity>(entity =>
-        {
+        modelBuilder.Entity<FoodIngredients_DBEntity>(entity => {
             entity.HasKey(e => new { e.Food_Id, e.Ingredient_Food_Id });
 
             entity.Property(e => e.Weight_Ingredient_Normalised).HasColumnType("decimal(16, 2)");
@@ -56,8 +47,7 @@ public partial class DB_FoodContext : DbContext
                 .HasConstraintName("FK_FoodIngredients_IngredientFood");
         });
 
-        modelBuilder.Entity<UserCreatedFood_DBEntity>(entity =>
-        {
+        modelBuilder.Entity<UserCreatedFood_DBEntity>(entity => {
             entity.HasKey(e => e.Food_Id);
 
             entity.HasIndex(e => e.User_Id, "IX_UserCreatedFood_User_Id");
@@ -75,8 +65,7 @@ public partial class DB_FoodContext : DbContext
                 .HasConstraintName("FK_UserCreatedFood_User");
         });
 
-        modelBuilder.Entity<UserFoodOptions_DBEntity>(entity =>
-        {
+        modelBuilder.Entity<UserFoodOptions_DBEntity>(entity => {
             entity.HasKey(e => new { e.User_Id, e.Food_Id, e.Weight_Total });
 
             entity.Property(e => e.Price_Eur).HasColumnType("decimal(16, 4)");
@@ -93,8 +82,7 @@ public partial class DB_FoodContext : DbContext
                 .HasConstraintName("FK_UserFoodOptions_User");
         });
 
-        modelBuilder.Entity<UserFoodRemarks_DBEntity>(entity =>
-        {
+        modelBuilder.Entity<UserFoodRemarks_DBEntity>(entity => {
             entity.HasKey(e => new { e.User_Id, e.Food_Id });
 
             entity.Property(e => e.Food_Remark).HasMaxLength(4000);
@@ -110,8 +98,7 @@ public partial class DB_FoodContext : DbContext
                 .HasConstraintName("FK_UserFoodRemark_User");
         });
 
-        modelBuilder.Entity<Users_DBEntity>(entity =>
-        {
+        modelBuilder.Entity<Users_DBEntity>(entity => {
             entity.HasMany(d => d.Food).WithMany(p => p.User)
                 .UsingEntity<Dictionary<string, object>>(
                     "UserFoodFavorites",
@@ -123,8 +110,7 @@ public partial class DB_FoodContext : DbContext
                         .HasForeignKey("User_Id")
                         .OnDelete(DeleteBehavior.ClientSetNull)
                         .HasConstraintName("FK_UserFoodFavorites_User"),
-                    j =>
-                    {
+                    j => {
                         j.HasKey("User_Id", "Food_Id");
                     });
         });

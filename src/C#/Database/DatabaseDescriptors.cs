@@ -1,23 +1,10 @@
-﻿using Food;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
-using DotNetEnv;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Food_Database.Database.Descriptors;
 
-namespace Food_Database.Database.Descriptors;
-
-public static class DB_Descriptors
-{
-    public static string MakeConnectionString(string server, string database, string user, string password, bool trustedServerCertificate = false)
-    {
+public static class DB_Descriptors {
+    public static string MakeConnectionString(string server, string database, string user, string password, bool trustedServerCertificate = false) {
         string ret = $"Server={server};Database={database};User={user};Password={password};";
 
-        if (trustedServerCertificate == true)
-        {
+        if (trustedServerCertificate == true) {
             ret += "TrustServerCertificate = True;";
         }
 
@@ -29,12 +16,10 @@ public static class DB_Descriptors
 /// Class for using and making Food Database data, Accessing database, Making connection string for database connection [<see cref="ConnectionString"/>] <br></br>
 /// Constants for accessing database tables [starting with Table], Maximum lengths of variables [starting with Max],...
 /// </summary>
-public static class DB_Food_Descriptors
-{
+public static class DB_Food_Descriptors {
     // relative path to the .env file
     private static readonly string env_location = "config/app.env";
-    static DB_Food_Descriptors()
-    {
+    static DB_Food_Descriptors() {
         DotNetEnv.Env.Load(env_location);
     }
 
@@ -84,8 +69,7 @@ public static class DB_Food_Descriptors
     /// <summary>
     /// The class containing definition of the tables in the database.
     /// </summary>
-    public static class Table
-    {
+    public static class Table {
         /// <summary>
         /// The name of the table in the database that stores food items.
         /// </summary>

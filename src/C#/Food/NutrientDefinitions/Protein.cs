@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Food
-{
+﻿namespace Food {
     /// <summary>
     /// Represents nutritional information related to <see cref="Protein"/>.
     /// </summary>
-    public class Protein : Nutrient
-    {
+    public class Protein : Nutrient {
         /// <summary>
         /// Initializes a new instance of the <see cref="Protein"/> class with specified values.
         /// </summary>
@@ -23,8 +15,7 @@ namespace Food
         /// <param name="p1">The first <see cref="Protein"/> instance.</param>
         /// <param name="p2">The second <see cref="Protein"/> instance.</param>
         /// <returns>A new <see cref="Protein"/> instance with summed protein values.</returns>
-        public static Protein operator +(Protein p1, Protein p2)
-        {
+        public static Protein operator +(Protein p1, Protein p2) {
             // return new Protein(((Nutrient)p1 + (Nutrient)p2).Total);
             return new Protein(p1.Total + p2.Total);
         }
@@ -35,8 +26,7 @@ namespace Food
         /// <param name="p1">The first <see cref="Protein"/> instance.</param>
         /// <param name="p2">The second <see cref="Protein"/> instance.</param>
         /// <returns>A new <see cref="Protein"/> instance with subtracted protein values.</returns>
-        public static Protein operator -(Protein p1, Protein p2)
-        {
+        public static Protein operator -(Protein p1, Protein p2) {
             return new Protein(p1.Total - p2.Total);
         }
 
@@ -46,8 +36,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="p">The <see cref="Protein"/> instance to scale.</param>
         /// <returns>A new <see cref="Protein"/> instance with scaled <see cref="Protein.Total"/> value.</returns>
-        public static Protein operator *(double factor, Protein p)
-        {
+        public static Protein operator *(double factor, Protein p) {
             return new Protein(p.Total * factor);
         }
 
@@ -57,8 +46,7 @@ namespace Food
         /// <param name="p">The <see cref="Protein"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Protein"/> instance with scaled <see cref="Protein.Total"/> value.</returns>
-        public static Protein operator *(Protein p, double factor)
-        {
+        public static Protein operator *(Protein p, double factor) {
             return factor * p;
         }
     }

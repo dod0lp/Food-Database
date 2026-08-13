@@ -1,9 +1,4 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using Microsoft.EntityFrameworkCore;
-
-namespace Food
-{
+﻿namespace Food {
     // There is no check if some values are negative, for example negative amount of Protein, Fat...
     // If there is value not set, the default value in most, if not all, cases will be 0
     // for easier setting up of values, so we can't say when value was not set, but we can set
@@ -15,8 +10,7 @@ namespace Food
     /// <remarks>
     /// - Contains vague description of database. Database model is defined in <see cref="oldFood_Database.Base"/>
     /// </remarks>
-    public class Food
-    {
+    public class Food {
         /// <summary>
         /// Gets or sets the unique identifier for the <see cref="Food"/> item.
         /// </summary>
@@ -65,8 +59,7 @@ namespace Food
         /// <param name="weight">The weight of the food in grams.</param>
         /// <param name="nutrientContent">The nutrient content of the food.</param>
         /// <param name="description">A description of the food.</param>
-        public Food(int id, string name, double weight, Nutrients nutrientContent, string description)
-        {
+        public Food(int id, string name, double weight, Nutrients nutrientContent, string description) {
             // Main table - Food
             Id = id;
             Name = name;
@@ -93,8 +86,7 @@ namespace Food
         /// <param name="description">A description of the food.</param>
         /// <param name="ingredients">A list of other food items that are ingredients of this food.</param>
         public Food(int id, string name, double weight, Nutrients nutrientContent, string description, List<Food> ingredients)
-            : this(id, name, weight, nutrientContent, description)
-        {
+            : this(id, name, weight, nutrientContent, description) {
             Ingredients = ingredients;
         }
 
@@ -105,8 +97,7 @@ namespace Food
         /// - The ingredient is simply other <see cref="Food"/>.
         /// </remarks>
         /// <param name="food">The food item to add as an ingredient.</param>
-        public void AddIngredient(Food food)
-        {
+        public void AddIngredient(Food food) {
             Ingredients.Add(food);
         }
 
@@ -118,12 +109,10 @@ namespace Food
         /// - Barely used for database work.
         /// </remarks>
         /// <returns>True if the ingredient was found and removed; otherwise, false.</returns>
-        public bool RemoveIngredient(int foodId)
-        {
+        public bool RemoveIngredient(int foodId) {
             var ingredient = Ingredients.FirstOrDefault(f => f.Id == foodId);
 
-            if (ingredient != null)
-            {
+            if (ingredient != null) {
                 Ingredients.Remove(ingredient);
                 return true;
             }
@@ -136,21 +125,18 @@ namespace Food
         /// </summary>
         /// <param name="food">The food object to convert to a readable string.</param>
         /// <returns>A string containing detailed information about the food and its ingredients.</returns>
-        public static string ToReadableString(Food food)
-        {
+        public static string ToReadableString(Food food) {
             string foodInfo = $"ID: {food.Id}\nName: {food.Name}\nWeight: {food.Weight}\nNutrients: {food.NutrientContent}"
                 +
                 $"Description: {food.Description}\n";
 
 
             string foodsContained = "Contains: ";
-            if (food.Ingredients != null)
-            {
+            if (food.Ingredients != null) {
                 foodsContained = string.Join("\n", food.Ingredients.Select(food => food.Name));
             }
 
-            if (foodsContained == "Contains: ")
-            {
+            if (foodsContained == "Contains: ") {
                 foodsContained = "";
             }
 
@@ -162,8 +148,7 @@ namespace Food
         /// </summary>
         /// <param name="food">The food object to convert.</param>
         /// <returns>A list of strings representing the <see cref="Food"/>'s properties and ingredients in human-readable format but in <see cref="List{Food}"/></returns>
-        public static List<string> ToStringList(Food food)
-        {
+        public static List<string> ToStringList(Food food) {
             // Create an array of strings with the specific format
             List<string> foodInfoList = new()
             {
@@ -186,17 +171,14 @@ namespace Food
             };
 
             List<string> ingredientsInfo = new();
-            try
-            {
+            try {
                 ingredientsInfo = food.Ingredients.Select(ingredient => ingredient.Name).ToList();
-            }
-            catch { }
+            } catch { }
 
             string allIngredients = string.Join(",", ingredientsInfo);
             string foodInfo = $"Contains: {allIngredients}";
 
-            if (allIngredients.Length == 0)
-            {
+            if (allIngredients.Length == 0) {
                 foodInfo = "Contains: Nothing else";
             }
 
@@ -211,41 +193,32 @@ namespace Food
         /// <param name="list">A list of strings representing a food's properties.</param>
         /// <returns>A <see cref="Food"/> object initialized with the data from the string list.</returns>
         /// <exception cref="ArgumentException">Thrown if the provided list does not contain at least 11 elements.</exception>
-        public static Food FromStringList(List<string> list)
-        {
-            if (list == null || list.Count < 11)
-            {
+        public static Food FromStringList(List<string> list) {
+            if (list == null || list.Count < 11) {
                 throw new ArgumentException("List must contain at least 11 elements.");
             }
 
-            Food food = new Food
-            {
+            Food food = new Food {
                 Id = int.Parse(list[0]),
                 Name = list[1],
                 Weight = double.Parse(list[2]),
-                NutrientContent = new Nutrients
-                {
-                    Energy = new Energy
-                    {
+                NutrientContent = new Nutrients {
+                    Energy = new Energy {
                         Kcal = double.Parse(list[3]),
                         KJ = double.Parse(list[4])
                     },
-                    FatContent = new Fat
-                    {
+                    FatContent = new Fat {
                         Total = double.Parse(list[5]),
                         Saturated = double.Parse(list[6])
                     },
-                    CarbohydrateContent = new Carbohydrates
-                    {
+                    CarbohydrateContent = new Carbohydrates {
                         Total = double.Parse(list[7]),
                         Sugar = double.Parse(list[8])
                     },
-                    Protein = new Protein
-                    {
+                    Protein = new Protein {
                         Total = double.Parse(list[9])
                     },
-                    Salt = new Salt
-                    {
+                    Salt = new Salt {
                         Total = double.Parse(list[10])
                     }
                 },
@@ -259,8 +232,7 @@ namespace Food
         /// Returns a string that represents the current food object in human-readable format.
         /// </summary>
         /// <returns>A string containing detailed information about the <see cref="Food"/> and its <see cref="Ingredients"/>.</returns>
-        public override string ToString()
-        {
+        public override string ToString() {
             return ToReadableString(this);
         }
 
@@ -273,25 +245,18 @@ namespace Food
         /// <param name="food1">The first <see cref="Food"/> object.</param>
         /// <param name="food2">The second <see cref="Food"/> object.</param>
         /// <returns>A new <see cref="Food"/> object with combined weight, nutrients, and ingredients.</returns>
-        public static Food operator +(Food food1, Food food2)
-        {
+        public static Food operator +(Food food1, Food food2) {
             List<Food> ingredients = new();
 
-            if (food1.Ingredients != null && food2.Ingredients != null)
-            {
+            if (food1.Ingredients != null && food2.Ingredients != null) {
                 ingredients = food1.Ingredients.Union(food2.Ingredients).ToList();
-            }
-            else if (food1.Ingredients != null)
-            {
+            } else if (food1.Ingredients != null) {
                 ingredients = food1.Ingredients;
-            }
-            else if (food2.Ingredients != null)
-            {
+            } else if (food2.Ingredients != null) {
                 ingredients = food2.Ingredients;
             }
 
-            Food food = new Food
-            {
+            Food food = new Food {
                 Id = -1,
                 Name = food1.Name ?? food2.Name,
                 Weight = food1.Weight + food2.Weight,
@@ -301,8 +266,7 @@ namespace Food
             };
 
             // if Foods that are combined into this Food are counted as ingredients already
-            if (food.Ingredients.Count == 0)
-            {
+            if (food.Ingredients.Count == 0) {
                 food.AddIngredient(food1);
                 food.AddIngredient(food2);
             }
@@ -323,15 +287,13 @@ namespace Food
         /// <param name="factor">The factor by which to scale the food.</param>
         /// <param name="food">The <see cref="Food"/> object to be scaled.</param>
         /// <returns>A new <see cref="Food"/> object scaled by the factor.</returns>
-        public static Food operator *(double factor, Food food)
-        {
+        public static Food operator *(double factor, Food food) {
             // Scale the ingredients before returning scaled food
             List<Food> scaledIngredients = food.Ingredients
                 .Select(ingredient => factor * ingredient)
                 .ToList();
 
-            return new Food
-            {
+            return new Food {
                 Id = food.Id,
                 Name = food.Name,
                 Weight = food.Weight * factor,
@@ -348,16 +310,14 @@ namespace Food
         /// <param name="food">The <see cref="Food"/> object to be scaled.</param>
         /// <param name="factor">The factor by which to scale the food.</param>
         /// <returns>A new <see cref="Food"/> object scaled by the factor.</returns>
-        public static Food operator *(Food food, double factor)
-        {
+        public static Food operator *(Food food, double factor) {
             return factor * food;
         }
 
         /// <summary>
         /// Class representing favorite food to work with database with its options.
         /// </summary>
-        public sealed class FavoriteFood
-        {
+        public sealed class FavoriteFood {
             public Food Food { get; set; } = null!;
             public List<FavoriteFoodOption> Options { get; set; } = new();
         }
@@ -365,8 +325,7 @@ namespace Food
         /// <summary>
         /// Class representing option for favorite food to work with database.
         /// </summary>
-        public sealed class FavoriteFoodOption
-        {
+        public sealed class FavoriteFoodOption {
             public double Weight { get; set; }
             public decimal? PriceEur { get; set; }
         }

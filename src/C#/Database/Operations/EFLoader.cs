@@ -3,15 +3,12 @@ using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
-namespace Food_Database.Database.Operations
-{
+namespace Food_Database.Database.Operations {
     using Food;
     using static Food.Food;
 
-    public static class EFLoader
-    {
-        public static Nutrients NormalizeNutrients(Nutrients nutrients, double weight)
-        {
+    public static class EFLoader {
+        public static Nutrients NormalizeNutrients(Nutrients nutrients, double weight) {
             Nutrients nutrientsPer100g =
                 (DB_Food_Descriptors.NormalizedWeight / weight) * nutrients;
 
@@ -19,8 +16,7 @@ namespace Food_Database.Database.Operations
             return nutrientsPer100g;
         }
 
-        public static void NormalizeFood(Food food)
-        {
+        public static void NormalizeFood(Food food) {
             if (food.Weight < 0)
                 food.Weight = -1;
 
@@ -32,24 +28,19 @@ namespace Food_Database.Database.Operations
                 NormalizeFood(ingredient);
         }
 
-        private static void NormalizeNegativeValuesRecursive(object obj)
-        {
+        private static void NormalizeNegativeValuesRecursive(object obj) {
             Type type = obj.GetType();
 
-            foreach (PropertyInfo property in type.GetProperties())
-            {
+            foreach (PropertyInfo property in type.GetProperties()) {
                 if (!property.CanRead || !property.CanWrite)
                     continue;
 
                 object? value = property.GetValue(obj);
 
-                if (value is double number)
-                {
+                if (value is double number) {
                     if (number < 0)
                         property.SetValue(obj, -1d);
-                }
-                else if (value is not null && property.PropertyType.IsValueType)
-                {
+                } else if (value is not null && property.PropertyType.IsValueType) {
                     object nested = value;
 
                     NormalizeNegativeValuesRecursive(nested);
@@ -60,12 +51,10 @@ namespace Food_Database.Database.Operations
         }
 
 
-        public sealed class FoodRepository
-        {
+        public sealed class FoodRepository {
             private readonly DB_FoodContext _db;
 
-            public FoodRepository(DB_FoodContext db)
-            {
+            public FoodRepository(DB_FoodContext db) {
                 _db = db;
             }
 
@@ -74,8 +63,7 @@ namespace Food_Database.Database.Operations
             /// </summary>
             /// <param name="cancellationToken">CancellationToken for async op.</param>
             /// <returns><see cref="Food"/> object parsed from <see cref="Food_DBEntity"/>.</returns>
-            public async Task<Food?> GetFoodAsync(int foodId, CancellationToken cancellationToken = default)
-            {
+            public async Task<Food?> GetFoodAsync(int foodId, CancellationToken cancellationToken = default) {
                 Food_DBEntity? entity = await _db.Food
                     .AsNoTracking()
                     .Include(x => x.FoodIngredientsFood)
@@ -94,8 +82,7 @@ namespace Food_Database.Database.Operations
             /// <param name="userId">ID of user.</param>
             /// <param name="cancellationToken">CancellationToken for async op.</param>
             /// <returns><see cref="Food"/> object parsed from <see cref="Food_DBEntity"/>.</returns>
-            public async Task<Food?> GetFoodForUserAsync(int foodId, int userId, CancellationToken cancellationToken = default)
-            {
+            public async Task<Food?> GetFoodForUserAsync(int foodId, int userId, CancellationToken cancellationToken = default) {
                 Food_DBEntity? entity = await _db.Food
                     .AsNoTracking()
                     .Include(x => x.FoodIngredientsFood)
@@ -124,9 +111,8 @@ namespace Food_Database.Database.Operations
             /// </summary>
             /// <param name="cancellationToken">CancellationToken for async op.</param>
             /// <returns>Number of <see cref="Food_DBEntity"/> in the database.</returns>
-            public async Task<int> GetFoodCountAsync(CancellationToken cancellationToken = default)
-            {
-                return 
+            public async Task<int> GetFoodCountAsync(CancellationToken cancellationToken = default) {
+                return
                     await _db.Food.CountAsync(cancellationToken);
             }
 
@@ -138,15 +124,12 @@ namespace Food_Database.Database.Operations
             /// <param name="cancellationToken">CancellationToken for async op.</param>
             /// <returns><see cref="Food"/> objects in form of list, in the fixed order by id, from database.</returns>
             public async Task<List<Food>> GetFoodsAsync(int from = 1, int to = 10,
-                CancellationToken cancellationToken = default)
-            {
-                if (from < 1)
-                {
+                CancellationToken cancellationToken = default) {
+                if (from < 1) {
                     from = 1;
                 }
 
-                if (to < from)
-                {
+                if (to < from) {
                     return new List<Food>();
                 }
 
@@ -172,8 +155,7 @@ namespace Food_Database.Database.Operations
             /// <returns>List of <see cref="FavoriteFood"/> objects parsed from <see cref="Food_DBEntity"/>.</returns>
             public async Task<List<FavoriteFood>> GetFavoritesWithOptionsAsync(
                 int userId,
-                CancellationToken cancellationToken = default)
-            {
+                CancellationToken cancellationToken = default) {
                 List<Food_DBEntity> entities = await _db.Users
                     .AsNoTracking()
                     .Where(x => x.Id == userId)
@@ -210,13 +192,11 @@ namespace Food_Database.Database.Operations
             /// <exception cref="ArgumentOutOfRangeException"></exception>
             public async Task<Food> AddFoodAsync(
                 Food food,
-                CancellationToken cancellationToken = default)
-            {
+                CancellationToken cancellationToken = default) {
                 NormalizeFood(food);
                 Nutrients nutrientsPer100g = food.NutrientContent;
 
-                var entity = new Food_DBEntity
-                {
+                var entity = new Food_DBEntity {
                     Name = food.Name,
 
                     Food_Description = string.IsNullOrWhiteSpace(food.Description)
@@ -247,8 +227,7 @@ namespace Food_Database.Database.Operations
             /// <summary>
             /// Helper function for clamping value<0 to null.
             /// </summary>
-            private static decimal? Value(double value)
-            {
+            private static decimal? Value(double value) {
                 return value < 0
                     ? null
                     : (decimal)value;

@@ -1,24 +1,16 @@
-﻿using Food_Database.Database.Descriptors;
-using Food_Database.Models;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Food_Database.Models;
 
-namespace Food_Database.Database.Operations
-{
+namespace Food_Database.Database.Operations {
 
     using Food;
     using Food_Database.Database.Descriptors;
 
-    public static class FoodMapper
-    {
+    public static class FoodMapper {
         private const double Unknown = -1d;
 
         public static Food ToDomain(
             this Food_DBEntity entity,
-            double weight = DB_Food_Descriptors.NormalizedWeight)
-        {
+            double weight = DB_Food_Descriptors.NormalizedWeight) {
             double factor = weight / DB_Food_Descriptors.NormalizedWeight;
 
             Nutrients nutrients = CreateNutrients(entity);
@@ -37,8 +29,7 @@ namespace Food_Database.Database.Operations
 
         public static Food ToDomain(
             this Food_DBEntity entity,
-            UserFoodOptions_DBEntity? userOptions)
-        {
+            UserFoodOptions_DBEntity? userOptions) {
             double weight = userOptions?.Weight_Total is decimal userWeight
                 ? (double)userWeight
                 : DB_Food_Descriptors.NormalizedWeight;
@@ -48,8 +39,7 @@ namespace Food_Database.Database.Operations
 
         public static Food ToDomainWithIngredients(
             this Food_DBEntity entity,
-            double weight = DB_Food_Descriptors.NormalizedWeight)
-        {
+            double weight = DB_Food_Descriptors.NormalizedWeight) {
             return ToDomainWithIngredientsInternal(
                 entity,
                 weight,
@@ -59,8 +49,7 @@ namespace Food_Database.Database.Operations
         private static Food ToDomainWithIngredientsInternal(
             Food_DBEntity entity,
             double weight,
-            HashSet<int> path)
-        {
+            HashSet<int> path) {
             var food = entity.ToDomain(weight);
 
             // Prevent recursive A -> B -> A composition from blowing the stack.
@@ -69,8 +58,7 @@ namespace Food_Database.Database.Operations
 
             double parentFactor = weight / DB_Food_Descriptors.NormalizedWeight;
 
-            foreach (FoodIngredients_DBEntity relation in entity.FoodIngredientsFood)
-            {
+            foreach (FoodIngredients_DBEntity relation in entity.FoodIngredientsFood) {
                 double ingredientWeight =
                     (double)relation.Weight_Ingredient_Normalised
                     * parentFactor;
@@ -95,8 +83,7 @@ namespace Food_Database.Database.Operations
         /// this is probably not necessary because it should be 2 decimal places trunc by database.</remark>
         /// <param name="entity">Database entity in EntityFramework</param>
         /// <returns><see cref="Nutrients"/> object with rounded up decimals.</returns>
-        private static Nutrients CreateNutrients(Food_DBEntity entity)
-        {
+        private static Nutrients CreateNutrients(Food_DBEntity entity) {
             Nutrients nut = new Nutrients(
                 new Energy(Value(entity.Energy_Kcal)),
                 new Fat(
@@ -116,8 +103,7 @@ namespace Food_Database.Database.Operations
 
         public static void MapToEntity(
             Food food,
-            Food_DBEntity entity)
-        {
+            Food_DBEntity entity) {
             if (food.Weight <= 0)
                 throw new ArgumentOutOfRangeException(nameof(food.Weight));
 
@@ -146,8 +132,7 @@ namespace Food_Database.Database.Operations
                 ? (double)value.Value
                 : Unknown;
 
-        private static decimal? Value(double value)
-        {
+        private static decimal? Value(double value) {
             return value < 0
                 ? null
                 : (decimal)value;

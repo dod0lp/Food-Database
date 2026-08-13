@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Food
-{
+﻿namespace Food {
     /// <summary>
     /// Represents nutritional information related to <see cref="Salt"/>.
     /// </summary>
-    public class Salt : Nutrient
-    {
+    public class Salt : Nutrient {
         /// <summary>
         /// Initializes a new instance of the <see cref="Salt"/> class with specified values.
         /// </summary>
@@ -23,8 +15,7 @@ namespace Food
         /// <param name="s1">The first <see cref="Salt"/> instance.</param>
         /// <param name="s2">The second <see cref="Salt"/> instance.</param>
         /// <returns>A new <see cref="Salt"/> instance with summed salt values.</returns>
-        public static Salt operator +(Salt s1, Salt s2)
-        {
+        public static Salt operator +(Salt s1, Salt s2) {
             return new Salt(s1.Total + s2.Total);
         }
 
@@ -34,8 +25,7 @@ namespace Food
         /// <param name="s1">The first <see cref="Salt"/> instance.</param>
         /// <param name="s2">The second <see cref="Salt"/> instance.</param>
         /// <returns>A new <see cref="Salt"/> instance with subtracted protein values.</returns>
-        public static Salt operator -(Salt s1, Salt s2)
-        {
+        public static Salt operator -(Salt s1, Salt s2) {
             return new Salt(s1.Total - s2.Total);
         }
 
@@ -45,8 +35,7 @@ namespace Food
         /// <param name="factor">The scaling factor.</param>
         /// <param name="s">The <see cref="Salt"/> instance to scale.</param>
         /// <returns>A new <see cref="Salt"/> instance with scaled <see cref="Salt.Total"/> value.</returns>
-        public static Salt operator *(double factor, Salt s)
-        {
+        public static Salt operator *(double factor, Salt s) {
             return new Salt(s.Total * factor);
         }
 
@@ -56,8 +45,7 @@ namespace Food
         /// <param name="s">The <see cref="Salt"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Salt"/> instance with scaled <see cref="Salt.Total"/> value.</returns>
-        public static Salt operator *(Salt s, double factor)
-        {
+        public static Salt operator *(Salt s, double factor) {
             return factor * s;
         }
 

@@ -1,11 +1,12 @@
 ﻿using Food_Database.Database.Descriptors;
 using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
+using static Food_Database.Database.Operations.EFLoader;
 
 public static class Program_Food {
     private const int UserId = 1;
 
-    public static void Main(string[] args) {
+    static async Task Main(string[] args) {
         var options = new DbContextOptionsBuilder<DB_FoodContext>()
             .UseSqlServer(
                 DB_Food_Descriptors.ConnectionString,
@@ -15,6 +16,15 @@ public static class Program_Food {
         using var db = new DB_FoodContext(options);
 
         EnsureDummyData(db);
+        Users_DBEntity? user = await db.Users
+            .Include(x => x.Food)
+            .SingleOrDefaultAsync(
+                x => x.Id == UserId);
+
+        if (user is null) {
+            Console.WriteLine("UserID doesn't exist in database. Exiting.");
+            return;
+        }
 
         while (true) {
             Console.WriteLine();
@@ -71,6 +81,7 @@ public static class Program_Food {
     }
 
     private static void EnsureDummyData(DB_FoodContext db) {
+        // add (by default, so ID 1) if nothing exists yet
         if (!db.Users.Any(x => x.Id == UserId)) {
             var user = new Users_DBEntity();
             db.Users.Add(user);
@@ -411,40 +422,14 @@ public static class Program_Food {
         }
     }
 
-    private static void TestFavoriteFoodOptions(
+    private static async void TestFavoriteFoodOptions(
     DB_FoodContext db,
-    int userId) {
-        int? foodId = db.Users
-            .Where(x => x.Id == userId)
-            .SelectMany(x => x.Food)
-            .Select(x => (int?)x.Id)
-            .FirstOrDefault();
-
-        if (foodId is null) {
-            Console.WriteLine("User has no favorite foods.");
-            return;
-        }
-
-        Console.WriteLine("PACKAGE:");
-        AddFavoriteFoodOption(
-            db,
-            userId,
-            foodId.Value,
-            weight: 500m,
-            price: 3.00m);
-
-        ShowFavoritesWithOptions(db, userId);
-
-        Console.WriteLine();
-        Console.WriteLine("INGREDIENT AMOUNT:");
-
-        AddFavoriteFoodOption(
-            db,
-            userId,
-            foodId.Value,
-            weight: 150m,
-            price: 1.50m);
-
+    int userId,
+    CancellationToken cancellationToken = default) {
+        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 100, 69, CancellationToken.None);
+        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 120, 29, CancellationToken.None);
+        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 130, 39, CancellationToken.None);
+        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 140, 49, CancellationToken.None);
         ShowFavoritesWithOptions(db, userId);
     }
 }

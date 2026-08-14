@@ -337,13 +337,13 @@ namespace Food_Database.Database.Operations {
             /// <param name="cancellationToken">CancellationToken for async op.</param>
             /// <returns>Task of 'Food?' that was created into its database entity form.</returns>
             /// <exception cref="ArgumentOutOfRangeException">Occurs when weight or price being set is negative.</exception>
-            public async void AddFavoriteFoodOption(
+            public static async Task AddFavoriteFoodOptionAsync(
     DB_FoodContext db,
     int userId,
     int foodId,
     decimal weight,
     decimal price,
-    CancellationToken cancellationToken) {
+    CancellationToken cancellationToken = default) {
                 bool favoriteExists = db.Users
                     .Where(x => x.Id == userId)
                     .SelectMany(x => x.Food)

@@ -53,7 +53,7 @@ public static class Program_Food {
                 break;
 
                 case "6":
-                SetFavoriteFoodOptions(db, UserId);
+                SetFavoriteFoodOption(db, UserId);
                 break;
 
                 case "7":
@@ -301,7 +301,7 @@ public static class Program_Food {
         }
     }
 
-    private static void SetFavoriteFoodOptions(
+    private static void AddFavoriteFoodOption(
     DB_FoodContext db,
     int userId,
     int foodId,
@@ -331,17 +331,14 @@ public static class Program_Food {
 
             db.UserFoodOptions.Add(options);
         } else {
-            options.Weight_Total = weight;
+            // just change price because weight was part of key
             options.Price_Eur = price;
         }
 
         db.SaveChanges();
-
-        Console.WriteLine(
-            $"Food {foodId}: {weight}g = {price:0.00} EUR");
     }
 
-    private static void SetFavoriteFoodOptions(
+    private static void SetFavoriteFoodOption(
     DB_FoodContext db,
     int userId) {
         ShowFavorites(db, userId);
@@ -367,7 +364,7 @@ public static class Program_Food {
             return;
         }
 
-        SetFavoriteFoodOptions(
+        AddFavoriteFoodOption(
             db,
             userId,
             foodId,
@@ -429,7 +426,7 @@ public static class Program_Food {
         }
 
         Console.WriteLine("PACKAGE:");
-        SetFavoriteFoodOptions(
+        AddFavoriteFoodOption(
             db,
             userId,
             foodId.Value,
@@ -441,7 +438,7 @@ public static class Program_Food {
         Console.WriteLine();
         Console.WriteLine("INGREDIENT AMOUNT:");
 
-        SetFavoriteFoodOptions(
+        AddFavoriteFoodOption(
             db,
             userId,
             foodId.Value,

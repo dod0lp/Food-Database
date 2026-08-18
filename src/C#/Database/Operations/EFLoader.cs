@@ -9,6 +9,12 @@ namespace Food_Database.Database.Operations {
     using static Food.Food;
 
     public static class EFLoader {
+        /// <summary>
+        /// Normalize nutrinets to 100g weight of food and set to -1 if there is some negative value, as not set in this applicaton logic.
+        /// </summary>
+        /// <param name="nutrients">Nutrients to normalize.</param>
+        /// <param name="weight">Weight of current food</param>
+        /// <returns>Normalized Nutrients to 100g worth of food, with -1 values as non-set.</returns>
         public static Nutrients NormalizeNutrients(Nutrients nutrients, double weight) {
             Nutrients nutrientsPer100g =
                 (DB_Food_Descriptors.NormalizedWeight / weight) * nutrients;
@@ -17,30 +23,43 @@ namespace Food_Database.Database.Operations {
             return nutrientsPer100g;
         }
 
+        /// <summary>
+        /// Function to normalize food nutrients, and normalize food it is made out of
+        /// </summary>
+        /// <remarks>Normalize food to 100g weight as stored in database.</remarks>
+        /// <param name="food">Food object to normalize its nutrients.</param>
         public static void NormalizeFood(Food food) {
-            if (food.Weight < 0)
-                food.Weight = -1;
+            // Probably not exception because food obj should be checked earlier by app logic.
+            if (food.Weight <= 0) {
+                return;
+            }
 
-            object nutrients = food.NutrientContent;
-            NormalizeNegativeValuesRecursive(nutrients);
-            food.NutrientContent = (Nutrients)nutrients;
+            Nutrients nutrients = new(food.NutrientContent);
+            food.NutrientContent = NormalizeNutrients(nutrients, food.Weight);
 
-            foreach (Food ingredient in food.Ingredients)
+            foreach (Food ingredient in food.Ingredients) {
                 NormalizeFood(ingredient);
+            }
         }
 
+        /// <summary>
+        /// Recursive function to set each negative property of an object to be -1.
+        /// </summary>
+        /// <param name="obj">Object to set negative numeric properties to -1.</param>
         private static void NormalizeNegativeValuesRecursive(object obj) {
             Type type = obj.GetType();
 
             foreach (PropertyInfo property in type.GetProperties()) {
-                if (!property.CanRead || !property.CanWrite)
+                if (!property.CanRead || !property.CanWrite) {
                     continue;
+                }
 
                 object? value = property.GetValue(obj);
 
                 if (value is double number) {
-                    if (number < 0)
+                    if (number < 0) {
                         property.SetValue(obj, -1d);
+                    }
                 } else if (value is not null && property.PropertyType.IsValueType) {
                     object nested = value;
 
@@ -52,9 +71,19 @@ namespace Food_Database.Database.Operations {
         }
 
 
+        /// <summary>
+        /// Class to work with database Food.
+        /// </summary>
         public sealed class FoodRepository {
+            /// <summary>
+            /// <see cref="DbContext"/> for food database.
+            /// </summary>
             private readonly DB_FoodContext _db;
 
+            /// <summary>
+            /// Sets <see cref="DbContext"/>.
+            /// </summary>
+            /// <param name="db">Database connection.</param>
             public FoodRepository(DB_FoodContext db) {
                 _db = db;
             }
@@ -157,7 +186,7 @@ namespace Food_Database.Database.Operations {
             public async Task<List<FavoriteFood>> GetFavoritesWithOptionsAsync(
                 int userId,
                 CancellationToken cancellationToken = default) {
-                List<Food_DBEntity> entities = await _db.Users
+                List<Food_DBEntity> user_favorites_entities = await _db.Users
                     .AsNoTracking()
                     .Where(x => x.Id == userId)
                     .SelectMany(x => x.Food)
@@ -168,12 +197,12 @@ namespace Food_Database.Database.Operations {
                     .ToListAsync(cancellationToken);
 
                 return
-                    [.. entities
-                    .Select(entity => new FavoriteFood
+                    [.. user_favorites_entities
+                    .Select(food_entity => new FavoriteFood
                     {
-                        Food = entity.ToDomainWithIngredients(),
+                        Food = food_entity.ToDomainWithIngredients(),
 
-                        Options = [.. entity.UserFoodOptions
+                        Options = [.. food_entity.UserFoodOptions
                             .Where(x => x.User_Id == userId)
                             .OrderBy(x => x.Weight_Total)
                             .Select(x => new FavoriteFoodOption
@@ -192,8 +221,8 @@ namespace Food_Database.Database.Operations {
             /// <returns>Added <see cref="Food"/> with its ID from database.</returns>
             /// <exception cref="ArgumentOutOfRangeException"></exception>
             public async Task<Food> AddFoodAsync(
-                Food food,
-                CancellationToken cancellationToken = default) {
+            Food food,
+            CancellationToken cancellationToken = default) {
                 NormalizeFood(food);
                 Nutrients nutrientsPer100g = food.NutrientContent;
 
@@ -233,7 +262,7 @@ namespace Food_Database.Database.Operations {
             /// <param name="remark">User remark about food. Not a food description.</param>
             /// <param name="options">Combinations of weight and price of managed food.</param>
             /// <param name="cancellationToken">CancellationToken for async op.</param>
-            /// <returns>Task of 'Food?' that was created into its database entity form.</returns>
+            /// <returns>Task of 'Food?' that was created into its database food_entity form.</returns>
             /// <exception cref="ArgumentOutOfRangeException">Occurs when weight or price being set is negative.</exception>
             public async Task<Food?> SetFavoriteFoodAsync(
     int userId,
@@ -307,6 +336,7 @@ namespace Food_Database.Database.Operations {
                                     x.Weight_Total == (decimal)option.Weight,
                                 cancellationToken);
 
+                        // if option is null add whole, otherwise just change price
                         if (optionEntity is null) {
                             _db.UserFoodOptions.Add(new UserFoodOptions_DBEntity {
                                 User_Id = userId,
@@ -335,7 +365,7 @@ namespace Food_Database.Database.Operations {
             /// <param name="weight">Weight set for food option.</param>
             /// <param name="price">Price set for food option.</param>
             /// <param name="cancellationToken">CancellationToken for async op.</param>
-            /// <returns>Task of 'Food?' that was created into its database entity form.</returns>
+            /// <returns>Task of 'Food?' that was created into its database food_entity form.</returns>
             /// <exception cref="ArgumentOutOfRangeException">Occurs when weight or price being set is negative.</exception>
             public static async Task AddFavoriteFoodOptionAsync(
     DB_FoodContext db,
@@ -361,8 +391,9 @@ namespace Food_Database.Database.Operations {
                             x => x.Id == foodId,
                             cancellationToken);
 
-                    if (user is null || food is null)
+                    if (user is null || food is null) {
                         return;
+                    }
 
                     user.Food.Add(food);
                 }

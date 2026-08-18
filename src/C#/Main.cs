@@ -424,8 +424,7 @@ public static class Program_Food {
 
     private static async void TestFavoriteFoodOptions(
     DB_FoodContext db,
-    int userId,
-    CancellationToken cancellationToken = default) {
+    int userId) {
         await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 100, 69, CancellationToken.None);
         await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 120, 29, CancellationToken.None);
         await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 130, 39, CancellationToken.None);

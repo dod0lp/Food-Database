@@ -47,6 +47,18 @@ namespace Food {
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Nutrients"/> struct by copying another <see cref="Nutrients"/> instance.
+        /// </summary>
+        /// <param name="nutrients">The nutrients to copy.</param>
+        public Nutrients(Nutrients nutrients) {
+            Energy = nutrients.Energy;
+            FatContent = nutrients.FatContent;
+            CarbohydrateContent = nutrients.CarbohydrateContent;
+            Protein = nutrients.Protein;
+            Salt = nutrients.Salt;
+        }
+
+        /// <summary>
         /// Adds two instances of <see cref="Nutrients"/>, combining their respective nutritional values.
         /// </summary>
         /// <param name="n1">The first <see cref="Nutrients"/> instance.</param>

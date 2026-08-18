@@ -13,9 +13,13 @@ public static class DB_Descriptors {
 }
 
 /// <summary>
-/// Class for using and making Food Database data, Accessing database, Making connection string for database connection [<see cref="ConnectionString"/>] <br></br>
-/// Constants for accessing database tables [starting with Table], Maximum lengths of variables [starting with Max],...
+/// Class mainly for database descriptors.<br></br>
 /// </summary>
+/// <remarks>
+/// Further summary:<br></br>
+/// Class for using and making Food Database data, Accessing database, Making connection string for database connection [<see cref="ConnectionString"/>] <br></br>
+/// Constants for accessing database tables, Maximum lengths of variables,...
+/// </remarks>
 public static class DB_Food_Descriptors {
     // relative path to the .env file
     private static readonly string env_location = "config/app.env";

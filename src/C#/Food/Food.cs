@@ -326,8 +326,15 @@
         /// Class representing option for favorite food to work with database.
         /// </summary>
         public sealed class FavoriteFoodOption {
-            public double Weight { get; set; }
-            public decimal? PriceEur { get; set; }
+            public decimal Weight { get; set; }
+            public decimal? Price { get; set; }
+
+            public FavoriteFoodOption() { }
+
+            public FavoriteFoodOption(decimal weight, decimal? price = null) {
+                Weight = weight;
+                Price = price;
+            }
         }
     }
 }

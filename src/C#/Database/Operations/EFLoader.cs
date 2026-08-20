@@ -8,6 +8,9 @@ namespace Food_Database.Database.Operations {
     using System.Runtime.CompilerServices;
     using static Food.Food;
 
+    /// <summary>
+    /// Class for working with entity framework.
+    /// </summary>
     public static class EFLoader {
         /// <summary>
         /// Normalize nutrinets to 100g weight of food and set to -1 if there is some negative value, as not set in this applicaton logic.
@@ -122,8 +125,9 @@ namespace Food_Database.Database.Operations {
                         x => x.Id == foodId,
                         cancellationToken);
 
-                if (entity is null)
+                if (entity is null) {
                     return null;
+                }
 
                 UserFoodOptions_DBEntity? options =
                     entity.UserFoodOptions
@@ -154,7 +158,7 @@ namespace Food_Database.Database.Operations {
             /// <param name="cancellationToken">CancellationToken for async op.</param>
             /// <returns><see cref="Food"/> objects in form of list, in the fixed order by id, from database.</returns>
             public async Task<List<Food>> GetFoodsAsync(int from = 1, int to = 10,
-                CancellationToken cancellationToken = default) {
+        CancellationToken cancellationToken = default) {
                 if (from < 1) {
                     from = 1;
                 }
@@ -207,8 +211,8 @@ namespace Food_Database.Database.Operations {
                             .OrderBy(x => x.Weight_Total)
                             .Select(x => new FavoriteFoodOption
                             {
-                                Weight = (double)x.Weight_Total,
-                                PriceEur = x.Price_Eur
+                                Weight = x.Weight_Total,
+                                Price = x.Price_Eur
                             })]
                     })];
             }
@@ -323,8 +327,8 @@ namespace Food_Database.Database.Operations {
                             throw new ArgumentOutOfRangeException(nameof(option.Weight));
                         }
 
-                        if (option.PriceEur < 0) {
-                            throw new ArgumentOutOfRangeException(nameof(option.PriceEur));
+                        if (option.Price < 0) {
+                            throw new ArgumentOutOfRangeException(nameof(option.Price));
                         }
 
                         UserFoodOptions_DBEntity? optionEntity =
@@ -333,7 +337,7 @@ namespace Food_Database.Database.Operations {
                                     x.User_Id == userId &&
                                     x.Food_Id == foodId &&
                                     // casting double to decimal shouldn't be issue here, no exponentials, inf,...
-                                    x.Weight_Total == (decimal)option.Weight,
+                                    x.Weight_Total == option.Weight,
                                 cancellationToken);
 
                         // if option is null add whole, otherwise just change price
@@ -341,11 +345,11 @@ namespace Food_Database.Database.Operations {
                             _db.UserFoodOptions.Add(new UserFoodOptions_DBEntity {
                                 User_Id = userId,
                                 Food_Id = foodId,
-                                Weight_Total = (decimal)option.Weight,
-                                Price_Eur = option.PriceEur
+                                Weight_Total = option.Weight,
+                                Price_Eur = option.Price
                             });
                         } else {
-                            optionEntity.Price_Eur = option.PriceEur;
+                            optionEntity.Price_Eur = option.Price;
                         }
                     }
                 }
@@ -371,8 +375,7 @@ namespace Food_Database.Database.Operations {
     DB_FoodContext db,
     int userId,
     int foodId,
-    decimal weight,
-    decimal price,
+    FavoriteFoodOption option,
     CancellationToken cancellationToken = default) {
                 bool favoriteExists = db.Users
                     .Where(x => x.Id == userId)
@@ -402,20 +405,20 @@ namespace Food_Database.Database.Operations {
                     .SingleOrDefault(x =>
                         x.User_Id == userId &&
                         x.Food_Id == foodId &&
-                        x.Weight_Total == weight);
+                        x.Weight_Total == option.Weight);
 
                 if (options is null) {
                     options = new UserFoodOptions_DBEntity {
                         User_Id = userId,
                         Food_Id = foodId,
-                        Weight_Total = weight,
-                        Price_Eur = price
+                        Weight_Total = option.Weight,
+                        Price_Eur = option.Price
                     };
 
                     db.UserFoodOptions.Add(options);
                 } else {
                     // just change price, because weight was part of key
-                    options.Price_Eur = price;
+                    options.Price_Eur = option.Price;
                 }
 
                 await db.SaveChangesAsync(cancellationToken);

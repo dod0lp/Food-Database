@@ -1,6 +1,7 @@
 ﻿using Food_Database.Database.Descriptors;
 using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
+using static Food.Food;
 using static Food_Database.Database.Operations.EFLoader;
 
 public static class Program_Food {
@@ -425,10 +426,10 @@ public static class Program_Food {
     private static async void TestFavoriteFoodOptions(
     DB_FoodContext db,
     int userId) {
-        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 100, 69, CancellationToken.None);
-        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 120, 29, CancellationToken.None);
-        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 130, 39, CancellationToken.None);
-        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, 140, 49, CancellationToken.None);
+        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, new FavoriteFoodOption(100, 19), CancellationToken.None);
+        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, new FavoriteFoodOption(120, 29), CancellationToken.None);
+        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, new FavoriteFoodOption(130, 39), CancellationToken.None);
+        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, new FavoriteFoodOption(140, 49), CancellationToken.None);
         ShowFavoritesWithOptions(db, userId);
     }
 }

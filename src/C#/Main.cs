@@ -72,7 +72,7 @@ public static class Program_Food {
                 break;
 
                 case "8":
-                TestFavoriteFoodOptions(db, UserId);
+                TestFavoriteFoodOptions(db, UserId, 3);
                 break;
 
                 case "0":
@@ -423,13 +423,14 @@ public static class Program_Food {
         }
     }
 
-    private static async void TestFavoriteFoodOptions(
-    DB_FoodContext db,
-    int userId) {
-        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, new FavoriteFoodOption(100, 19), CancellationToken.None);
-        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, new FavoriteFoodOption(120, 29), CancellationToken.None);
-        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, new FavoriteFoodOption(130, 39), CancellationToken.None);
-        await FoodRepository.AddFavoriteFoodOptionAsync(db, userId, 2, new FavoriteFoodOption(140, 49), CancellationToken.None);
+    private static async void TestFavoriteFoodOptions(DB_FoodContext db, int userId, int foodId) {
+        var repo = new FoodRepository(db);
+
+        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new FavoriteFoodOption(100, 19), CancellationToken.None);
+        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new FavoriteFoodOption(120, 29), CancellationToken.None);
+        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new FavoriteFoodOption(130, 39), CancellationToken.None);
+        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new FavoriteFoodOption(140, 59), CancellationToken.None);
+
         ShowFavoritesWithOptions(db, userId);
     }
 }

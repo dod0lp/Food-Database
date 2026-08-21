@@ -5,6 +5,7 @@ using System.Reflection;
 
 namespace Food_Database.Database.Operations {
     using Food;
+    using Microsoft.Extensions.Options;
     using System.Runtime.CompilerServices;
     using static Food.Food;
 
@@ -89,6 +90,15 @@ namespace Food_Database.Database.Operations {
             /// <param name="db">Database connection.</param>
             public FoodRepository(DB_FoodContext db) {
                 _db = db;
+            }
+
+            /// <summary>
+            /// Public call to save database context changes.
+            /// </summary>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>Empty <see cref="Task"/>.</returns>
+            public async Task SaveChangesDBAsync(CancellationToken cancellationToken = default) {
+                await _db.SaveChangesAsync(cancellationToken);
             }
 
             /// <summary>
@@ -251,7 +261,7 @@ namespace Food_Database.Database.Operations {
 
                 _db.Food.Add(entity);
 
-                await _db.SaveChangesAsync(cancellationToken);
+                await SaveChangesDBAsync(cancellationToken);
 
                 food.Id = entity.Id;
 
@@ -269,20 +279,21 @@ namespace Food_Database.Database.Operations {
             /// <returns>Task of 'Food?' that was created into its database food_entity form.</returns>
             /// <exception cref="ArgumentOutOfRangeException">Occurs when weight or price being set is negative.</exception>
             public async Task<Food?> SetFavoriteFoodAsync(
-    int userId,
-    int foodId,
-    string? remark = null,
-    IEnumerable<FavoriteFoodOption>? options = null,
-    CancellationToken cancellationToken = default) {
-                Users_DBEntity? user = await _db.Users
+        int userId,
+        int foodId,
+        string? remark = null,
+        IEnumerable<FavoriteFoodOption>? options = null,
+        CancellationToken cancellationToken = default) {
+                if (!await UserExists(userId, cancellationToken) ||
+                        !await FoodExists(foodId, cancellationToken)) {
+                    return null;
+                }
+
+                Users_DBEntity? userEntity = await _db.Users
                     .Include(x => x.Food)
                     .SingleOrDefaultAsync(
                         x => x.Id == userId,
                         cancellationToken);
-
-                if (user is null) {
-                    return null;
-                }
 
                 Food_DBEntity? foodEntity = await _db.Food
                     .Include(x => x.FoodIngredientsFood)
@@ -291,72 +302,99 @@ namespace Food_Database.Database.Operations {
                         x => x.Id == foodId,
                         cancellationToken);
 
-                if (foodEntity is null) {
+                if (userEntity is null || foodEntity is null) {
                     return null;
                 }
 
                 // Favorite food if it isn't already favorited.
-                if (!user.Food.Any(x => x.Id == foodId)) {
-                    user.Food.Add(foodEntity);
+                if (!userEntity.Food.Any(x => x.Id == foodId)) {
+                    userEntity.Food.Add(foodEntity);
                 }
 
                 // Add/update user's remark.
                 if (remark is not null) {
-                    UserFoodRemarks_DBEntity? remarkEntity =
-                        await _db.UserFoodRemark.SingleOrDefaultAsync(
-                            x =>
-                                x.User_Id == userId &&
-                                x.Food_Id == foodId,
-                            cancellationToken);
-
-                    if (remarkEntity is null) {
-                        _db.UserFoodRemark.Add(new UserFoodRemarks_DBEntity {
-                            User_Id = userId,
-                            Food_Id = foodId,
-                            Food_Remark = remark
-                        });
-                    } else {
-                        remarkEntity.Food_Remark = remark;
-                    }
+                    await AddOrUpdateRemark(userId, foodId, remark,
+                                            cancellationToken);
                 }
 
                 // Add/update weight + price options.
                 if (options is not null) {
-                    foreach (FavoriteFoodOption option in options) {
-                        if (option.Weight <= 0) {
-                            throw new ArgumentOutOfRangeException(nameof(option.Weight));
-                        }
-
-                        if (option.Price < 0) {
-                            throw new ArgumentOutOfRangeException(nameof(option.Price));
-                        }
-
-                        UserFoodOptions_DBEntity? optionEntity =
-                            await _db.UserFoodOptions.SingleOrDefaultAsync(
-                                x =>
-                                    x.User_Id == userId &&
-                                    x.Food_Id == foodId &&
-                                    // casting double to decimal shouldn't be issue here, no exponentials, inf,...
-                                    x.Weight_Total == option.Weight,
-                                cancellationToken);
-
-                        // if option is null add whole, otherwise just change price
-                        if (optionEntity is null) {
-                            _db.UserFoodOptions.Add(new UserFoodOptions_DBEntity {
-                                User_Id = userId,
-                                Food_Id = foodId,
-                                Weight_Total = option.Weight,
-                                Price_Eur = option.Price
-                            });
-                        } else {
-                            optionEntity.Price_Eur = option.Price;
-                        }
-                    }
+                    await AddOrUpdateOptions(userId, foodId, options,
+                                            cancellationToken);
                 }
 
-                await _db.SaveChangesAsync(cancellationToken);
+                await SaveChangesDBAsync(cancellationToken);
 
                 return foodEntity.ToDomainWithIngredients();
+            }
+
+            /// <summary>
+            /// Helper function to add or update option of user favorite foods.
+            /// </summary>
+            /// <param name="userId">ID of a user.</param>
+            /// <param name="foodId">Favorite Food ID of a user.</param>
+            /// <param name="options">Options to set or update.</param>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>Empty <see cref="Task"/>.</returns>
+            /// <exception cref="ArgumentOutOfRangeException">When price or weight is smaller than 0.</exception>
+            public async Task AddOrUpdateOptions(int userId, int foodId,
+        IEnumerable<FavoriteFoodOption> options,
+        CancellationToken cancellationToken = default) {
+                foreach (FavoriteFoodOption option in options) {
+                    if (option.Weight <= 0 || option.Price < 0) {
+                        throw new ArgumentOutOfRangeException(nameof(options));
+                    }
+
+                    await EnsureFavoriteExists(userId, foodId, cancellationToken);
+
+                    UserFoodOptions_DBEntity? optionEntity =
+                        await _db.UserFoodOptions.SingleOrDefaultAsync(
+                            x =>
+                                x.User_Id == userId &&
+                                x.Food_Id == foodId &&
+                                x.Weight_Total == option.Weight,
+                                cancellationToken);
+
+                    // if option is null add whole, otherwise just change price
+                    if (optionEntity is null) {
+                        _db.UserFoodOptions.Add(new UserFoodOptions_DBEntity {
+                            User_Id = userId,
+                            Food_Id = foodId,
+                            Weight_Total = option.Weight,
+                            Price_Eur = option.Price
+                        });
+                    } else {
+                        optionEntity.Price_Eur = option.Price;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Helper function to add or update remark of a user's favorite food.
+            /// </summary>
+            /// <param name="userId">ID of a user.</param>
+            /// <param name="foodId">Favorite Food ID of a user.</param>
+            /// <param name="remark">Remark to set.</param>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>Empty <see cref="Task"/>.</returns>
+            private async Task AddOrUpdateRemark(int userId, int foodId, string remark,
+        CancellationToken cancellationToken = default) {
+                UserFoodRemarks_DBEntity? remarkEntity =
+                    await _db.UserFoodRemark.SingleOrDefaultAsync(
+                        x =>
+                            x.User_Id == userId &&
+                            x.Food_Id == foodId,
+                        cancellationToken);
+
+                if (remarkEntity is null) {
+                    _db.UserFoodRemark.Add(new UserFoodRemarks_DBEntity {
+                        User_Id = userId,
+                        Food_Id = foodId,
+                        Food_Remark = remark
+                    });
+                } else {
+                    remarkEntity.Food_Remark = remark;
+                }
             }
 
             /// <summary>
@@ -366,62 +404,94 @@ namespace Food_Database.Database.Operations {
             /// </summary>
             /// <param name="userId">ID of a user whose food is being managed.</param>
             /// <param name="foodId">ID of food that is being set for a user.</param>
-            /// <param name="weight">Weight set for food option.</param>
-            /// <param name="price">Price set for food option.</param>
             /// <param name="cancellationToken">CancellationToken for async op.</param>
             /// <returns>Task of 'Food?' that was created into its database food_entity form.</returns>
             /// <exception cref="ArgumentOutOfRangeException">Occurs when weight or price being set is negative.</exception>
-            public static async Task AddFavoriteFoodOptionAsync(
-    DB_FoodContext db,
+            public async Task AddFavoriteFoodOptionAsync(
     int userId,
     int foodId,
     FavoriteFoodOption option,
     CancellationToken cancellationToken = default) {
-                bool favoriteExists = db.Users
-                    .Where(x => x.Id == userId)
-                    .SelectMany(x => x.Food)
-                    .Any(x => x.Id == foodId);
-
-                if (!favoriteExists) {
-                    Users_DBEntity? user = await db.Users
-                        .Include(x => x.Food)
-                        .SingleOrDefaultAsync(
-                            x => x.Id == userId,
-                            cancellationToken);
-
-                    Food_DBEntity? food = await db.Food
-                        .SingleOrDefaultAsync(
-                            x => x.Id == foodId,
-                            cancellationToken);
-
-                    if (user is null || food is null) {
+                if (!await FavoriteExists(userId, foodId, cancellationToken)) {
+                    if (!await EnsureFavoriteExists(userId, foodId, cancellationToken)) {
                         return;
                     }
-
-                    user.Food.Add(food);
                 }
 
-                UserFoodOptions_DBEntity? options = db.UserFoodOptions
-                    .SingleOrDefault(x =>
-                        x.User_Id == userId &&
-                        x.Food_Id == foodId &&
-                        x.Weight_Total == option.Weight);
+                await AddOrUpdateOptions(userId, foodId, [option], cancellationToken);
+            }
 
-                if (options is null) {
-                    options = new UserFoodOptions_DBEntity {
-                        User_Id = userId,
-                        Food_Id = foodId,
-                        Weight_Total = option.Weight,
-                        Price_Eur = option.Price
-                    };
+            /// <summary>
+            /// Helper function to find out if user and food is already favorite.
+            /// </summary>
+            /// <param name="userId">ID of a user whose food is being managed.</param>
+            /// <param name="foodId">ID of food that is being set for a user.</param>
+            /// /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>If user has this food set as favorite.</returns>
+            public async Task<bool> FavoriteExists(int userId, int foodId, CancellationToken cancellationToken = default) {
+                return
+                    await _db.Users
+                            .AsNoTracking()
+                            .Where(x => x.Id == userId)
+                            .SelectMany(x => x.Food)
+                            .AnyAsync(x => x.Id == foodId, cancellationToken);
+            }
 
-                    db.UserFoodOptions.Add(options);
-                } else {
-                    // just change price, because weight was part of key
-                    options.Price_Eur = option.Price;
+            /// <summary>
+            /// Helper function to make sure favorite food for user exists, or can be added for a user.
+            /// </summary>
+            /// <param name="userId">ID of a user whose food is being managed.</param>
+            /// <param name="foodId">ID of food that is being set for a user.</param>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>If favorite food-user was created.</returns>
+            public async Task<bool> EnsureFavoriteExists(int userId, int foodId, CancellationToken cancellationToken = default) {
+                Users_DBEntity? user = await _db.Users
+                    .Include(x => x.Food)
+                    .SingleOrDefaultAsync(
+                        x => x.Id == userId,
+                        cancellationToken);
+
+                Food_DBEntity? food = await _db.Food
+                    .SingleOrDefaultAsync(
+                        x => x.Id == foodId,
+                        cancellationToken);
+
+                if (user is null || food is null) {
+                    return false;
                 }
 
-                await db.SaveChangesAsync(cancellationToken);
+                user.Food.Add(food);
+                return true;
+            }
+
+            /// <summary>
+            /// Helper function to see if user exists in the database.
+            /// </summary>
+            /// <param name="userId">ID of a user.</param>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>True if exists.</returns>
+            public async Task<bool> UserExists(int userId, CancellationToken cancellationToken = default) {
+                Users_DBEntity? user =
+                    await _db.Users
+                        .AsNoTracking()
+                        .SingleOrDefaultAsync(x => x.Id == userId, cancellationToken);
+
+                return user is not null;
+            }
+
+            /// <summary>
+            /// Helper function to see if food exists in the database.
+            /// </summary>
+            /// <param name="userId">ID of a food.</param>
+            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <returns>True if exists.</returns>
+            public async Task<bool> FoodExists(int foodId, CancellationToken cancellationToken = default) {
+                Food_DBEntity? food =
+                    await _db.Food
+                        .AsNoTracking()
+                        .SingleOrDefaultAsync(x => x.Id == foodId, cancellationToken);
+
+                return food is not null;
             }
 
             /// <summary>

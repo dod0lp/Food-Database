@@ -9,8 +9,8 @@ namespace Food_Database.Database.Operations {
         private const double Unknown = -1d;
 
         public static Food ToDomain(
-            this Food_DBEntity entity,
-            double weight = DB_Food_Descriptors.NormalizedWeight) {
+    this Food_DBEntity entity,
+    double weight = DB_Food_Descriptors.NormalizedWeight) {
             double factor = weight / DB_Food_Descriptors.NormalizedWeight;
 
             Nutrients nutrients = CreateNutrients(entity);
@@ -28,8 +28,8 @@ namespace Food_Database.Database.Operations {
         }
 
         public static Food ToDomain(
-            this Food_DBEntity entity,
-            UserFoodOptions_DBEntity? userOptions) {
+    this Food_DBEntity entity,
+    UserFoodOptions_DBEntity? userOptions) {
             double weight = userOptions?.Weight_Total is decimal userWeight
                 ? (double)userWeight
                 : DB_Food_Descriptors.NormalizedWeight;
@@ -38,8 +38,8 @@ namespace Food_Database.Database.Operations {
         }
 
         public static Food ToDomainWithIngredients(
-            this Food_DBEntity entity,
-            double weight = DB_Food_Descriptors.NormalizedWeight) {
+    this Food_DBEntity entity,
+    double weight = DB_Food_Descriptors.NormalizedWeight) {
             return ToDomainWithIngredientsInternal(
                 entity,
                 weight,
@@ -47,14 +47,15 @@ namespace Food_Database.Database.Operations {
         }
 
         private static Food ToDomainWithIngredientsInternal(
-            Food_DBEntity entity,
-            double weight,
-            HashSet<int> path) {
+    Food_DBEntity entity,
+    double weight,
+    HashSet<int> path) {
             var food = entity.ToDomain(weight);
 
             // Prevent recursive A -> B -> A composition from blowing the stack.
-            if (!path.Add(entity.Id))
+            if (!path.Add(entity.Id)) {
                 return food;
+            }
 
             double parentFactor = weight / DB_Food_Descriptors.NormalizedWeight;
 
@@ -66,7 +67,8 @@ namespace Food_Database.Database.Operations {
                 Food ingredient = ToDomainWithIngredientsInternal(
                     relation.Ingredient_Food,
                     ingredientWeight,
-                    path);
+                    path
+                );
 
                 food.AddIngredient(ingredient);
             }
@@ -84,7 +86,7 @@ namespace Food_Database.Database.Operations {
         /// <param name="entity">Database entity in EntityFramework</param>
         /// <returns><see cref="Nutrients"/> object with rounded up decimals.</returns>
         private static Nutrients CreateNutrients(Food_DBEntity entity) {
-            Nutrients nut = new Nutrients(
+            Nutrients nutrients = new Nutrients(
                 new Energy(Value(entity.Energy_Kcal)),
                 new Fat(
                     Value(entity.Fat_Total),
@@ -98,14 +100,15 @@ namespace Food_Database.Database.Operations {
                     Value(entity.Salt_Total))
             );
 
-            return nut.RoundUp2decimal();
+            return nutrients.RoundUp2decimal();
         }
 
         public static void MapToEntity(
-            Food food,
-            Food_DBEntity entity) {
-            if (food.Weight <= 0)
+    Food food,
+    Food_DBEntity entity) {
+            if (food.Weight <= 0) {
                 throw new ArgumentOutOfRangeException(nameof(food.Weight));
+            }
 
             Nutrients nutrientsPer100g =
                 (DB_Food_Descriptors.NormalizedWeight / food.Weight) * food.NutrientContent;

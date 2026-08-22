@@ -72,7 +72,7 @@ public static class Program_Food {
                 break;
 
                 case "8":
-                TestFavoriteFoodOptions(db, UserId, 3);
+                await TestFavoriteFoodOptions(db, UserId, 3);
                 break;
 
                 case "0":
@@ -411,7 +411,7 @@ public static class Program_Food {
                 // TODO: check this -- may cause problems something with nullability
                 Console.WriteLine(
                     $"  Weight: {(option != null
-                        ? $"{option.Weight_Total} g"
+                        ? $"{option.Weight_Total:0.00} g"
                         : "not set")}");
 
                 Console.WriteLine(
@@ -423,13 +423,16 @@ public static class Program_Food {
         }
     }
 
-    private static async void TestFavoriteFoodOptions(DB_FoodContext db, int userId, int foodId) {
+    private static async Task TestFavoriteFoodOptions(DB_FoodContext db, int userId, int foodId) {
         var repo = new FoodRepository(db);
+        var ct = CancellationToken.None; // default is none so it's w.e. if used here
 
-        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new FavoriteFoodOption(100, 19), CancellationToken.None);
-        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new FavoriteFoodOption(120, 29), CancellationToken.None);
-        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new FavoriteFoodOption(130, 39), CancellationToken.None);
-        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new FavoriteFoodOption(140, 59), CancellationToken.None);
+        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new(100, 19), ct);
+        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new(120, 29), ct);
+        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new(130, 39), ct);
+        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new(140, 59), ct);
+
+        await repo.SaveChangesDBAsync();
 
         ShowFavoritesWithOptions(db, userId);
     }

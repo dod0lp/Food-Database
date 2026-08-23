@@ -25,10 +25,20 @@ namespace Food {
         /// Specialized class for rounding up to 2decimal places.
         /// </summary>
         /// <param name="number">Number to be rounded up.</param>
-        /// <returns></returns>
+        /// <returns>Inputrounded up to 2 decimal places.</returns>
         public static double RoundUpTo2DecimalPlaces(double number) {
             // return RoundUpToNDecimalPlaces(number, 2);
             return Math.Ceiling(number * 100) / 100;
+        }
+
+        /// <summary>
+        /// Specialized class for rounding up to 2decimal places.
+        /// </summary>
+        /// <param name="number">Number to be rounded up.</param>
+        /// <returns>Inputrounded up to 2 decimal places.</returns>
+        /// <remarks>Uses cast to double under the hood.</remarks>
+        public static double RoundUpTo2DecimalPlaces(decimal number) {
+            return (double)(Math.Ceiling(number * 100) / 100);
         }
     }
 

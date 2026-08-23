@@ -236,8 +236,9 @@ namespace Food_Database.Database.Operations {
             /// <exception cref="ArgumentOutOfRangeException"></exception>
             /// <remarks>Saves databse context.</remarks>
             public async Task<Food> AddFoodAsync(
-            Food food,
-            CancellationToken cancellationToken = default) {
+        Food food,
+        int userId = -1,
+        CancellationToken cancellationToken = default) {
                 NormalizeFood(food);
                 Nutrients nutrientsPer100g = food.NutrientContent;
 
@@ -261,6 +262,12 @@ namespace Food_Database.Database.Operations {
                 };
 
                 _db.Food.Add(entity);
+
+                if (userId > 0) {
+                    entity.UserCreatedFood = new UserCreatedFood_DBEntity {
+                        User_Id = userId
+                    };
+                }
 
                 await SaveChangesDBAsync(cancellationToken);
 
@@ -313,13 +320,11 @@ namespace Food_Database.Database.Operations {
                     userEntity.Food.Add(foodEntity);
                 }
 
-                // Add/update user's remark.
                 if (remark is not null) {
                     await AddOrUpdateRemark(userId, foodId, remark,
                                             cancellationToken);
                 }
 
-                // Add/update weight + price options.
                 if (options is not null) {
                     await AddOrUpdateOptions(userId, foodId, options,
                                             cancellationToken);
@@ -496,9 +501,8 @@ namespace Food_Database.Database.Operations {
                 return food is not null;
             }
 
-            private static async Task<Food?> CreateFoodFromExistingAsync(
-    FoodRepository repository,
-    Dictionary<int, double> ingredientWeights,
+            public async Task<Food?> CreateFoodFromExistingAsync(
+    Dictionary<int, decimal> ingredientWeights,
     string name,
     string description,
     CancellationToken cancellationToken = default) {
@@ -506,7 +510,7 @@ namespace Food_Database.Database.Operations {
                     return null;
                 }
 
-                double totalWeight = 0;
+                decimal totalWeight = 0;
                 Nutrients totalNutrients = new(
                     new Energy(0),
                     new Fat(0, 0),
@@ -516,26 +520,27 @@ namespace Food_Database.Database.Operations {
 
                 List<Food> ingredients = new();
 
-                foreach (KeyValuePair<int, double> ingredientInput in ingredientWeights) {
+                foreach (KeyValuePair<int, decimal> ingredientInput in ingredientWeights) {
                     int foodId = ingredientInput.Key;
-                    double gramsUsed = ingredientInput.Value;
+                    decimal gramsUsed = ingredientInput.Value;
 
-                    if (gramsUsed <= 0)
+                    if (gramsUsed <= 0) {
                         continue;
+                    }
 
-                    Food? food = await repository.GetFoodAsync(
-                        foodId,
-                        cancellationToken);
+                    Food? food = await GetFoodAsync(foodId,
+                                                cancellationToken);
 
-                    if (food is null)
+                    if (food is null) {
                         continue;
+                    }
 
-                    double factor = gramsUsed / food.Weight;
+                    decimal factor = gramsUsed / (decimal)food.Weight;
 
                     Food ingredient = new Food(
                         food.Id,
                         food.Name,
-                        gramsUsed,
+                        (double)gramsUsed,
                         factor * food.NutrientContent,
                         food.Description,
                         food.Ingredients);
@@ -546,8 +551,9 @@ namespace Food_Database.Database.Operations {
                     ingredients.Add(ingredient);
                 }
 
-                if (ingredients.Count == 0)
+                if (ingredients.Count == 0) {
                     return null;
+                }
 
                 return new Food(
                     id: 0,
@@ -556,7 +562,6 @@ namespace Food_Database.Database.Operations {
                     nutrientContent: totalNutrients.RoundUp2decimal(),
                     description: description,
                     ingredients: ingredients);
-                CreateFoodFromExistingAsync(null, null, null, null);
             }
 
             /// <summary>

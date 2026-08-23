@@ -109,6 +109,17 @@ namespace Food {
         /// <summary>
         /// Scales the nutritional values of a <see cref="Nutrients"/> instance by a specified factor.
         /// </summary>
+        /// <param name="factor">The scaling factor.</param>
+        /// <param name="nutrients">The <see cref="Nutrients"/> instance to scale.</param>
+        /// <returns>A new <see cref="Nutrients"/> instance with scaled nutritional values.</returns>
+        /// <remarks>Uses factor cast to double under the hood.</remarks>
+        public static Nutrients operator *(decimal factor, Nutrients nutrients) {
+            return (double)factor * nutrients;
+        }
+
+        /// <summary>
+        /// Scales the nutritional values of a <see cref="Nutrients"/> instance by a specified factor.
+        /// </summary>
         /// <param name="nutrients">The <see cref="Nutrients"/> instance to scale.</param>
         /// <param name="factor">The scaling factor.</param>
         /// <returns>A new <see cref="Nutrients"/> instance with scaled nutritional values.</returns>

@@ -38,7 +38,7 @@
         /// </summary>
         /// <param name="value">The energy value.</param>
         /// <param name="isKcal">Specify true if the provided value is in kcal (default), false if in kJ.</param>
-        public Energy(double value, bool isKcal = true) {
+        public Energy(double value = 0, bool isKcal = true) {
             if (isKcal) {
                 Kcal = value;
             } else {

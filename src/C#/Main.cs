@@ -1,8 +1,11 @@
-﻿using Food_Database.Database.Descriptors;
+﻿using CsvHelper;
+using Food_Database.Database.Descriptors;
 using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using static Food.Food;
 using static Food_Database.Database.Operations.EFLoader;
+using FoodParser;
 
 public static class Program_Food {
     private const int UserId = 1;
@@ -16,7 +19,7 @@ public static class Program_Food {
 
         using var db = new DB_FoodContext(options);
 
-        EnsureDummyData(db);
+        await EnsureDummyData(db);
         Users_DBEntity? user = await db.Users
             .Include(x => x.Food)
             .SingleOrDefaultAsync(
@@ -75,63 +78,31 @@ public static class Program_Food {
                 await TestFavoriteFoodOptions(db, UserId, 3);
                 break;
 
+                case "9":
+                await TryCreateFoodFromExisting(db, UserId);
+                break;
+
                 case "0":
                 return;
             }
         }
     }
 
-    private static void EnsureDummyData(DB_FoodContext db) {
-        // add (by default, so ID 1) if nothing exists yet
-        if (!db.Users.Any(x => x.Id == UserId)) {
-            var user = new Users_DBEntity();
-            db.Users.Add(user);
-            db.SaveChanges();
+    private static async Task EnsureDummyData(DB_FoodContext db) {
+        if (await db.Users.Take(10).CountAsync() < 10) {
+            List<Users_DBEntity> users = [..
+                Enumerable.Range(0, 10)
+                    .Select(_ => new Users_DBEntity())
+            ];
+
+            db.Users.AddRange(users);
         }
 
-        if (db.Food.Any()) {
-            return;
+        if (await db.Food.Take(50).CountAsync() < 50) {
+            await FoodCsvMap.ParseCsvIntoDB(db);
         }
 
-        db.Food.AddRange(
-            new Food_DBEntity {
-                Name = "Chicken Breast",
-                Food_Description = "Chicken breast",
-                Energy_Kcal = 165,
-                Fat_Total = 3.6m,
-                Fat_Saturated = 1m,
-                Carbs_Total = 0,
-                Carbs_Sugar = 0,
-                Protein_Total = 31m,
-                Salt_Total = 0.2m
-            },
-
-            new Food_DBEntity {
-                Name = "Rice",
-                Food_Description = "Cooked white rice",
-                Energy_Kcal = 130,
-                Fat_Total = 0.3m,
-                Fat_Saturated = 0.1m,
-                Carbs_Total = 28m,
-                Carbs_Sugar = 0.1m,
-                Protein_Total = 2.7m,
-                Salt_Total = 0.01m
-            },
-
-            new Food_DBEntity {
-                Name = "Egg",
-                Food_Description = "Whole egg",
-                Energy_Kcal = 155,
-                Fat_Total = 11m,
-                Fat_Saturated = 3.3m,
-                Carbs_Total = 1.1m,
-                Carbs_Sugar = 1.1m,
-                Protein_Total = 13m,
-                Salt_Total = 0.31m
-            }
-        );
-
-        db.SaveChanges();
+        await db.SaveChangesAsync();
     }
 
     private static void BrowseFoods(DB_FoodContext db) {
@@ -435,5 +406,29 @@ public static class Program_Food {
         await repo.SaveChangesDBAsync();
 
         ShowFavoritesWithOptions(db, userId);
+    }
+
+    private static async Task TryCreateFoodFromExisting(DB_FoodContext db, int userId) {
+        var repo = new FoodRepository(db);
+
+        Dictionary<int, decimal> ingredientWeights = new()
+        {
+            { 1, 200.59m },
+            { 5, 100 },
+            { 8, 50 }
+        };
+
+        Food.Food? createdFood = await repo.CreateFoodFromExistingAsync(
+            ingredientWeights,
+            "Food mix 1",
+            "Created from existing foods");
+
+        if (createdFood is null) {
+            return;
+        }
+
+        Console.WriteLine(ToReadableString(createdFood));
+
+        await repo.AddFoodAsync(createdFood, userId);
     }
 }

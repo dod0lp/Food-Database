@@ -289,9 +289,9 @@
         /// <returns>A new <see cref="Food"/> object scaled by the factor.</returns>
         public static Food operator *(double factor, Food food) {
             // Scale the ingredients before returning scaled food
-            List<Food> scaledIngredients = food.Ingredients
-                .Select(ingredient => factor * ingredient)
-                .ToList();
+            List<Food> scaledIngredients =
+                [.. food.Ingredients
+                    .Select(ingredient => factor * ingredient)];
 
             return new Food {
                 Id = food.Id,
@@ -301,6 +301,19 @@
                 Ingredients = scaledIngredients,
                 Description = food.Description
             };
+        }
+
+        /// <summary>
+        /// Scales a <see cref="Food"/> object by multiplying its <see cref="Food.Weight"/>, 
+        /// <see cref="Food.NutrientContent"/>, and scaling each item in the <see cref="Food.Ingredients"/> list 
+        /// by a specified factor.
+        /// </summary>
+        /// <param name="factor">The factor by which to scale the food.</param>
+        /// <param name="food">The <see cref="Food"/> object to be scaled.</param>
+        /// <returns>A new <see cref="Food"/> object scaled by the factor.</returns>
+        /// <remarks>Uses factor cast to double under the hood.</remarks>
+        public static Food operator *(decimal factor, Food food) {
+            return (double)factor * food;
         }
 
         /// <summary>

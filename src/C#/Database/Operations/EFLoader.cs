@@ -504,7 +504,7 @@ namespace Food_Database.Database.Operations {
             public async Task<Food?> CreateFoodFromExistingAsync(
     Dictionary<int, decimal> ingredientWeights,
     string name,
-    string description,
+    string description = "",
     CancellationToken cancellationToken = default) {
                 if (ingredientWeights.Count == 0) {
                     return null;
@@ -556,7 +556,7 @@ namespace Food_Database.Database.Operations {
                 }
 
                 return new Food(
-                    id: 0,
+                    id: -1,
                     name: name,
                     weight: NumberOperations.RoundUpTo2DecimalPlaces(totalWeight),
                     nutrientContent: totalNutrients.RoundUp2decimal(),

@@ -29,6 +29,8 @@ public sealed class FoodCsvMap : ClassMap<FoodCsv> {
         using var reader = new StreamReader("../../../Parser/food.csv");
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
+        const int count = 250;
+
         csv.Context.RegisterClassMap<FoodCsvMap>();
 
         var foods = csv.GetRecords<FoodCsv>()
@@ -44,7 +46,7 @@ public sealed class FoodCsvMap : ClassMap<FoodCsv> {
                 Protein_Total = x.Protein,
                 Salt_Total = Math.Round((decimal)Random.Shared.NextDouble() * 3, 2)
             })
-            .Take(250)
+            .Take(count)
             .ToList();
 
         db.Food.AddRange(foods);

@@ -8,9 +8,10 @@ using static Food_Database.Database.Operations.EFLoader;
 using FoodParser;
 
 public static class Program_Food {
-    private const int UserId = 1;
+    private const int UserId = 2;
+    private const int FoodId = 50;
 
-    static async Task Main(string[] args) {
+    static async Task Main() {
         var options = new DbContextOptionsBuilder<DB_FoodContext>()
             .UseSqlServer(
                 DB_Food_Descriptors.ConnectionString,
@@ -38,9 +39,8 @@ public static class Program_Food {
             Console.WriteLine("3 - Create new food and favorite it");
             Console.WriteLine("4 - Favorite existing food");
             Console.WriteLine("5 - Show my favorites");
-            Console.WriteLine("6 - Set favorite food weight/price");
-            Console.WriteLine("7 - Show favorites with weight/price");
-            Console.WriteLine("8 - Run weight/price test");
+            Console.WriteLine("6 - Test favorite food options");
+            Console.WriteLine("7 - Create new food from existing food");
             Console.WriteLine("0 - Exit");
             Console.WriteLine("==============================================");
             Console.Write("> ");
@@ -63,22 +63,14 @@ public static class Program_Food {
                 break;
 
                 case "5":
-                ShowFavorites(db, UserId);
-                break;
-
-                case "6":
-                SetFavoriteFoodOption(db, UserId);
-                break;
-
-                case "7":
                 ShowFavoritesWithOptions(db, UserId);
                 break;
 
-                case "8":
-                await TestFavoriteFoodOptions(db, UserId, 3);
+                case "6":
+                await TestFavoriteFoodOptions(db, UserId, FoodId);
                 break;
 
-                case "9":
+                case "7":
                 await TryCreateFoodFromExisting(db, UserId);
                 break;
 
@@ -89,16 +81,19 @@ public static class Program_Food {
     }
 
     private static async Task EnsureDummyData(DB_FoodContext db) {
-        if (await db.Users.Take(10).CountAsync() < 10) {
+        const int userCountWanted = 10;
+        const int foodCountWanted = 50;
+
+        if (await db.Users.Take(userCountWanted).CountAsync() < userCountWanted) {
             List<Users_DBEntity> users = [..
-                Enumerable.Range(0, 10)
+                Enumerable.Range(0, userCountWanted)
                     .Select(_ => new Users_DBEntity())
             ];
 
             db.Users.AddRange(users);
         }
 
-        if (await db.Food.Take(50).CountAsync() < 50) {
+        if (await db.Food.Take(foodCountWanted).CountAsync() < foodCountWanted) {
             await FoodCsvMap.ParseCsvIntoDB(db);
         }
 
@@ -121,8 +116,9 @@ public static class Program_Food {
     private static void GetFoodById(DB_FoodContext db) {
         Console.Write("Food ID: ");
 
-        if (!int.TryParse(Console.ReadLine(), out int foodId))
+        if (!int.TryParse(Console.ReadLine(), out int foodId)) {
             return;
+        }
 
         Food_DBEntity? food = db.Food
             .AsNoTracking()
@@ -266,95 +262,6 @@ public static class Program_Food {
             $"Added {food.Id}: {food.Name} to favorites.");
     }
 
-    private static void ShowFavorites(
-        DB_FoodContext db,
-        int userId) {
-        Users_DBEntity? user = db.Users
-            .AsNoTracking()
-            .Include(x => x.Food)
-            .SingleOrDefault(x => x.Id == userId);
-
-        if (user is null)
-            return;
-
-        Console.WriteLine();
-
-        foreach (Food_DBEntity food in user.Food.OrderBy(x => x.Id)) {
-            Console.WriteLine($"{food.Id}: {food.Name}");
-        }
-    }
-
-    private static void AddFavoriteFoodOption(
-    DB_FoodContext db,
-    int userId,
-    int foodId,
-    decimal weight,
-    decimal price) {
-        bool favoriteExists = db.Users
-            .Where(x => x.Id == userId)
-            .SelectMany(x => x.Food)
-            .Any(x => x.Id == foodId);
-
-        if (!favoriteExists) {
-            Console.WriteLine($"Food {foodId} is not a favorite of user {userId}.");
-            return;
-        }
-
-        UserFoodOptions_DBEntity? options = db.UserFoodOptions
-            .SingleOrDefault(x =>
-                x.User_Id == userId && x.Food_Id == foodId && x.Weight_Total == weight);
-
-        if (options is null) {
-            options = new UserFoodOptions_DBEntity {
-                User_Id = userId,
-                Food_Id = foodId,
-                Weight_Total = weight,
-                Price_Eur = price
-            };
-
-            db.UserFoodOptions.Add(options);
-        } else {
-            // just change price because weight was part of key
-            options.Price_Eur = price;
-        }
-
-        db.SaveChanges();
-    }
-
-    private static void SetFavoriteFoodOption(
-    DB_FoodContext db,
-    int userId) {
-        ShowFavorites(db, userId);
-
-        Console.WriteLine();
-        Console.Write("Food ID: ");
-
-        if (!int.TryParse(Console.ReadLine(), out int foodId))
-            return;
-
-        Console.Write("Weight in grams: ");
-
-        if (!decimal.TryParse(Console.ReadLine(), out decimal weight))
-            return;
-
-        Console.Write("Price EUR: ");
-
-        if (!decimal.TryParse(Console.ReadLine(), out decimal price))
-            return;
-
-        if (weight < 0 || price < 0) {
-            Console.WriteLine("Weight and price cannot be negative.");
-            return;
-        }
-
-        AddFavoriteFoodOption(
-            db,
-            userId,
-            foodId,
-            weight,
-            price);
-    }
-
     private static void ShowFavoritesWithOptions(
     DB_FoodContext db,
     int userId) {
@@ -411,24 +318,28 @@ public static class Program_Food {
     private static async Task TryCreateFoodFromExisting(DB_FoodContext db, int userId) {
         var repo = new FoodRepository(db);
 
-        Dictionary<int, decimal> ingredientWeights = new()
-        {
-            { 1, 200.59m },
-            { 5, 100 },
-            { 8, 50 }
-        };
+        Dictionary<int, decimal> ingredientWeights = Enumerable
+            .Range(0, Random.Shared.Next(2, 5)) // 2-4ingr
+                .ToDictionary(
+                    _ => Random.Shared.Next(1, 251), // ID
+                    _ => Math.Round((decimal)(Random.Shared.NextDouble() * 245 + 5), 2) // amount 5-250
+        );
 
         Food.Food? createdFood = await repo.CreateFoodFromExistingAsync(
             ingredientWeights,
-            "Food mix 1",
-            "Created from existing foods");
+            "Food mix",
+            "");
 
         if (createdFood is null) {
             return;
         }
 
-        Console.WriteLine(ToReadableString(createdFood));
+        Food.Food? insertedFood = await repo.AddFoodAsync(createdFood, userId);
+        Console.WriteLine(ToReadableString(insertedFood));
 
-        await repo.AddFoodAsync(createdFood, userId);
+        foreach (Food.Food f in insertedFood.Ingredients) {
+            Console.WriteLine(f.Name);
+            Console.WriteLine(f.Weight);
+        }
     }
 }

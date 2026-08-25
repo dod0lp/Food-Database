@@ -91,6 +91,24 @@
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Food"/> with other <see cref="Food"/>.
+        /// </summary>
+        /// <remarks>Essentially deep copy.</remarks>
+        public Food(Food other) {
+            Id = other.Id;
+            Name = other.Name;
+            Description = other.Description;
+            Weight = other.Weight;
+
+            NutrientContent = new Nutrients(other.NutrientContent);
+
+            Ingredients = [..
+                other.Ingredients
+                    .Select(ingredient => new Food(ingredient))
+            ];
+        }
+
+        /// <summary>
         /// Adds an ingredient to the list of <see cref="Ingredients"/> for this <see cref="Food"/>.
         /// </summary>
         /// <remarks>

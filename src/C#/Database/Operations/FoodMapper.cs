@@ -4,6 +4,7 @@ namespace Food_Database.Database.Operations {
 
     using Food;
     using Food_Database.Database.Descriptors;
+    using System.Reflection;
 
     public static class FoodMapper {
         private const double Unknown = -1d;
@@ -103,15 +104,14 @@ namespace Food_Database.Database.Operations {
             return nutrients.RoundUp2decimal();
         }
 
-        public static void MapToEntity(
-    Food food,
-    Food_DBEntity entity) {
-            if (food.Weight <= 0) {
-                throw new ArgumentOutOfRangeException(nameof(food.Weight));
-            }
-
-            Nutrients nutrientsPer100g =
-                (DB_Food_Descriptors.NormalizedWeight / food.Weight) * food.NutrientContent;
+        /// <summary>
+        /// Function that maps <see cref="Food"/> properties to <see cref="Food_DBEntity"/>.
+        /// </summary>
+        /// <param name="food">Food which parameters to map to entity.</param>
+        /// <param name="entity">Entity to map parameters to.</param>
+        /// <remarks>Doesn't map ingredients nor ID.</remarks>
+        public static void MapToEntityNormalized(Food food, Food_DBEntity entity) {
+            Nutrients nutrientsPer100g = NormalizeFood(new Food(food)).NutrientContent;
 
             entity.Name = food.Name;
             entity.Food_Description = string.IsNullOrWhiteSpace(food.Description)
@@ -128,6 +128,66 @@ namespace Food_Database.Database.Operations {
 
             entity.Protein_Total = Value(nutrientsPer100g.Protein.Total);
             entity.Salt_Total = Value(nutrientsPer100g.Salt.Total);
+        }
+
+        /// <summary>
+        /// Normalize nutrinets to 100g weight of food and set to -1 if there is some negative value, as not set in this applicaton logic.
+        /// </summary>
+        /// <param name="nutrients">Nutrients to normalize.</param>
+        /// <param name="weight">Weight of current food</param>
+        /// <returns>Normalized Nutrients to 100g worth of food, with -1 values as non-set.</returns>
+        public static Nutrients NormalizeNutrients(Nutrients nutrients, double weight) {
+            Nutrients nutrientsPer100g =
+                (DB_Food_Descriptors.NormalizedWeight / weight) * nutrients;
+
+            NormalizeNegativeValuesRecursive(nutrientsPer100g);
+            return nutrientsPer100g;
+        }
+
+        /// <summary>
+        /// Function to normalize food nutrients, and normalize food it is made out of.
+        /// </summary>
+        /// <returns>Food object with normalized values from provided food.</returns>
+        /// <remarks>Normalize food to 100g weight as stored in database.</remarks>
+        /// <param name="foodBase">Food object to normalize its nutrients.</param>
+        public static Food NormalizeFood(Food foodBase) {
+            Food food = new(foodBase);
+            Nutrients nutrients = new(food.NutrientContent);
+            food.NutrientContent = NormalizeNutrients(nutrients, food.Weight);
+
+            foreach (Food ingredient in food.Ingredients) {
+                NormalizeFood(ingredient);
+            }
+
+            return food;
+        }
+
+        /// <summary>
+        /// Recursive function to set each negative property of an object to be -1.
+        /// </summary>
+        /// <param name="obj">Object to set negative numeric properties to -1.</param>
+        private static void NormalizeNegativeValuesRecursive(object obj) {
+            Type type = obj.GetType();
+
+            foreach (PropertyInfo property in type.GetProperties()) {
+                if (!property.CanRead || !property.CanWrite) {
+                    continue;
+                }
+
+                object? value = property.GetValue(obj);
+
+                if (value is double number) {
+                    if (number < 0) {
+                        property.SetValue(obj, -1d);
+                    }
+                } else if (value is not null && property.PropertyType.IsValueType) {
+                    object nested = value;
+
+                    NormalizeNegativeValuesRecursive(nested);
+
+                    property.SetValue(obj, nested);
+                }
+            }
         }
 
         private static double Value(decimal? value)

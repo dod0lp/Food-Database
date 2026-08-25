@@ -5,76 +5,12 @@ using System.Reflection;
 
 namespace Food_Database.Database.Operations {
     using Food;
-    using Microsoft.Extensions.Options;
-    using System.Runtime.CompilerServices;
     using static Food.Food;
 
     /// <summary>
     /// Class for working with entity framework.
     /// </summary>
     public static class EFLoader {
-        /// <summary>
-        /// Normalize nutrinets to 100g weight of food and set to -1 if there is some negative value, as not set in this applicaton logic.
-        /// </summary>
-        /// <param name="nutrients">Nutrients to normalize.</param>
-        /// <param name="weight">Weight of current food</param>
-        /// <returns>Normalized Nutrients to 100g worth of food, with -1 values as non-set.</returns>
-        public static Nutrients NormalizeNutrients(Nutrients nutrients, double weight) {
-            Nutrients nutrientsPer100g =
-                (DB_Food_Descriptors.NormalizedWeight / weight) * nutrients;
-
-            NormalizeNegativeValuesRecursive(nutrientsPer100g);
-            return nutrientsPer100g;
-        }
-
-        /// <summary>
-        /// Function to normalize food nutrients, and normalize food it is made out of
-        /// </summary>
-        /// <remarks>Normalize food to 100g weight as stored in database.</remarks>
-        /// <param name="food">Food object to normalize its nutrients.</param>
-        public static void NormalizeFood(Food food) {
-            // Probably not exception because food obj should be checked earlier by app logic.
-            if (food.Weight <= 0) {
-                return;
-            }
-
-            Nutrients nutrients = new(food.NutrientContent);
-            food.NutrientContent = NormalizeNutrients(nutrients, food.Weight);
-
-            foreach (Food ingredient in food.Ingredients) {
-                NormalizeFood(ingredient);
-            }
-        }
-
-        /// <summary>
-        /// Recursive function to set each negative property of an object to be -1.
-        /// </summary>
-        /// <param name="obj">Object to set negative numeric properties to -1.</param>
-        private static void NormalizeNegativeValuesRecursive(object obj) {
-            Type type = obj.GetType();
-
-            foreach (PropertyInfo property in type.GetProperties()) {
-                if (!property.CanRead || !property.CanWrite) {
-                    continue;
-                }
-
-                object? value = property.GetValue(obj);
-
-                if (value is double number) {
-                    if (number < 0) {
-                        property.SetValue(obj, -1d);
-                    }
-                } else if (value is not null && property.PropertyType.IsValueType) {
-                    object nested = value;
-
-                    NormalizeNegativeValuesRecursive(nested);
-
-                    property.SetValue(obj, nested);
-                }
-            }
-        }
-
-
         /// <summary>
         /// Class to work with database Food.
         /// </summary>
@@ -95,7 +31,7 @@ namespace Food_Database.Database.Operations {
             /// <summary>
             /// Public call to save database context changes.
             /// </summary>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>Empty <see cref="Task"/>.</returns>
             public async Task SaveChangesDBAsync(CancellationToken cancellationToken = default) {
                 await _db.SaveChangesAsync(cancellationToken);
@@ -104,7 +40,7 @@ namespace Food_Database.Database.Operations {
             /// <summary>
             /// Function to get <see cref="Food"/> out of database by <see cref="Food_DBEntity.Id"/>.
             /// </summary>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns><see cref="Food"/> object parsed from <see cref="Food_DBEntity"/>.</returns>
             public async Task<Food?> GetFoodAsync(int foodId, CancellationToken cancellationToken = default) {
                 Food_DBEntity? entity = await _db.Food
@@ -123,7 +59,7 @@ namespace Food_Database.Database.Operations {
             /// </summary>
             /// <param name="foodId">ID of food.</param>
             /// <param name="userId">ID of user.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns><see cref="Food"/> object parsed from <see cref="Food_DBEntity"/>.</returns>
             public async Task<Food?> GetFoodForUserAsync(int foodId, int userId, CancellationToken cancellationToken = default) {
                 Food_DBEntity? entity = await _db.Food
@@ -153,7 +89,7 @@ namespace Food_Database.Database.Operations {
             /// <summary>
             /// Get number of <see cref="Food_DBEntity"/> in the database.
             /// </summary>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>Number of <see cref="Food_DBEntity"/> in the database.</returns>
             public async Task<int> GetFoodCountAsync(CancellationToken cancellationToken = default) {
                 return
@@ -165,7 +101,7 @@ namespace Food_Database.Database.Operations {
             /// </summary>
             /// <param name="from">Rank of element, non-index form.</param>
             /// <param name="to">Up to what rank of element, non-index form.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns><see cref="Food"/> objects in form of list, in the fixed order by id, from database.</returns>
             public async Task<List<Food>> GetFoodsAsync(int from = 1, int to = 10,
         CancellationToken cancellationToken = default) {
@@ -195,7 +131,7 @@ namespace Food_Database.Database.Operations {
             /// Function to get favorite <see cref="Food"/>s out of database for certain <see cref="Users_DBEntity.Id"/>.
             /// </summary>
             /// <param name="userId">ID of user.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>List of <see cref="FavoriteFood"/> objects parsed from <see cref="Food_DBEntity"/>.</returns>
             public async Task<List<FavoriteFood>> GetFavoritesWithOptionsAsync(
                 int userId,
@@ -231,40 +167,23 @@ namespace Food_Database.Database.Operations {
             /// Function to add <see cref="Food"/> into database to become <see cref="Food_DBEntity"/> and get its ID.
             /// </summary>
             /// <param name="food">Food domain object.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="userId">ID of a user who created food, or set to -1 if not created by user.</param>
+            /// <param name="addIngredients">Whether or not also add food ingredients.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>Added <see cref="Food"/> with its ID from database.</returns>
             /// <exception cref="ArgumentOutOfRangeException"></exception>
             /// <remarks>Saves databse context.</remarks>
             public async Task<Food> AddFoodAsync(
         Food food,
         int userId = -1,
+        bool addIngredients = false,
         CancellationToken cancellationToken = default) {
-                NormalizeFood(food);
-                Nutrients nutrientsPer100g = food.NutrientContent;
-
-                var entity = new Food_DBEntity {
-                    Name = food.Name,
-
-                    Food_Description = string.IsNullOrWhiteSpace(food.Description)
-                        ? null
-                        : food.Description,
-
-                    Energy_Kcal = (int?)Value(nutrientsPer100g.Energy.Kcal),
-
-                    Fat_Total = Value(nutrientsPer100g.FatContent.Total),
-                    Fat_Saturated = Value(nutrientsPer100g.FatContent.Saturated),
-
-                    Carbs_Total = Value(nutrientsPer100g.CarbohydrateContent.Total),
-                    Carbs_Sugar = Value(nutrientsPer100g.CarbohydrateContent.Sugar),
-
-                    Protein_Total = Value(nutrientsPer100g.Protein.Total),
-                    Salt_Total = Value(nutrientsPer100g.Salt.Total)
-                };
-
+                Food_DBEntity entity = new();
+                FoodMapper.MapToEntityNormalized(new Food(food), entity);
                 _db.Food.Add(entity);
 
                 if (userId > 0) {
-                    entity.UserCreatedFood = new UserCreatedFood_DBEntity {
+                    entity.UserCreatedFood = new() {
                         User_Id = userId
                     };
                 }
@@ -273,7 +192,83 @@ namespace Food_Database.Database.Operations {
 
                 food.Id = entity.Id;
 
+                if ((addIngredients) &&
+                    !(food.Weight <= 0 || food.Ingredients.Count == 0)) {
+                    await SetFoodIngredientsAsync(food, entity,
+                                                    cancellationToken);
+                    await SaveChangesDBAsync(cancellationToken);
+                }
+
                 return food;
+            }
+
+            /// <summary>
+            /// Helper method to add ingredients of a food into database.
+            /// </summary>
+            /// <param name="food">Base food that is being added, as domain model.</param>
+            /// <param name="foodEntity">Base food that is being added, as database entity.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+            /// <returns>Empty <see cref="Task"/>.</returns>
+            /// <remarks>Ingredients need to exist already in database.</remarks>
+            private async Task SetFoodIngredientsAsync(
+    Food food,
+    Food_DBEntity foodEntity,
+    CancellationToken cancellationToken = default) {
+                /*ingredients is something like
+                 Id  Weight
+                  1   100
+                  2   50
+                  1   25
+                  3   0
+                  0   80
+                  creates {{ 1, 125 }, { 2, 50 }}*/
+                var ingredients = food.Ingredients
+                    .Where(x => ((x.Id > 0) && (x.Weight > 0)))
+                    .GroupBy(x => x.Id)
+                    .Select(x => new {
+                        FoodId = x.Key,
+                        Weight = x.Sum(y => y.Weight)
+                    });
+
+                foreach (var ingredient in ingredients) {
+                    // how much would there be if base food is 100g
+                    decimal normalizedWeight =
+                        (decimal)(ingredient.Weight / food.Weight * DB_Food_Descriptors.NormalizedWeight);
+
+                    var ingredientEntity = new FoodIngredients_DBEntity {
+                        Food_Id = foodEntity.Id,
+                        Ingredient_Food_Id = ingredient.FoodId,
+                        Weight_Ingredient_Normalised = normalizedWeight
+                    };
+
+                    foodEntity.FoodIngredientsFood.Add(ingredientEntity);
+                }
+
+                await _db.SaveChangesAsync(cancellationToken);
+            }
+
+            private async Task<Food> GetOrSetIngredientAsync(
+    Food ingredient,
+    CancellationToken cancellationToken = default) {
+                if (ingredient.Id > 0) {
+                    Food_DBEntity? existing = await _db.Food
+                        .SingleOrDefaultAsync(
+                            x => x.Id == ingredient.Id,
+                            cancellationToken);
+
+                    if (existing is null) {
+                        throw new InvalidOperationException(
+                            $"Ingredient '{ingredient.Name}' has ID {ingredient.Id}, " +
+                            $"but that ID does not exist in the database.");
+                    } else { 
+                        ingredient.Id = existing.Id;
+                        return ingredient;
+                    }
+                }
+
+                return
+                    await AddFoodAsync(ingredient,
+                                        cancellationToken: cancellationToken);
             }
 
             /// <summary>
@@ -283,7 +278,7 @@ namespace Food_Database.Database.Operations {
             /// <param name="foodId">ID of food that is being set for a user.</param>
             /// <param name="remark">User remark about food. Not a food description.</param>
             /// <param name="options">Combinations of weight and price of managed food.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>Task of 'Food?' that was created into its database food_entity form.</returns>
             /// <exception cref="ArgumentOutOfRangeException">Occurs when weight or price being set is negative.</exception>
             /// <remarks>Saves database context.</remarks>
@@ -341,7 +336,7 @@ namespace Food_Database.Database.Operations {
             /// <param name="userId">ID of a user.</param>
             /// <param name="foodId">Favorite Food ID of a user.</param>
             /// <param name="options">Options to set or update.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>Empty <see cref="Task"/>.</returns>
             /// <exception cref="ArgumentOutOfRangeException">When price or weight is smaller than 0.</exception>
             public async Task AddOrUpdateOptions(int userId, int foodId,
@@ -382,7 +377,7 @@ namespace Food_Database.Database.Operations {
             /// <param name="userId">ID of a user.</param>
             /// <param name="foodId">Favorite Food ID of a user.</param>
             /// <param name="remark">Remark to set.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>Empty <see cref="Task"/>.</returns>
             private async Task AddOrUpdateRemark(int userId, int foodId, string remark,
         CancellationToken cancellationToken = default) {
@@ -411,7 +406,7 @@ namespace Food_Database.Database.Operations {
             /// </summary>
             /// <param name="userId">ID of a user whose food is being managed.</param>
             /// <param name="foodId">ID of food that is being set for a user.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>Task of 'Food?' that was created into its database food_entity form.</returns>
             /// <exception cref="ArgumentOutOfRangeException">Occurs when weight or price being set is negative.</exception>
             public async Task AddFavoriteFoodOptionAsync(
@@ -433,7 +428,7 @@ namespace Food_Database.Database.Operations {
             /// </summary>
             /// <param name="userId">ID of a user whose food is being managed.</param>
             /// <param name="foodId">ID of food that is being set for a user.</param>
-            /// /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>If user has this food set as favorite.</returns>
             public async Task<bool> FavoriteExists(int userId, int foodId, CancellationToken cancellationToken = default) {
                 return
@@ -449,7 +444,7 @@ namespace Food_Database.Database.Operations {
             /// </summary>
             /// <param name="userId">ID of a user whose food is being managed.</param>
             /// <param name="foodId">ID of food that is being set for a user.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>If favorite food-user was created.</returns>
             public async Task<bool> EnsureFavoriteExists(int userId, int foodId, CancellationToken cancellationToken = default) {
                 Users_DBEntity? user = await _db.Users
@@ -475,7 +470,7 @@ namespace Food_Database.Database.Operations {
             /// Helper function to see if user exists in the database.
             /// </summary>
             /// <param name="userId">ID of a user.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>True if exists.</returns>
             public async Task<bool> UserExists(int userId, CancellationToken cancellationToken = default) {
                 Users_DBEntity? user =
@@ -490,7 +485,7 @@ namespace Food_Database.Database.Operations {
             /// Helper function to see if food exists in the database.
             /// </summary>
             /// <param name="userId">ID of a food.</param>
-            /// <param name="cancellationToken">CancellationToken for async op.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>True if exists.</returns>
             public async Task<bool> FoodExists(int foodId, CancellationToken cancellationToken = default) {
                 Food_DBEntity? food =

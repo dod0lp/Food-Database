@@ -193,7 +193,7 @@ namespace Food_Database.Database.Operations {
                 food.Id = entity.Id;
 
                 if ((addIngredients) &&
-                    !(food.Weight <= 0 || food.Ingredients.Count == 0)) {
+                        !(food.Weight <= 0 || food.Ingredients.Count == 0)) {
                     await SetFoodIngredientsAsync(food, entity,
                                                     cancellationToken);
                     await SaveChangesDBAsync(cancellationToken);
@@ -211,64 +211,81 @@ namespace Food_Database.Database.Operations {
             /// <returns>Empty <see cref="Task"/>.</returns>
             /// <remarks>Ingredients need to exist already in database.</remarks>
             private async Task SetFoodIngredientsAsync(
-    Food food,
-    Food_DBEntity foodEntity,
-    CancellationToken cancellationToken = default) {
-                /*ingredients is something like
-                 Id  Weight
-                  1   100
-                  2   50
-                  1   25
-                  3   0
-                  0   80
-                  creates {{ 1, 125 }, { 2, 50 }}*/
-                var ingredients = food.Ingredients
-                    .Where(x => ((x.Id > 0) && (x.Weight > 0)))
-                    .GroupBy(x => x.Id)
-                    .Select(x => new {
-                        FoodId = x.Key,
-                        Weight = x.Sum(y => y.Weight)
-                    });
-
-                foreach (var ingredient in ingredients) {
-                    // how much would there be if base food is 100g
-                    decimal normalizedWeight =
-                        (decimal)(ingredient.Weight / food.Weight * DB_Food_Descriptors.NormalizedWeight);
-
-                    var ingredientEntity = new FoodIngredients_DBEntity {
-                        Food_Id = foodEntity.Id,
-                        Ingredient_Food_Id = ingredient.FoodId,
-                        Weight_Ingredient_Normalised = normalizedWeight
-                    };
-
-                    foodEntity.FoodIngredientsFood.Add(ingredientEntity);
+        Food food,
+        Food_DBEntity foodEntity,
+        CancellationToken cancellationToken = default) {
+                if (food.Weight <= 0 || food.Ingredients.Count == 0) {
+                    return;
                 }
 
-                await _db.SaveChangesAsync(cancellationToken);
+                foreach (Food ingredient in food.Ingredients) {
+                    if (ingredient.Weight <= 0) {
+                        continue;
+                    }
+
+                    int ingredientId = (await GetOrSetIngredientAsync(ingredient,
+                                cancellationToken)).Id;
+
+                    if (ingredientId == foodEntity.Id) {
+                        throw new InvalidOperationException(
+                            "Food cannot contain itself as an ingredient.");
+                    }
+
+                    decimal normalizedWeight = (decimal)
+                        ((ingredient.Weight / food.Weight) *
+                            DB_Food_Descriptors.NormalizedWeight);
+
+                    FoodIngredients_DBEntity? existingRelation =
+                        await _db.FoodIngredients
+                            .SingleOrDefaultAsync(
+                                x =>
+                                    x.Food_Id == foodEntity.Id &&
+                                    x.Ingredient_Food_Id == ingredientId,
+                                cancellationToken);
+
+                    if (existingRelation is null) {
+                        foodEntity.FoodIngredientsFood.Add(
+                            new FoodIngredients_DBEntity {
+                                Food_Id = foodEntity.Id,
+                                Ingredient_Food_Id = ingredientId,
+                                Weight_Ingredient_Normalised = normalizedWeight
+                            });
+                    } else {
+                        existingRelation.Weight_Ingredient_Normalised +=
+                            normalizedWeight;
+                    }
+                }
             }
 
+            /// <summary>
+            /// Helper function to get or set ingredient as <see cref="Food"/>.
+            /// </summary>
+            /// <param name="ingredient">Food ingredient (without other ingredients).</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+            /// <returns><see cref="Task"/> of <see cref="Food"/> with ID from database.</returns>
+            /// <exception cref="InvalidOperationException">When Ingredient ID is same as Base food ID.</exception>
             private async Task<Food> GetOrSetIngredientAsync(
     Food ingredient,
     CancellationToken cancellationToken = default) {
-                if (ingredient.Id > 0) {
-                    Food_DBEntity? existing = await _db.Food
-                        .SingleOrDefaultAsync(
-                            x => x.Id == ingredient.Id,
-                            cancellationToken);
-
-                    if (existing is null) {
-                        throw new InvalidOperationException(
-                            $"Ingredient '{ingredient.Name}' has ID {ingredient.Id}, " +
-                            $"but that ID does not exist in the database.");
-                    } else { 
-                        ingredient.Id = existing.Id;
-                        return ingredient;
-                    }
+                if (ingredient.Id <= 0) {
+                    return
+                        await AddFoodAsync(ingredient,
+                                            cancellationToken: cancellationToken);
                 }
 
-                return
-                    await AddFoodAsync(ingredient,
-                                        cancellationToken: cancellationToken);
+                Food_DBEntity? existing = await _db.Food
+                    .SingleOrDefaultAsync(
+                        x => x.Id == ingredient.Id,
+                        cancellationToken);
+
+                if (existing is not null) {
+                    ingredient.Id = existing.Id;
+                    return ingredient;
+                }
+
+                throw new InvalidOperationException(
+                    $"Ingredient '{ingredient.Name}' has ID {ingredient.Id}, " +
+                        $"but that ID does not exist in the database.");
             }
 
             /// <summary>

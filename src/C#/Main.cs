@@ -6,6 +6,7 @@ using System.Globalization;
 using static Food.Food;
 using static Food_Database.Database.Operations.EFLoader;
 using FoodParser;
+using Microsoft.IdentityModel.Tokens;
 
 public static class Program_Food {
     private const int UserId = 2;
@@ -281,12 +282,16 @@ public static class Program_Food {
 
         Console.WriteLine();
 
+        if (favorites.IsNullOrEmpty()) {
+            Console.WriteLine("No favorites.");
+            return;
+        }
+
         foreach (var item in favorites) {
             Console.WriteLine(
                 $"{item.Food.Id}: {item.Food.Name}");
 
             foreach (var option in item.Options) {
-                // TODO: check this -- may cause problems something with nullability
                 Console.WriteLine(
                     $"  Weight: {(option != null
                         ? $"{option.Weight_Total:0.00} g"
@@ -296,7 +301,6 @@ public static class Program_Food {
                     $"  Price:  {(option?.Price_Eur.HasValue == true
                         ? $"{option.Price_Eur.Value:0.00} EUR"
                         : "not set")}");
-
             }
         }
     }
@@ -334,8 +338,10 @@ public static class Program_Food {
             return;
         }
 
-        Food.Food? insertedFood = await repo.AddFoodAsync(createdFood, userId);
-        Console.WriteLine(ToReadableString(insertedFood));
+        Food.Food? insertedFood = await repo.AddFoodAsync(createdFood, userId, true);
+        Console.WriteLine($"Inserted food: {ToReadableString(insertedFood)}");
+        Console.WriteLine("=====================");
+        Console.WriteLine("Ingredients:");
 
         foreach (Food.Food f in insertedFood.Ingredients) {
             Console.WriteLine(f.Name);

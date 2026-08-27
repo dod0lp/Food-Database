@@ -1,16 +1,16 @@
-﻿using CsvHelper;
-using Food_Database.Database.Descriptors;
+﻿using Food_Database.Database.Descriptors;
 using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 using static Food.Food;
 using static Food_Database.Database.Operations.EFLoader;
 using FoodParser;
 using Microsoft.IdentityModel.Tokens;
 
-public static class Program_Food {
-    private const int UserId = 2;
-    private const int FoodId = 50;
+namespace ProgramTestFood;
+public static class ProgramTestFood {
+    private static readonly int UserId = Random.Shared.Next(1, userCountWanted+1);
+    const int userCountWanted = 30;
+    const int foodCountWanted = 250;
 
     static async Task Main() {
         var options = new DbContextOptionsBuilder<DB_FoodContext>()
@@ -31,6 +31,8 @@ public static class Program_Food {
             Console.WriteLine("UserID doesn't exist in database. Exiting.");
             return;
         }
+
+        Console.WriteLine("User is logged in as user ID: " + UserId);
 
         while (true) {
             Console.WriteLine();
@@ -60,15 +62,15 @@ public static class Program_Food {
                 break;
 
                 case "4":
-                FavoriteExistingFood(db, UserId);
+                await FavoriteExistingFoodAsync(db, UserId);
                 break;
 
                 case "5":
-                ShowFavoritesWithOptions(db, UserId);
+                await ShowFavoritesWithOptionsAsync(db, UserId);
                 break;
 
                 case "6":
-                await TestFavoriteFoodOptions(db, UserId, FoodId);
+                await TestFavoriteFoodOptions(db, UserId);
                 break;
 
                 case "7":
@@ -82,9 +84,6 @@ public static class Program_Food {
     }
 
     private static async Task EnsureDummyData(DB_FoodContext db) {
-        const int userCountWanted = 10;
-        const int foodCountWanted = 50;
-
         if (await db.Users.Take(userCountWanted).CountAsync() < userCountWanted) {
             List<Users_DBEntity> users = [..
                 Enumerable.Range(0, userCountWanted)
@@ -224,7 +223,7 @@ public static class Program_Food {
             $"Created food {newFood.Id}: {newFood.Name} and added to favorites.");
     }
 
-    private static void FavoriteExistingFood(
+    private static async Task FavoriteExistingFoodAsync(
         DB_FoodContext db,
         int userId) {
         BrowseFoods(db);
@@ -232,18 +231,20 @@ public static class Program_Food {
         Console.WriteLine();
         Console.Write("Food ID to favorite: ");
 
-        if (!int.TryParse(Console.ReadLine(), out int foodId))
+        if (!int.TryParse(Console.ReadLine(), out int foodId)) {
             return;
+        }
 
-        Users_DBEntity? user = db.Users
+        Users_DBEntity? user = await db.Users
             .Include(x => x.Food)
-            .SingleOrDefault(x => x.Id == userId);
+            .SingleOrDefaultAsync(x => x.Id == userId);
 
-        if (user is null)
+        if (user is null) {
             return;
+        }
 
-        Food_DBEntity? food = db.Food
-            .SingleOrDefault(x => x.Id == foodId);
+        Food_DBEntity? food = await db.Food
+            .SingleOrDefaultAsync(x => x.Id == foodId);
 
         if (food is null) {
             Console.WriteLine("Food not found.");
@@ -257,16 +258,15 @@ public static class Program_Food {
 
         user.Food.Add(food);
 
-        db.SaveChanges();
+        await db.SaveChangesAsync();
 
-        Console.WriteLine(
-            $"Added {food.Id}: {food.Name} to favorites.");
+        Console.WriteLine($"Added {food.Id}: {food.Name} to favorites.");
     }
 
-    private static void ShowFavoritesWithOptions(
+    private static async Task ShowFavoritesWithOptionsAsync(
     DB_FoodContext db,
     int userId) {
-        var favorites = db.Users
+        var favorites = await db.Users
             .AsNoTracking()
             .Where(x => x.Id == userId)
             .SelectMany(x => x.Food)
@@ -278,7 +278,7 @@ public static class Program_Food {
                     .ToList()
             })
             .OrderBy(x => x.Food.Id)
-            .ToList();
+            .ToListAsync();
 
         Console.WriteLine();
 
@@ -305,18 +305,31 @@ public static class Program_Food {
         }
     }
 
-    private static async Task TestFavoriteFoodOptions(DB_FoodContext db, int userId, int foodId) {
+    private static async Task TestFavoriteFoodOptions(DB_FoodContext db, int userId) {
         var repo = new FoodRepository(db);
         var ct = CancellationToken.None; // default is none so it's w.e. if used here
+        var rng = Random.Shared;
+        int count = rng.Next(1, 6);
+        int foodId = rng.Next(1, 251);
 
-        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new(100, 19), ct);
-        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new(120, 29), ct);
-        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new(130, 39), ct);
-        await repo.AddFavoriteFoodOptionAsync(userId, foodId, new(140, 59), ct);
+        IEnumerable<(decimal Weight, decimal Price)> options =
+            Enumerable.Range(0, count)
+                .Select(_ => (
+                    Weight: Math.Round((decimal)(rng.NextDouble() * 199 + 1), 2),
+                    Price: Math.Round((decimal)(rng.NextDouble() * 249 + 1), 2)
+                ));
+
+        foreach (var (Weight, Price) in options) {
+            await repo.AddFavoriteFoodOptionAsync(
+                userId,
+                foodId,
+                new(Weight, Price),
+                ct);
+        }
 
         await repo.SaveChangesDBAsync();
 
-        ShowFavoritesWithOptions(db, userId);
+        await ShowFavoritesWithOptionsAsync(db, userId);
     }
 
     private static async Task TryCreateFoodFromExisting(DB_FoodContext db, int userId) {
@@ -339,6 +352,12 @@ public static class Program_Food {
         }
 
         Food.Food? insertedFood = await repo.AddFoodAsync(createdFood, userId, true);
+
+        if (insertedFood is null) {
+            Console.WriteLine("Failed to insert food into database.");
+            return;
+        }
+
         Console.WriteLine($"Inserted food: {ToReadableString(insertedFood)}");
         Console.WriteLine("=====================");
         Console.WriteLine("Ingredients:");

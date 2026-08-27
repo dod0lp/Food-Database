@@ -26,7 +26,7 @@ public sealed class FoodCsvMap : ClassMap<FoodCsv> {
     }
 
     public static async Task ParseCsvIntoDB(DB_FoodContext db) {
-        using var reader = new StreamReader("../../../Parser/food.csv");
+        using var reader = new StreamReader("../../../Parser/food.csv"); // windows--from visual studio bin path
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
         const int count = 250;

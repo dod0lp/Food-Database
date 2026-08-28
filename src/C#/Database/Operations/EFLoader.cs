@@ -5,6 +5,7 @@ using System.Reflection;
 
 namespace Food_Database.Database.Operations {
     using Food;
+    using Microsoft.IdentityModel.Tokens;
     using static Food.Food;
 
     /// <summary>
@@ -172,7 +173,7 @@ namespace Food_Database.Database.Operations {
             /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>Added <see cref="Food"/> with its ID from database.</returns>
             /// <exception cref="ArgumentOutOfRangeException"></exception>
-            /// <remarks>Saves databse context.</remarks>
+            /// <remarks>By default without ingredients. Saves databse context.</remarks>
             public async Task<Food> AddFoodAsync(
         Food food,
         int userId = -1,
@@ -332,12 +333,12 @@ namespace Food_Database.Database.Operations {
                     userEntity.Food.Add(foodEntity);
                 }
 
-                if (remark is not null) {
+                if (remark is not null && remark.Length > 0) {
                     await AddOrUpdateRemark(userId, foodId, remark,
                                             cancellationToken);
                 }
 
-                if (options is not null) {
+                if (options is not null && !options.IsNullOrEmpty()) { // VS warning says it can be null when i use only !nullorempty()... huh
                     await AddOrUpdateOptions(userId, foodId, options,
                                             cancellationToken);
                 }
@@ -513,6 +514,15 @@ namespace Food_Database.Database.Operations {
                 return food is not null;
             }
 
+            /// <summary>
+            /// Creates composite food from existing foods.
+            /// </summary>
+            /// <param name="ingredientWeights">Dictionary mapping food IDs to weights.</param>
+            /// <param name="name">Name of the composite food.</param>
+            /// <param name="description">Description of the composite food.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+            /// <returns>The created composite food or null if creation failed.</returns>
+            /// <remarks>Description should be only for system made food, otherwise use user-mapped remark.</remarks>
             public async Task<Food?> CreateFoodFromExistingAsync(
     Dictionary<int, decimal> ingredientWeights,
     string name,
@@ -532,7 +542,8 @@ namespace Food_Database.Database.Operations {
 
                 List<Food> ingredients = new();
 
-                foreach (KeyValuePair<int, decimal> ingredientInput in ingredientWeights) {
+                // create ingredients and calculate total weight and nutrients
+                foreach (var ingredientInput in ingredientWeights) {
                     int foodId = ingredientInput.Key;
                     decimal gramsUsed = ingredientInput.Value;
 
@@ -549,7 +560,7 @@ namespace Food_Database.Database.Operations {
 
                     decimal factor = gramsUsed / (decimal)food.Weight;
 
-                    Food ingredient = new Food(
+                    Food ingredient = new(
                         food.Id,
                         food.Name,
                         (double)gramsUsed,
@@ -577,12 +588,39 @@ namespace Food_Database.Database.Operations {
             }
 
             /// <summary>
-            /// Helper function for clamping value<0 to null.
+            /// Helper function to see if food is created by specific user.
             /// </summary>
-            private static decimal? Value(double value) {
-                return value < 0
-                    ? null
-                    : (decimal)value;
+            /// <param name="foodId">The ID of the food to check.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+            /// <returns><c>True</c> <see cref="bool"/> <see cref="Task"/> if the food is user-created. Otherwise <c>false</c>.</returns>
+            public async Task<bool> IsUserCreatedAsync(
+    int foodId,
+    CancellationToken cancellationToken = default) {
+                return await _db.UserCreatedFood
+                    .AsNoTracking()
+                    .AnyAsync(
+                        x => x.Food_Id == foodId,
+                        cancellationToken);
+            }
+
+            /// <summary>
+            /// Helper function to see if food is favorite for specific user.
+            /// </summary>
+            /// <param name="userId">The ID of user.</param>
+            /// <param name="foodId">The ID of food to check.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+            /// <returns><c>True</c> <see cref="bool"/> <see cref="Task"/> if the food is user favorite. Otherwise <c>false</c>.</returns>
+            public async Task<bool> GetIsUserFavoriteFoodAsync(
+    int userId,
+    int foodId,
+    CancellationToken cancellationToken = default) {
+                return await _db.Users
+                    .AsNoTracking()
+                    .Where(x => x.Id == userId)
+                    .SelectMany(x => x.Food)
+                    .AnyAsync(
+                        x => x.Id == foodId,
+                        cancellationToken);
             }
         }
     }

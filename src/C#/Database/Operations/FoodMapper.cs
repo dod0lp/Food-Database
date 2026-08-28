@@ -6,9 +6,22 @@ namespace Food_Database.Database.Operations {
     using Food_Database.Database.Descriptors;
     using System.Reflection;
 
+    /// <summary>
+    /// Static class that provides mapping functions between database entities and domain models for food-related data.
+    /// </summary>
     public static class FoodMapper {
+        /// <summary>
+        /// Constant to represent unknown value for nutrients.
+        /// </summary>
         private const double Unknown = -1d;
 
+        /// <summary>
+        /// Maps a <see cref="Food_DBEntity"/> to a <see cref="Food"/> domain model, adjusting nutrient values based on the specified weight.
+        /// </summary>
+        /// <param name="entity">The database entity to map.</param>
+        /// <param name="weight">The weight to adjust the nutrient values.</param>
+        /// <returns>The mapped <see cref="Food"/> domain model.</returns>
+        /// <remarks>Doesn' map ingredients.</remarks>
         public static Food ToDomain(
     this Food_DBEntity entity,
     double weight = DB_Food_Descriptors.NormalizedWeight) {
@@ -28,6 +41,14 @@ namespace Food_Database.Database.Operations {
             );
         }
 
+        /// <summary>
+        /// Maps a <see cref="Food_DBEntity"/> to a <see cref="Food"/> domain model,
+        /// adjusting nutrient values based on the weight specified in <see cref="UserFoodOptions_DBEntity"/>.
+        /// </summary>
+        /// <param name="entity">The database entity to map.</param>
+        /// <param name="userOptions">The user options containing the specified weight.</param>
+        /// <returns>The mapped <see cref="Food"/> domain model.</returns>
+        /// <remarks>Doesn't map ingredients.</remarks>
         public static Food ToDomain(
     this Food_DBEntity entity,
     UserFoodOptions_DBEntity? userOptions) {
@@ -38,6 +59,12 @@ namespace Food_Database.Database.Operations {
             return entity.ToDomain(weight);
         }
 
+        /// <summary>
+        /// Maps a <see cref="Food_DBEntity"/> to a <see cref="Food"/> domain model, including its ingredients.
+        /// </summary>
+        /// <param name="entity">The database entity to map.</param>
+        /// <param name="weight">The weight to adjust the nutrient values.</param>
+        /// <returns>The mapped <see cref="Food"/> domain model.</returns>
         public static Food ToDomainWithIngredients(
     this Food_DBEntity entity,
     double weight = DB_Food_Descriptors.NormalizedWeight) {
@@ -47,6 +74,13 @@ namespace Food_Database.Database.Operations {
                 new HashSet<int>());
         }
 
+        /// <summary>
+        /// Internal recursive function to map a <see cref="Food_DBEntity"/> to a <see cref="Food"/> domain model,
+        /// </summary>
+        /// <param name="entity">The database entity to map.</param>
+        /// <param name="weight">The weight to adjust the nutrient values.</param>
+        /// <param name="path">The set of visited entity IDs (to prevent recursion).</param>
+        /// <returns>The mapped <see cref="Food"/> domain model.</returns>
         private static Food ToDomainWithIngredientsInternal(
     Food_DBEntity entity,
     double weight,
@@ -88,17 +122,17 @@ namespace Food_Database.Database.Operations {
         /// <returns><see cref="Nutrients"/> object with rounded up decimals.</returns>
         private static Nutrients CreateNutrients(Food_DBEntity entity) {
             Nutrients nutrients = new Nutrients(
-                new Energy(Value(entity.Energy_Kcal)),
+                new Energy(ValueOrUnknown(entity.Energy_Kcal)),
                 new Fat(
-                    Value(entity.Fat_Total),
-                    Value(entity.Fat_Saturated)),
+                    ValueOrUnknown(entity.Fat_Total),
+                    ValueOrUnknown(entity.Fat_Saturated)),
                 new Carbohydrates(
-                    Value(entity.Carbs_Total),
-                    Value(entity.Carbs_Sugar)),
+                    ValueOrUnknown(entity.Carbs_Total),
+                    ValueOrUnknown(entity.Carbs_Sugar)),
                 new Protein(
-                    Value(entity.Protein_Total)),
+                    ValueOrUnknown(entity.Protein_Total)),
                 new Salt(
-                    Value(entity.Salt_Total))
+                    ValueOrUnknown(entity.Salt_Total))
             );
 
             return nutrients.RoundUp2decimal();
@@ -118,16 +152,16 @@ namespace Food_Database.Database.Operations {
                 ? null
                 : food.Description;
 
-            entity.Energy_Kcal = (int?)Value(nutrientsPer100g.Energy.Kcal);
+            entity.Energy_Kcal = (int?)ValueOrNull(nutrientsPer100g.Energy.Kcal);
 
-            entity.Fat_Total = Value(nutrientsPer100g.FatContent.Total);
-            entity.Fat_Saturated = Value(nutrientsPer100g.FatContent.Saturated);
+            entity.Fat_Total = ValueOrNull(nutrientsPer100g.FatContent.Total);
+            entity.Fat_Saturated = ValueOrNull(nutrientsPer100g.FatContent.Saturated);
 
-            entity.Carbs_Total = Value(nutrientsPer100g.CarbohydrateContent.Total);
-            entity.Carbs_Sugar = Value(nutrientsPer100g.CarbohydrateContent.Sugar);
+            entity.Carbs_Total = ValueOrNull(nutrientsPer100g.CarbohydrateContent.Total);
+            entity.Carbs_Sugar = ValueOrNull(nutrientsPer100g.CarbohydrateContent.Sugar);
 
-            entity.Protein_Total = Value(nutrientsPer100g.Protein.Total);
-            entity.Salt_Total = Value(nutrientsPer100g.Salt.Total);
+            entity.Protein_Total = ValueOrNull(nutrientsPer100g.Protein.Total);
+            entity.Salt_Total = ValueOrNull(nutrientsPer100g.Salt.Total);
         }
 
         /// <summary>
@@ -190,12 +224,18 @@ namespace Food_Database.Database.Operations {
             }
         }
 
-        private static double Value(decimal? value)
+        /// <summary>
+        /// Helper function to convert nullable decimal to double, returning -1 if null.
+        /// </summary>
+        private static double ValueOrUnknown(decimal? value)
             => value.HasValue
                 ? (double)value.Value
                 : Unknown;
 
-        private static decimal? Value(double value) {
+        /// <summary>
+        /// Helper function to convert double to nullable decimal, clamping to null if negative.
+        /// </summary>
+        private static decimal? ValueOrNull(double value) {
             return value < 0
                 ? null
                 : (decimal)value;

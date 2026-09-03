@@ -1,7 +1,6 @@
 ﻿using Food_Database.Database.Descriptors;
 using Food_Database.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 
 namespace Food_Database.Database.Operations {
     using Food;
@@ -210,52 +209,143 @@ namespace Food_Database.Database.Operations {
             /// <param name="foodEntity">Base food that is being added, as database entity.</param>
             /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
             /// <returns>Empty <see cref="Task"/>.</returns>
-            /// <remarks>Ingredients need to exist already in database.</remarks>
+            /// <remarks>Ingredients do <b>not</b> need to exist already in database.</remarks>
+            /// <exception cref="InvalidOperationException">When application logic is broken.</exception>
             private async Task SetFoodIngredientsAsync(
-        Food food,
-        Food_DBEntity foodEntity,
-        CancellationToken cancellationToken = default) {
+    Food food,
+    Food_DBEntity foodEntity,
+    CancellationToken cancellationToken = default) {
+                await SetFoodIngredientsRecursiveAsync(
+                    food,
+                    foodEntity,
+                    new HashSet<int>(),
+                    cancellationToken);
+            }
+
+            /// <summary>
+            /// Helper function to add food ingredients recursively into database, while checking for circular relations.
+            /// </summary>
+            /// <param name="food">Base food that is being added, as domain model.</param>
+            /// <param name="foodEntity">Base food that is being added, as database entity.</param>
+            /// <param name="path">HashSet of food IDs to track recursion and circular relations.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+            /// <returns>Empty <see cref="Task"/>.</returns>
+            /// <remarks>Ingredients do <b>not</b> need to exist already in database.</remarks>
+            /// <exception cref="InvalidOperationException">When application logic is broken.</exception>
+            private async Task SetFoodIngredientsRecursiveAsync(
+    Food food,
+    Food_DBEntity foodEntity,
+    HashSet<int> path,
+    CancellationToken cancellationToken) {
                 if (food.Weight <= 0 || food.Ingredients.Count == 0) {
                     return;
                 }
 
+                if (!path.Add(foodEntity.Id)) {
+                    throw new InvalidOperationException(
+                        $"Circular food ingredient relation detected at food ID {foodEntity.Id}.");
+                }
+
+                // add relation, if they don't exist in database
                 foreach (Food ingredient in food.Ingredients) {
                     if (ingredient.Weight <= 0) {
                         continue;
                     }
 
-                    int ingredientId = (await GetOrSetIngredientAsync(ingredient,
-                                cancellationToken)).Id;
+                    var (ingredientEntity, ingredientWasAdded) =
+                        await
+                            GetOrSetIngredientEntityAsync(ingredient,
+                                                        cancellationToken);
 
-                    if (ingredientId == foodEntity.Id) {
+                    if (ingredientEntity.Id == foodEntity.Id) {
                         throw new InvalidOperationException(
                             "Food cannot contain itself as an ingredient.");
                     }
 
+                    if (path.Contains(ingredientEntity.Id)) {
+                        throw new InvalidOperationException(
+                            $"Circular food ingredient relation detected: " +
+                            $"{foodEntity.Id} -> {ingredientEntity.Id}.");
+                    }
+
                     decimal normalizedWeight = (decimal)
                         ((ingredient.Weight / food.Weight) *
-                            DB_Food_Descriptors.NormalizedWeight);
+                        DB_Food_Descriptors.NormalizedWeight);
 
                     FoodIngredients_DBEntity? existingRelation =
                         await _db.FoodIngredients
                             .SingleOrDefaultAsync(
                                 x =>
                                     x.Food_Id == foodEntity.Id &&
-                                    x.Ingredient_Food_Id == ingredientId,
+                                    x.Ingredient_Food_Id == ingredientEntity.Id,
                                 cancellationToken);
 
                     if (existingRelation is null) {
                         foodEntity.FoodIngredientsFood.Add(
                             new FoodIngredients_DBEntity {
                                 Food_Id = foodEntity.Id,
-                                Ingredient_Food_Id = ingredientId,
+                                Ingredient_Food_Id = ingredientEntity.Id,
                                 Weight_Ingredient_Normalised = normalizedWeight
                             });
                     } else {
-                        existingRelation.Weight_Ingredient_Normalised +=
+                        existingRelation.Weight_Ingredient_Normalised =
                             normalizedWeight;
                     }
+
+                    // Recurse only when this ingredient was newly inserted.
+                    // If it already existed in DB, assumed to already be stored.
+                    if (ingredientWasAdded &&
+                        ingredient.Ingredients.Count > 0) {
+                        await SetFoodIngredientsRecursiveAsync(
+                            ingredient,
+                            ingredientEntity,
+                            path,
+                            cancellationToken);
+                    }
                 }
+
+                path.Remove(foodEntity.Id);
+            }
+
+            /// <summary>
+            /// Helper function to get or set single ingredient as <see cref="Food"/>.
+            /// </summary>
+            /// <param name="ingredient">Food ingredient (without other ingredients).</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+            /// <returns><see cref="Task"/> of <see cref="Food"/> with ID from database.</returns>
+            /// <exception cref="InvalidOperationException">When Ingredient ID is same as Base food ID.</exception>
+            private async Task<(Food_DBEntity Entity, bool WasAdded)>
+            GetOrSetIngredientEntityAsync(
+        Food ingredient,
+        CancellationToken cancellationToken = default) {
+                if (ingredient.Id > 0) {
+                    Food_DBEntity? existing = await _db.Food
+                        .SingleOrDefaultAsync(
+                            x => x.Id == ingredient.Id,
+                            cancellationToken);
+
+                    if (existing is null) {
+                        throw new InvalidOperationException(
+                            $"Ingredient '{ingredient.Name}' has ID {ingredient.Id}, " +
+                            $"but that ID does not exist in the database.");
+                    }
+
+                    return (existing, false);
+                }
+
+                Food added = await AddFoodAsync(
+                    ingredient,
+                    addIngredients: false,
+                    cancellationToken: cancellationToken);
+
+                Food_DBEntity entity = await _db.Food
+                    .SingleAsync(
+                        x => x.Id == added.Id,
+                        cancellationToken);
+
+                ingredient.Id = entity.Id;
+
+                return (entity, true);
             }
 
             /// <summary>
@@ -621,6 +711,43 @@ namespace Food_Database.Database.Operations {
                     .AnyAsync(
                         x => x.Id == foodId,
                         cancellationToken);
+            }
+
+            /// <summary>
+            /// Helper function to set description of a food in the database.
+            /// </summary>
+            /// <param name="foodId">ID of a food to update description for.</param>
+            /// <param name="description">The new description for the food. <b>null</b> to remove the description.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+            /// <returns><b>true</b> if the description was updated successfully, <c>false</c> otherwise.</returns>
+            public async Task<bool> SetDescription(int foodId, string? description = null, CancellationToken cancellationToken = default) {
+                int rowsAffected = await _db.Food
+                    .Where(x => x.Id == foodId)
+                    .ExecuteUpdateAsync(x => x
+                        .SetProperty(f => f.Food_Description, description),
+                        cancellationToken);
+
+                return rowsAffected > 0;
+            }
+
+            /// <summary>
+            /// Helper function to get ingredients of a food from the database.
+            /// </summary>
+            /// <param name="foodId">The ID of the food for which to get ingredients.</param>
+            /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+            /// <returns>A list of food ingredients.</returns>
+            /// <remarks>For ingredients of ingredients call recursively (or iteratively w.e.).</remarks>
+            public async Task<List<FoodIngredients_DBEntity>> GetIngredientsReadOnly(int foodId,
+        CancellationToken cancellationToken = default) {
+                List<FoodIngredients_DBEntity> ingredients =
+                await _db.FoodIngredients
+                    .AsNoTracking()
+                    .Include(x => x.Ingredient_Food)
+                    .Where(x => x.Food_Id == foodId)
+                    .OrderBy(x => x.Ingredient_Food_Id)
+                    .ToListAsync(cancellationToken);
+
+                return ingredients;
             }
         }
     }

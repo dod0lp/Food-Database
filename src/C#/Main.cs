@@ -1,10 +1,12 @@
-﻿using Food_Database.Database.Descriptors;
+﻿using Food;
+using Food_Database.Database.Descriptors;
 using Food_Database.Models;
+using FoodParser;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using static Food.Food;
 using static Food_Database.Database.Operations.EFLoader;
-using FoodParser;
-using Microsoft.IdentityModel.Tokens;
 
 namespace ProgramTestFood;
 public static class ProgramTestFood {
@@ -43,7 +45,9 @@ public static class ProgramTestFood {
             Console.WriteLine("4 - Favorite existing food");
             Console.WriteLine("5 - Show my favorites");
             Console.WriteLine("6 - Test favorite food options");
-            Console.WriteLine("7 - Create new food from existing food");
+            Console.WriteLine("7 - Create new composite food from existing (non-composite) food");
+            Console.WriteLine("8 - Create new composite food from existing composite food");
+            Console.WriteLine("9 - Test get food ingredient tree");
             Console.WriteLine("0 - Exit");
             Console.WriteLine("==============================================");
             Console.Write("> ");
@@ -74,8 +78,27 @@ public static class ProgramTestFood {
                 break;
 
                 case "7":
-                await TryCreateFoodFromExisting(db, UserId);
+                await TestCreateFoodFromExisting(db, UserId);
                 break;
+
+                case "8":
+                await TestCreateFoodFromExistingComposite(db, UserId);
+                break;
+
+                case "9": {
+
+                    Console.Write("Food ID: ");
+                    Console.Write("Food ID: ");
+
+                    if (!int.TryParse(Console.ReadLine(), out int foodId)) {
+                        Console.Write("oh no");
+                        break;
+                    }
+
+                    string res = await TestGetFoodIngredientTreeAsync(db, foodId);
+                    Console.WriteLine(res);
+                    break;
+                }
 
                 case "0":
                 return;
@@ -163,14 +186,16 @@ public static class ProgramTestFood {
             .Include(x => x.Food)
             .SingleOrDefault(x => x.Id == userId);
 
-        if (user is null)
+        if (user is null) {
             return;
+        }
 
         Console.Write("Food name: ");
         string? name = Console.ReadLine();
 
-        if (string.IsNullOrWhiteSpace(name))
+        if (string.IsNullOrWhiteSpace(name)) {
             return;
+        }
 
         Console.Write("Energy kcal / 100g: ");
         int.TryParse(Console.ReadLine(), out int kcal);
@@ -209,12 +234,13 @@ public static class ProgramTestFood {
         db.SaveChanges();
 
         // Mark this food as created by this user.
+        // this 100% can be done through entity.UserCreatedFood and just add id of user
         db.UserCreatedFood.Add(new UserCreatedFood_DBEntity {
             Food_Id = newFood.Id,
             User_Id = userId
         });
 
-        // Also make it this user's favorite.
+        // make it this user's favorite.
         user.Food.Add(newFood);
 
         db.SaveChanges();
@@ -332,26 +358,35 @@ public static class ProgramTestFood {
         await ShowFavoritesWithOptionsAsync(db, userId);
     }
 
-    private static async Task TryCreateFoodFromExisting(DB_FoodContext db, int userId) {
+    private static async Task TestCreateFoodFromExisting(DB_FoodContext db, int userId) {
         var repo = new FoodRepository(db);
+        Dictionary<int, decimal> ingredientWeights;
 
-        Dictionary<int, decimal> ingredientWeights = Enumerable
-            .Range(0, Random.Shared.Next(2, 5)) // 2-4ingr
-                .ToDictionary(
-                    _ => Random.Shared.Next(1, 251), // ID
-                    _ => Math.Round((decimal)(Random.Shared.NextDouble() * 245 + 5), 2) // amount 5-250
-        );
+        // can throw if id--key is added twice should be max P(4/250) tho
+        try {
+            ingredientWeights =
+                Enumerable
+                    .Range(0, Random.Shared.Next(2, 5)) // 2-4ingr
+                        .ToDictionary(
+                            _ => Random.Shared.Next(1, 251), // ID
+                            _ => Math.Round((decimal)(Random.Shared.NextDouble() * 245 + 5), 2) // weight 5-250
+            );
+        } catch (ArgumentException) {
+            Console.WriteLine("Duplicate food ID generated, abort mission.");
+            return;
+        }
 
         Food.Food? createdFood = await repo.CreateFoodFromExistingAsync(
             ingredientWeights,
             "Food mix",
-            "");
+            "Test composite food");
 
         if (createdFood is null) {
             return;
         }
 
-        Food.Food? insertedFood = await repo.AddFoodAsync(createdFood, userId, true);
+        Food.Food? insertedFood = await
+                        repo.AddFoodAsync(createdFood, userId, true);
 
         if (insertedFood is null) {
             Console.WriteLine("Failed to insert food into database.");
@@ -366,5 +401,170 @@ public static class ProgramTestFood {
             Console.WriteLine(f.Name);
             Console.WriteLine(f.Weight);
         }
+    }
+
+    private static async Task TestCreateFoodFromExistingComposite(DB_FoodContext db, int userId) {
+        var repo = new FoodRepository(db);
+
+        Dictionary<int, decimal> ingredientWeights = Enumerable
+            .Range(251, 10)
+            .OrderBy(_ => Random.Shared.Next())
+            .Take(2)
+            .ToDictionary(
+                id => id,
+                _ => Math.Round(
+                    (decimal)(Random.Shared.NextDouble() * 245 + 5),
+                    2));
+
+        List<Food.Food> ingredients = new();
+
+        Nutrients nutrients = new(
+            new Energy(0),
+            new Fat(0, 0),
+            new Carbohydrates(0, 0),
+            new Protein(0),
+            new Salt(0));
+
+        double totalWeight = 0;
+
+        foreach (var item in ingredientWeights) {
+            Food.Food? ingredient = await repo.GetFoodAsync(item.Key);
+
+            if (ingredient is null) {
+                throw new InvalidOperationException(
+                    $"Food {item.Key} does not exist.");
+            }
+
+            double weight = (double)item.Value;
+
+            ingredient.Weight = weight;
+
+            ingredient.NutrientContent =
+                (weight / DB_Food_Descriptors.NormalizedWeight) *
+                ingredient.NutrientContent;
+
+            ingredients.Add(ingredient);
+
+            totalWeight += weight;
+            nutrients += ingredient.NutrientContent;
+        }
+
+        Food.Food? food = new(
+            0,
+            "Composite from composites",
+            totalWeight,
+            nutrients,
+            "Test composite from composite food",
+            ingredients);
+
+        Food.Food? insertedFood =
+                        await repo.AddFoodAsync(food, userId, true);
+
+        if (insertedFood is null) {
+            Console.WriteLine("Failed to insert food into database.");
+            return;
+        }
+
+        Console.WriteLine($"Inserted food: {ToReadableString(insertedFood)}");
+        Console.WriteLine("=====================");
+        Console.WriteLine("Ingredients:");
+
+        foreach (Food.Food f in insertedFood.Ingredients) {
+            Console.WriteLine(f.Name);
+            Console.WriteLine(f.Weight);
+        }
+    }
+
+    public static async Task<string> TestGetFoodIngredientTreeAsync(
+    DB_FoodContext db,
+    int foodId,
+    double weight = DB_Food_Descriptors.NormalizedWeight,
+    CancellationToken cancellationToken = default) {
+        Food_DBEntity? food = await db.Food
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                x => x.Id == foodId,
+                cancellationToken);
+
+        if (food is null) {
+            return $"Food ID {foodId} not found.";
+        }
+
+        StringBuilder result = new();
+
+        await GetFoodIngredientTreeRecursiveAsync(
+            db,
+            food,
+            weight,
+            0,
+            new HashSet<int>(),
+            result,
+            cancellationToken);
+
+        return result.ToString();
+    }
+
+    private static async Task GetFoodIngredientTreeRecursiveAsync(
+    DB_FoodContext db,
+    Food_DBEntity food,
+    double weight,
+    int depth,
+    HashSet<int> path,
+    StringBuilder result,
+    CancellationToken cancellationToken) {
+        var repo = new FoodRepository(db);
+        string indent = new(' ', depth * 4);
+        double factor =
+            weight / DB_Food_Descriptors.NormalizedWeight;
+
+        result.AppendLine(
+            $"{indent}{food.Id}: {food.Name} - {weight:0.##} g");
+        AppendVal(food.Energy_Kcal, result, indent, factor, "Energy");
+        AppendVal(food.Fat_Total, result, indent, factor, "Fat (Total)");
+        AppendVal(food.Fat_Saturated, result, indent, factor, "Fat (Saturated)");
+        AppendVal(food.Carbs_Total, result, indent, factor, "Carbs");
+        AppendVal(food.Carbs_Sugar, result, indent, factor, "Carbs");
+        AppendVal(food.Protein_Total, result, indent, factor, "Protein");
+        AppendVal(food.Salt_Total, result, indent, factor, "Salt");
+
+        if (!path.Add(food.Id)) {
+            result.AppendLine(
+                $"{indent}  [Circular reference]");
+            return;
+        }
+
+        List<FoodIngredients_DBEntity> ingredients =
+            await repo.GetIngredientsReadOnly(food.Id,
+                                            cancellationToken);
+
+        foreach (FoodIngredients_DBEntity relation in ingredients) {
+            double ingredientWeight =
+                (weight * (double)relation.Weight_Ingredient_Normalised) /
+                DB_Food_Descriptors.NormalizedWeight;
+
+            await GetFoodIngredientTreeRecursiveAsync(
+                db,
+                relation.Ingredient_Food,
+                ingredientWeight,
+                depth + 1,
+                path,
+                result,
+                cancellationToken);
+        }
+
+        path.Remove(food.Id);
+    }
+
+    private static void AppendVal(
+    decimal? val, StringBuilder result, string indent,
+    double factor, string what, string unit = "g") {
+        result.AppendLine(
+                    $"{indent}  {what}: {GetValue(val, factor):0.##} {unit}");
+    }
+
+    private static double GetValue(decimal? value, double factor) {
+        return value.HasValue
+            ? (double)value.Value * factor
+            : -1;
     }
 }

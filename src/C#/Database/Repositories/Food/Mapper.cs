@@ -1,15 +1,14 @@
-﻿using Food_Database.Models;
+﻿namespace Food_Database.Database.Repositories.Foods {
 
-namespace Food_Database.Database.Operations {
-
-    using Food;
+    using FoodBase;
     using Food_Database.Database.Descriptors;
+    using Food_Database.Models;
     using System.Reflection;
 
     /// <summary>
     /// Static class that provides mapping functions between database entities and domain models for food-related data.
     /// </summary>
-    public static class FoodMapper {
+    public static class Mapper {
         /// <summary>
         /// Constant to represent unknown value for nutrients.
         /// </summary>

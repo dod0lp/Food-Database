@@ -1,4 +1,4 @@
-﻿namespace Food {
+﻿namespace FoodBase {
     // There is no check if some values are negative, for example negative amount of Protein, Fat...
     // If there is value not set, the default value in most, if not all, cases will be 0
     // for easier setting up of values, so we can't say when value was not set, but we can set

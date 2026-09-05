@@ -1,5 +1,5 @@
 ﻿using Food_Database.Database.Descriptors;
-using Food_Database.Database.Models.Food;
+using Food_Database.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Food_Database.Models;

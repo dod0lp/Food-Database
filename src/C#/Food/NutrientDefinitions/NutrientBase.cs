@@ -1,4 +1,4 @@
-﻿namespace Food {
+﻿namespace FoodBase {
     /// <summary>
     /// Represents a nutrient with a specific total amount. 
     /// Supports various arithmetic operations such as addition, subtraction, and scaling through overloaded operators.

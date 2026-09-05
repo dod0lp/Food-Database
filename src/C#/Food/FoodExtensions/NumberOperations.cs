@@ -1,4 +1,4 @@
-namespace Food {
+namespace FoodBase {
     /// <summary>
     /// Class for specific operations with numbers.
     /// </summary>

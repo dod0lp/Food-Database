@@ -1,12 +1,12 @@
-﻿using Food;
+﻿using FoodBase;
 using Food_Database.Database.Descriptors;
 using Food_Database.Models;
 using FoodParser;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using static Food.Food;
-using static Food_Database.Database.Operations.EFLoader;
+using static FoodBase.Food;
+using Foods = Food_Database.Database.Repositories.Foods;
 
 namespace ProgramTestFood;
 public static class ProgramTestFood {
@@ -332,7 +332,7 @@ public static class ProgramTestFood {
     }
 
     private static async Task TestFavoriteFoodOptions(DB_FoodContext db, int userId) {
-        var repo = new FoodRepository(db);
+        var repo = new Foods.Repository(db);
         var ct = CancellationToken.None; // default is none so it's w.e. if used here
         var rng = Random.Shared;
         int count = rng.Next(1, 6);
@@ -359,7 +359,7 @@ public static class ProgramTestFood {
     }
 
     private static async Task TestCreateFoodFromExisting(DB_FoodContext db, int userId) {
-        var repo = new FoodRepository(db);
+        var repo = new Foods.Repository(db);
         Dictionary<int, decimal> ingredientWeights;
 
         // can throw if id--key is added twice should be max P(4/250) tho
@@ -376,7 +376,7 @@ public static class ProgramTestFood {
             return;
         }
 
-        Food.Food? createdFood = await repo.CreateFoodFromExistingAsync(
+        FoodBase.Food? createdFood = await repo.CreateFoodFromExistingAsync(
             ingredientWeights,
             "Food mix",
             "Test composite food");
@@ -385,7 +385,7 @@ public static class ProgramTestFood {
             return;
         }
 
-        Food.Food? insertedFood = await
+        FoodBase.Food? insertedFood = await
                         repo.AddFoodAsync(createdFood, userId, true);
 
         if (insertedFood is null) {
@@ -397,14 +397,14 @@ public static class ProgramTestFood {
         Console.WriteLine("=====================");
         Console.WriteLine("Ingredients:");
 
-        foreach (Food.Food f in insertedFood.Ingredients) {
+        foreach (FoodBase.Food f in insertedFood.Ingredients) {
             Console.WriteLine(f.Name);
             Console.WriteLine(f.Weight);
         }
     }
 
     private static async Task TestCreateFoodFromExistingComposite(DB_FoodContext db, int userId) {
-        var repo = new FoodRepository(db);
+        var repo = new Foods.Repository(db);
 
         Dictionary<int, decimal> ingredientWeights = Enumerable
             .Range(251, 10)
@@ -416,7 +416,7 @@ public static class ProgramTestFood {
                     (decimal)(Random.Shared.NextDouble() * 245 + 5),
                     2));
 
-        List<Food.Food> ingredients = new();
+        List<FoodBase.Food> ingredients = new();
 
         Nutrients nutrients = new(
             new Energy(0),
@@ -428,7 +428,7 @@ public static class ProgramTestFood {
         double totalWeight = 0;
 
         foreach (var item in ingredientWeights) {
-            Food.Food? ingredient = await repo.GetFoodAsync(item.Key);
+            FoodBase.Food? ingredient = await repo.GetFoodAsync(item.Key);
 
             if (ingredient is null) {
                 throw new InvalidOperationException(
@@ -449,7 +449,7 @@ public static class ProgramTestFood {
             nutrients += ingredient.NutrientContent;
         }
 
-        Food.Food? food = new(
+        FoodBase.Food? food = new(
             0,
             "Composite from composites",
             totalWeight,
@@ -457,7 +457,7 @@ public static class ProgramTestFood {
             "Test composite from composite food",
             ingredients);
 
-        Food.Food? insertedFood =
+        FoodBase.Food? insertedFood =
                         await repo.AddFoodAsync(food, userId, true);
 
         if (insertedFood is null) {
@@ -469,7 +469,7 @@ public static class ProgramTestFood {
         Console.WriteLine("=====================");
         Console.WriteLine("Ingredients:");
 
-        foreach (Food.Food f in insertedFood.Ingredients) {
+        foreach (FoodBase.Food f in insertedFood.Ingredients) {
             Console.WriteLine(f.Name);
             Console.WriteLine(f.Weight);
         }
@@ -512,7 +512,7 @@ public static class ProgramTestFood {
     HashSet<int> path,
     StringBuilder result,
     CancellationToken cancellationToken) {
-        var repo = new FoodRepository(db);
+        var repo = new Foods.Repository(db);
         string indent = new(' ', depth * 4);
         double factor =
             weight / DB_Food_Descriptors.NormalizedWeight;

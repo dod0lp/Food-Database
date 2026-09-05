@@ -1,4 +1,4 @@
-namespace Food {
+namespace FoodBase {
     /// <summary>
     /// <see cref="Nutrients"/> content of certain <see cref="Food"/>, arbitrary <see cref="Food.Weight"/> - defined by <see cref="Food"/>
     /// <br></br>

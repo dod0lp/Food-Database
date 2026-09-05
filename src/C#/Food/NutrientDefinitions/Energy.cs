@@ -1,4 +1,4 @@
-﻿namespace Food {
+﻿namespace FoodBase {
     /// <summary>
     /// Represents energy information in both <see cref="kcal"/> (kilocalories) and <see cref="kj"/> (kilojoules).
     /// </summary>

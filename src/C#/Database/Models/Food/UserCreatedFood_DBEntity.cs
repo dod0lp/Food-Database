@@ -1,8 +1,8 @@
 ﻿using Food_Database.Database.Descriptors;
-using Food_Database.Database.Models.Users;
+using Food_Database.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Food_Database.Database.Models.Food;
+namespace Food_Database.Models;
 
 [Table(DB_Food_Descriptors.Table.UserCreatedFood)]
 public partial class UserCreatedFood_DBEntity {

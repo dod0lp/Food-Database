@@ -1,4 +1,4 @@
-﻿namespace Food {
+﻿namespace FoodBase {
     /// <summary>
     /// Represents nutritional information related to <see cref="Carbohydrates"/>.
     /// </summary>

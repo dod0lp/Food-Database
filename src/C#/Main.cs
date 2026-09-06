@@ -555,6 +555,15 @@ public static class ProgramTestFood {
         path.Remove(food.Id);
     }
 
+    /// <summary>
+    /// Helper function to append nutrient value to the result string.
+    /// </summary>
+    /// <param name="val">The nutrient value to append.</param>
+    /// <param name="result">The string builder to append the value to.</param>
+    /// <param name="indent">The indentation string.</param>
+    /// <param name="factor">The conversion factor.</param>
+    /// <param name="what">The name of the nutrient.</param>
+    /// <param name="unit">The unit of the nutrient.</param>
     private static void AppendVal(
     decimal? val, StringBuilder result, string indent,
     double factor, string what, string unit = "g") {
@@ -562,6 +571,12 @@ public static class ProgramTestFood {
                     $"{indent}  {what}: {GetValue(val, factor):0.##} {unit}");
     }
 
+    /// <summary>
+    /// Helper function to get the nutrient value with the conversion factor applied. Or -1 for non-existent.
+    /// </summary>
+    /// <param name="value">The nutrient value.</param>
+    /// <param name="factor">The conversion factor.</param>
+    /// <returns>The converted nutrient value.</returns>
     private static double GetValue(decimal? value, double factor) {
         return value.HasValue
             ? (double)value.Value * factor

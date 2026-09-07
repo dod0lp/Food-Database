@@ -24,7 +24,7 @@ namespace Food_Database.Database.Repositories.Foods {
     bool addIngredients = false,
     CancellationToken cancellationToken = default) {
             Food_DBEntity entity = new();
-            Foods.Mapper.MapToEntityNormalized(new Food(food), entity);
+            Mapper.MapToEntityNormalized(new Food(food), entity);
             _db.Food.Add(entity);
 
             if (userId > 0) {
@@ -140,7 +140,7 @@ CancellationToken cancellationToken) {
                 // Recurse only when this ingredient was newly inserted.
                 // If it already existed in DB, assumed to already be stored.
                 if (ingredientWasAdded &&
-                    ingredient.Ingredients.Count > 0) {
+                        ingredient.Ingredients.Count > 0) {
                     await SetFoodIngredientsRecursiveAsync(
                         ingredient,
                         ingredientEntity,

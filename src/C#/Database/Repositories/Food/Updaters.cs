@@ -305,6 +305,44 @@ CancellationToken cancellationToken = default) {
         }
 
         /// <summary>
+        /// Creates and saves a composite food from existing foods and their weights.
+        /// </summary>
+        /// <param name="ingredientWeights">Food IDs mapped to grams used in the composite.</param>
+        /// <param name="name">Name of the new composite food.</param>
+        /// <param name="userId">Creator user ID, or <c>-1</c> for a system composite food.</param>
+        /// <param name="description">Description of the new food.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+        /// <returns>
+        /// The persisted composite food, including the weights used for its ingredients.<br></br>
+        /// <c>null</c> when no valid ingredients were supplied.
+        /// </returns>
+        /// <remarks>
+        /// Saves database context. <br></br>
+        /// Nutrients are normalized to 100g. <br></br>
+        /// Essentially glue for functions <see cref="CreateFoodFromExistingAsync">CreateFoodFromExistingAsync()</see> and <see cref="AddFoodAsync">AddFoodAsync()</see>.
+        /// </remarks>
+        public async Task<Food?> CreateCompositeFoodAsync(
+    Dictionary<int, decimal> ingredientWeights,
+    string name,
+    int userId = -1,
+    string description = "",
+    CancellationToken cancellationToken = default) {
+            Food? composite = await CreateFoodFromExistingAsync(
+                ingredientWeights,
+                name,
+                description,
+                cancellationToken);
+
+            return composite is null
+                ? null
+                : await AddFoodAsync(
+                    composite,
+                    userId,
+                    addIngredients: true,
+                    cancellationToken);
+        }
+
+        /// <summary>
         /// Creates composite food from existing foods.
         /// </summary>
         /// <param name="ingredientWeights">Dictionary mapping food IDs to weights.</param>
@@ -349,14 +387,7 @@ CancellationToken cancellationToken = default) {
                 }
 
                 decimal factor = gramsUsed / (decimal)food.Weight;
-
-                Food ingredient = new(
-                    food.Id,
-                    food.Name,
-                    (double)gramsUsed,
-                    factor * food.NutrientContent,
-                    food.Description,
-                    food.Ingredients);
+                Food ingredient = factor * food;
 
                 totalWeight += gramsUsed;
                 totalNutrients += ingredient.NutrientContent;

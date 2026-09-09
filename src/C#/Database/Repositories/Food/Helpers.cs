@@ -12,7 +12,7 @@ namespace Food_Database.Database.Repositories.Foods {
         /// <param name="foodId">ID of food that is being set for a user.</param>
         /// /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
         /// <returns>If user has this food set as favorite.</returns>
-        public async Task<bool> FavoriteExists(int userId, int foodId, CancellationToken cancellationToken = default) {
+        public async Task<bool> FavoriteExistsAsync(int userId, int foodId, CancellationToken cancellationToken = default) {
             return
                 await _db.Users
                         .AsNoTracking()
@@ -28,7 +28,8 @@ namespace Food_Database.Database.Repositories.Foods {
         /// <param name="foodId">ID of food that is being set for a user.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
         /// <returns>If favorite food-user was created.</returns>
-        public async Task<bool> EnsureFavoriteExists(int userId, int foodId, CancellationToken cancellationToken = default) {
+        public async Task<bool> EnsureFavoriteExistsAsync(int userId, int foodId,
+    CancellationToken cancellationToken = default) {
             Users_DBEntity? user = await _db.Users
                 .Include(x => x.Food)
                 .SingleOrDefaultAsync(
@@ -141,11 +142,13 @@ CancellationToken cancellationToken = default) {
         /// <param name="userId">ID of a food.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
         /// <returns>True if exists.</returns>
-        public async Task<bool> FoodExists(int foodId, CancellationToken cancellationToken = default) {
+        public async Task<bool> FoodExistsAsync(int foodId,
+    CancellationToken cancellationToken = default) {
             Food_DBEntity? food =
                 await _db.Food
                     .AsNoTracking()
-                    .SingleOrDefaultAsync(x => x.Id == foodId, cancellationToken);
+                    .SingleOrDefaultAsync(x => x.Id == foodId,
+                                                cancellationToken);
 
             return food is not null;
         }
@@ -156,7 +159,7 @@ CancellationToken cancellationToken = default) {
         /// <param name="foodId">The ID of the food to check.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
         /// <returns><c>True</c> <see cref="bool"/> <see cref="Task"/> if the food is user-created. Otherwise <c>false</c>.</returns>
-        public async Task<bool> IsUserCreatedAsync(
+        public async Task<bool> IsUserCreatedFoodAsync(
 int foodId,
 CancellationToken cancellationToken = default) {
             return await _db.UserCreatedFood
@@ -173,7 +176,7 @@ CancellationToken cancellationToken = default) {
         /// <param name="foodId">The ID of food to check.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
         /// <returns><c>True</c> <see cref="bool"/> <see cref="Task"/> if the food is user favorite. Otherwise <c>false</c>.</returns>
-        public async Task<bool> GetIsUserFavoriteFoodAsync(
+        public async Task<bool> IsUserFavoriteFoodAsync(
 int userId,
 int foodId,
 CancellationToken cancellationToken = default) {

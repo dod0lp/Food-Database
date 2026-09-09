@@ -170,7 +170,7 @@ CancellationToken cancellationToken) {
     IEnumerable<FavoriteFoodOption>? options = null,
     CancellationToken cancellationToken = default) {
             if (!await UserExists(userId, cancellationToken) ||
-                    !await FoodExists(foodId, cancellationToken)) {
+                    !await FoodExistsAsync(foodId, cancellationToken)) {
                 return null;
             }
 
@@ -197,12 +197,12 @@ CancellationToken cancellationToken) {
             }
 
             if (remark is not null && remark.Length > 0) {
-                await AddOrUpdateRemark(userId, foodId, remark,
+                await AddOrUpdateRemarkAsync(userId, foodId, remark,
                                         cancellationToken);
             }
 
             if (options is not null && !options.IsNullOrEmpty()) { // VS warning says it can be null when i use only !nullorempty()... huh
-                await AddOrUpdateOptions(userId, foodId, options,
+                await AddOrUpdateOptionsAsync(userId, foodId, options,
                                         cancellationToken);
             }
 
@@ -220,7 +220,7 @@ CancellationToken cancellationToken) {
         /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
         /// <returns>Empty <see cref="Task"/>.</returns>
         /// <exception cref="ArgumentOutOfRangeException">When price or weight is smaller than 0.</exception>
-        public async Task AddOrUpdateOptions(int userId, int foodId,
+        public async Task AddOrUpdateOptionsAsync(int userId, int foodId,
     IEnumerable<FavoriteFoodOption> options,
     CancellationToken cancellationToken = default) {
             foreach (FavoriteFoodOption option in options) {
@@ -228,7 +228,7 @@ CancellationToken cancellationToken) {
                     throw new ArgumentOutOfRangeException(nameof(options));
                 }
 
-                await EnsureFavoriteExists(userId, foodId, cancellationToken);
+                await EnsureFavoriteExistsAsync(userId, foodId, cancellationToken);
 
                 UserFoodOptions_DBEntity? optionEntity =
                     await _db.UserFoodOptions.SingleOrDefaultAsync(
@@ -260,7 +260,7 @@ CancellationToken cancellationToken) {
         /// <param name="remark">Remark to set.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
         /// <returns>Empty <see cref="Task"/>.</returns>
-        private async Task AddOrUpdateRemark(int userId, int foodId, string remark,
+        private async Task AddOrUpdateRemarkAsync(int userId, int foodId, string remark,
     CancellationToken cancellationToken = default) {
             UserFoodRemarks_DBEntity? remarkEntity =
                 await _db.UserFoodRemark.SingleOrDefaultAsync(
@@ -295,13 +295,13 @@ int userId,
 int foodId,
 FavoriteFoodOption option,
 CancellationToken cancellationToken = default) {
-            if (!await FavoriteExists(userId, foodId, cancellationToken)) {
-                if (!await EnsureFavoriteExists(userId, foodId, cancellationToken)) {
+            if (!await FavoriteExistsAsync(userId, foodId, cancellationToken)) {
+                if (!await EnsureFavoriteExistsAsync(userId, foodId, cancellationToken)) {
                     return;
                 }
             }
 
-            await AddOrUpdateOptions(userId, foodId, [option], cancellationToken);
+            await AddOrUpdateOptionsAsync(userId, foodId, [option], cancellationToken);
         }
 
         /// <summary>

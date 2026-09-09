@@ -18,6 +18,19 @@ public static class ProgramTestFood {
     const int simpleMixCount = 30;
     const int compositeMixCount = 75;
 
+    private static readonly FoodNutrient[] MassNutrients = [
+        FoodNutrient.Fat_Total,
+        FoodNutrient.Carbs_Total,
+        FoodNutrient.Protein_Total,
+        FoodNutrient.Salt_Total
+    ];
+
+    private static readonly NutrientSubsetDefinition[]
+    NutrientSubsetDefinitions = [
+        new(FoodNutrient.Fat_Total, FoodNutrient.Fat_Saturated),
+        new(FoodNutrient.Carbs_Total, FoodNutrient.Carbs_Sugar)
+    ];
+
     static async Task Main() {
         var options = new DbContextOptionsBuilder<DB_FoodContext>()
             .UseSqlServer(
@@ -517,9 +530,9 @@ public static class ProgramTestFood {
         Console.WriteLine("Database constraint check:");
 
         if (nutrientViolations.Count == 0) {
-            Console.WriteLine("- All non-null nutrient gram values are between 0 and 100 per 100 g.");
+            Console.WriteLine("=== OK === All non-null nutrient gram values are between 0 and 100 per 100g.");
         } else {
-            Console.WriteLine("- Nutrient values outside 0-100 per 100 g:");
+            Console.WriteLine("=== NOT OK === Nutrient values outside 0-100 per 100g:");
 
             foreach (FoodNutrientBoundViolation violation in nutrientViolations
                 .OrderBy(x => x.FoodId)
@@ -531,9 +544,9 @@ public static class ProgramTestFood {
         }
 
         if (nutrientTotalViolations.Count == 0) {
-            Console.WriteLine("- The known fat, carbs, protein, and salt total is at most 100 g for every food.");
+            Console.WriteLine("=== OK === The known nutrient total is at most 100g for every food.");
         } else {
-            Console.WriteLine("- Foods whose known fat + carbs + protein + salt total exceeds 100 g:");
+            Console.WriteLine("=== NOT OK === Foods with nutrient total more than 100g:");
 
             foreach (FoodNutrientTotalViolation violation in nutrientTotalViolations
                 .OrderBy(x => x.FoodId)) {
@@ -544,9 +557,9 @@ public static class ProgramTestFood {
         }
 
         if (nutrientSubsetViolations.Count == 0) {
-            Console.WriteLine("- Saturated fat and sugar do not exceed their respective totals.");
+            Console.WriteLine("=== OK === Saturated fat and sugar is less or equal to total fat and carbs.");
         } else {
-            Console.WriteLine("- Nutrient subsets larger than their total:");
+            Console.WriteLine("=== NOT OK === Nutrient subsets larger than their total:");
 
             foreach (FoodNutrientSubsetViolation violation in nutrientSubsetViolations
                 .OrderBy(x => x.FoodId)
@@ -559,9 +572,9 @@ public static class ProgramTestFood {
         }
 
         if (ingredientWeightSumsNotEqualTo100.Count == 0) {
-            Console.WriteLine("- Every composite food's ingredient weights total exactly 100 g.");
+            Console.WriteLine("=== OK === Every composite food's ingredient weights total exactly 100g.");
         } else {
-            Console.WriteLine("- Composite foods whose ingredient weights do not total 100 g:");
+            Console.WriteLine("=== NOT OK === Composite foods whose ingredient weights do not total 100g:");
 
             foreach ((int foodId, decimal totalWeight) in
                 ingredientWeightSumsNotEqualTo100.OrderBy(x => x.Key)) {
@@ -577,7 +590,7 @@ public static class ProgramTestFood {
 
     /// <summary>
     /// Gets every non-null nutrient gram value that cannot be valid for a
-    /// food normalized to 100 g. Energy is intentionally excluded.
+    /// food normalized to 100g. Energy is intentionally excluded.
     /// </summary>
     private static async Task<List<FoodNutrientBoundViolation>>
     GetFoodNutrientBoundViolationsAsync(
@@ -590,28 +603,18 @@ public static class ProgramTestFood {
         List<FoodNutrientBoundViolation> violations = new();
 
         foreach (Food_DBEntity food in foods) {
-            AddNutrientBoundViolation(
-                violations, food, "Fat_Total", food.Fat_Total);
-            AddNutrientBoundViolation(
-                violations, food, "Fat_Saturated", food.Fat_Saturated);
-            AddNutrientBoundViolation(
-                violations, food, "Carbs_Total", food.Carbs_Total);
-            AddNutrientBoundViolation(
-                violations, food, "Carbs_Sugar", food.Carbs_Sugar);
-            AddNutrientBoundViolation(
-                violations, food, "Protein_Total", food.Protein_Total);
-            AddNutrientBoundViolation(
-                violations, food, "Salt_Total", food.Salt_Total);
+            foreach (FoodNutrient nutrient in Enum.GetValues<FoodNutrient>()) {
+                AddNutrientBoundViolation(violations, food, nutrient);
+            }
         }
 
         return violations;
     }
 
     /// <summary>
-    /// Gets foods whose known component mass exceeds their 100 g normalized
-    /// weight. Sugar and saturated fat are excluded because they are subsets
-    /// of total carbohydrates and total fat respectively. Null values are
-    /// unknown and therefore do not contribute to the known total.
+    /// Gets foods whose known component mass exceeds their 100g normalized weight.
+    /// Sugar and saturated fat are excluded because they are subsets.
+    /// Null values are simply ignored.
     /// </summary>
     private static async Task<List<FoodNutrientTotalViolation>>
     GetFoodNutrientTotalViolationsAsync(
@@ -625,10 +628,8 @@ public static class ProgramTestFood {
             .Select(food => new FoodNutrientTotalViolation(
                 food.Id,
                 food.Name,
-                (food.Fat_Total ?? 0m) +
-                (food.Carbs_Total ?? 0m) +
-                (food.Protein_Total ?? 0m) +
-                (food.Salt_Total ?? 0m)))
+                MassNutrients.Sum(nutrient =>
+                    GetNutrientValue(food, nutrient) ?? 0m)))
             .Where(x => x.Total > 100m)];
     }
 
@@ -647,21 +648,14 @@ public static class ProgramTestFood {
         List<FoodNutrientSubsetViolation> violations = new();
 
         foreach (Food_DBEntity food in foods) {
-            AddNutrientSubsetViolation(
-                violations,
-                food,
-                "Fat_Total",
-                food.Fat_Total,
-                "Fat_Saturated",
-                food.Fat_Saturated);
-
-            AddNutrientSubsetViolation(
-                violations,
-                food,
-                "Carbs_Total",
-                food.Carbs_Total,
-                "Carbs_Sugar",
-                food.Carbs_Sugar);
+            foreach (NutrientSubsetDefinition definition in
+                NutrientSubsetDefinitions) {
+                AddNutrientSubsetViolation(
+                    violations,
+                    food,
+                    definition.Total,
+                    definition.Subset);
+            }
         }
 
         return violations;
@@ -669,7 +663,7 @@ public static class ProgramTestFood {
 
     /// <summary>
     /// Returns a map of composite food ID to its ingredient-weight total for
-    /// every composite whose relations do not sum to exactly 100 g.
+    /// every composite whose relations do not sum to exactly 100g.
     /// </summary>
     private static async Task<Dictionary<int, decimal>>
     GetIngredientWeightSumsNotEqualTo100Async(
@@ -694,13 +688,14 @@ public static class ProgramTestFood {
 
     /// <summary>
     /// Adds a nutrient violation when a known nutrient value is outside the
-    /// valid 0-100 g range for a food normalized to 100 g.
+    /// valid 0-100g range for a food normalized to 100g.
     /// </summary>
     private static void AddNutrientBoundViolation(
     List<FoodNutrientBoundViolation> violations,
     Food_DBEntity food,
-    string nutrient,
-    decimal? value) {
+    FoodNutrient nutrient) {
+        decimal? value = GetNutrientValue(food, nutrient);
+
         if (value is not decimal knownValue ||
                 (knownValue >= 0m && knownValue <= 100m)) {
             return;
@@ -720,10 +715,11 @@ public static class ProgramTestFood {
     private static void AddNutrientSubsetViolation(
     List<FoodNutrientSubsetViolation> violations,
     Food_DBEntity food,
-    string total,
-    decimal? totalValue,
-    string subset,
-    decimal? subsetValue) {
+    FoodNutrient total,
+    FoodNutrient subset) {
+        decimal? totalValue = GetNutrientValue(food, total);
+        decimal? subsetValue = GetNutrientValue(food, subset);
+
         if (totalValue is not decimal knownTotal ||
                 subsetValue is not decimal knownSubset ||
                 knownSubset <= knownTotal) {
@@ -739,10 +735,37 @@ public static class ProgramTestFood {
             knownSubset));
     }
 
+    /// <summary>
+    /// Gets a nutrient value from a database food row using the strongly typed
+    /// <see cref="FoodNutrient"/> field identifier.
+    /// </summary>
+    private static decimal? GetNutrientValue(
+    Food_DBEntity food,
+    FoodNutrient nutrient) {
+        return nutrient switch {
+            FoodNutrient.Fat_Total => food.Fat_Total,
+            FoodNutrient.Fat_Saturated => food.Fat_Saturated,
+            FoodNutrient.Carbs_Total => food.Carbs_Total,
+            FoodNutrient.Carbs_Sugar => food.Carbs_Sugar,
+            FoodNutrient.Protein_Total => food.Protein_Total,
+            FoodNutrient.Salt_Total => food.Salt_Total,
+            _ => throw new ArgumentOutOfRangeException(nameof(nutrient))
+        };
+    }
+
+    private enum FoodNutrient {
+        Fat_Total,
+        Fat_Saturated,
+        Carbs_Total,
+        Carbs_Sugar,
+        Protein_Total,
+        Salt_Total
+    }
+
     private sealed record FoodNutrientBoundViolation(
         int FoodId,
         string FoodName,
-        string Nutrient,
+        FoodNutrient Nutrient,
         decimal Value);
 
     private sealed record FoodNutrientTotalViolation(
@@ -753,10 +776,14 @@ public static class ProgramTestFood {
     private sealed record FoodNutrientSubsetViolation(
         int FoodId,
         string FoodName,
-        string Total,
+        FoodNutrient Total,
         decimal TotalValue,
-        string Subset,
+        FoodNutrient Subset,
         decimal SubsetValue);
+
+    private sealed record NutrientSubsetDefinition(
+        FoodNutrient Total,
+        FoodNutrient Subset);
 
     public static async Task<string?> GetFoodIngredientTreeInputAsync(DB_FoodContext db) {
         Console.Write("Food ID: ");

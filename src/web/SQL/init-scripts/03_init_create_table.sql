@@ -1,14 +1,45 @@
 USE [$(DB_NAME)];
 GO
 
+-- Required by SQL Server for filtered indexes used by ASP.NET Identity.
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_PADDING ON;
+SET ANSI_WARNINGS ON;
+SET ARITHABORT ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET NUMERIC_ROUNDABORT OFF;
+GO
+
 IF OBJECT_ID(N'dbo.Users', N'U') IS NULL
 BEGIN
     CREATE TABLE Users
     (
         Id INT IDENTITY(1,1) NOT NULL
-            CONSTRAINT PK_Users PRIMARY KEY
+            CONSTRAINT PK_Users PRIMARY KEY,
+
+        -- ASP.NET Core Identity fields. PasswordHash is written only through
+        -- UserManager during registration, never directly by application SQL.
+        UserName NVARCHAR(256) NULL,
+        NormalizedUserName NVARCHAR(256) NULL,
+        Email NVARCHAR(256) NULL,
+        NormalizedEmail NVARCHAR(256) NULL,
+        EmailConfirmed BIT NOT NULL CONSTRAINT DF_Users_EmailConfirmed DEFAULT 0,
+        PasswordHash NVARCHAR(MAX) NULL,
+        SecurityStamp NVARCHAR(MAX) NULL,
+        ConcurrencyStamp NVARCHAR(MAX) NULL,
+        PhoneNumber NVARCHAR(MAX) NULL,
+        PhoneNumberConfirmed BIT NOT NULL CONSTRAINT DF_Users_PhoneNumberConfirmed DEFAULT 0,
+        TwoFactorEnabled BIT NOT NULL CONSTRAINT DF_Users_TwoFactorEnabled DEFAULT 0,
+        LockoutEnd DATETIMEOFFSET(7) NULL,
+        LockoutEnabled BIT NOT NULL CONSTRAINT DF_Users_LockoutEnabled DEFAULT 1,
+        AccessFailedCount INT NOT NULL CONSTRAINT DF_Users_AccessFailedCount DEFAULT 0
     );
 END;
+
+CREATE UNIQUE INDEX UserNameIndex ON Users(NormalizedUserName)
+    WHERE NormalizedUserName IS NOT NULL;
+CREATE INDEX EmailIndex ON Users(NormalizedEmail);
 
 
 IF OBJECT_ID(N'dbo.Food', N'U') IS NULL

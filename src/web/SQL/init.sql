@@ -13,3 +13,7 @@ RAISERROR('>>> Finished 02_init_create_user.sql', 0, 1) WITH NOWAIT;
 RAISERROR('>>> Running 03_init_create_table.sql', 0, 1) WITH NOWAIT;
 :r $(WORK_DIR)/init-scripts/03_init_create_table.sql
 RAISERROR('>>> Finished 03_init_create_table.sql', 0, 1) WITH NOWAIT;
+
+RAISERROR('>>> Running 04_init_identity.sql', 0, 1) WITH NOWAIT;
+:r $(WORK_DIR)/init-scripts/04_init_identity.sql
+RAISERROR('>>> Finished 04_init_identity.sql', 0, 1) WITH NOWAIT;

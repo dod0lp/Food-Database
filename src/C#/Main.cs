@@ -140,7 +140,10 @@ public static class ProgramTestFood {
         if (await db.Users.Take(userCountWanted).CountAsync() < userCountWanted) {
             List<Users_DBEntity> users = [..
                 Enumerable.Range(0, userCountWanted)
-                    .Select(_ => new Users_DBEntity())
+                    .Select(index => new Users_DBEntity {
+                        UserName = $"seed-user-{index + 1}",
+                        NormalizedUserName = $"SEED-USER-{index + 1}"
+                    })
             ];
 
             db.Users.AddRange(users);

@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+      <!-- The API is a separate Web SDK. -->
+      <Compile Remove="Api\**\*.cs" />
       <PackageReference Include="CsvHelper" Version="33.0.1" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
@@ -20,6 +22,7 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         <PrivateAssets>all</PrivateAssets>
       </PackageReference>
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
       <PackageReference Include="DotNetEnv" Version="3.1.0" />
   </ItemGroup>
 

@@ -1,0 +1,18 @@
+services:
+  api:
+    build:
+      context: ./C#
+      dockerfile: Api/Dockerfile
+    env_file:
+      - ./web/docker/.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    expose:
+      - "8080"
+
+  web:
+    build: ./web/angular
+    depends_on:
+      - api
+    ports:
+      - "4200:80"

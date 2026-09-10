@@ -1,12 +1,12 @@
 ﻿using Food_Database.Database.Descriptors;
 using Food_Database.Models;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Food_Database.Models;
 
 [Table(DB_Food_Descriptors.Table.Users)]
-public partial class Users_DBEntity {
-    public int Id { get; set; }
+public partial class Users_DBEntity : IdentityUser<int> {
 
     public virtual ICollection<UserCreatedFood_DBEntity> UserCreatedFood { get; set; } = new List<UserCreatedFood_DBEntity>();
 

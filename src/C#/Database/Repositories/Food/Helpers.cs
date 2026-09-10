@@ -45,7 +45,9 @@ namespace Food_Database.Database.Repositories.Foods {
                 return false;
             }
 
-            user.Food.Add(food);
+            if (!user.Food.Any(x => x.Id == foodId)) {
+                user.Food.Add(food);
+            }
             return true;
         }
 

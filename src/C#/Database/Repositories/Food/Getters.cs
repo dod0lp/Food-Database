@@ -110,7 +110,9 @@ namespace Food_Database.Database.Repositories.Foods {
                 .AsNoTracking()
                 .Where(x => x.Id == userId)
                 .SelectMany(x => x.Food)
+                .AsSplitQuery()
                 .Include(x => x.UserFoodOptions)
+                .Include(x => x.UserFoodRemark)
                 .Include(x => x.FoodIngredientsFood)
                     .ThenInclude(x => x.Ingredient_Food)
                 .OrderBy(x => x.Id)
@@ -121,6 +123,10 @@ namespace Food_Database.Database.Repositories.Foods {
                     .Select(food_entity => new FavoriteFood
                     {
                         Food = food_entity.ToDomainWithIngredients(),
+
+                        Remark = food_entity.UserFoodRemark
+                            .SingleOrDefault(x => x.User_Id == userId)
+                            ?.Food_Remark,
 
                         Options = [.. food_entity.UserFoodOptions
                             .Where(x => x.User_Id == userId)

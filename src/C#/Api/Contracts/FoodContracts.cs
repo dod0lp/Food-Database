@@ -9,6 +9,17 @@ public sealed record CreateCompositeFoodRequest(
     string? Description,
     IReadOnlyList<CompositeIngredientRequest> Ingredients);
 
+public sealed record CreateSimpleFoodRequest(
+    string Name,
+    string? Description,
+    int? EnergyKcal,
+    decimal? FatTotal,
+    decimal? FatSaturated,
+    decimal? CarbsTotal,
+    decimal? CarbsSugar,
+    decimal? ProteinTotal,
+    decimal? SaltTotal);
+
 public sealed record FavoriteFoodOptionRequest(decimal Weight, decimal? Price);
 
 public sealed record SetFavoriteFoodRequest(

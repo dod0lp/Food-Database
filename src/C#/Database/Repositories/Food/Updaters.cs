@@ -196,7 +196,7 @@ CancellationToken cancellationToken) {
                 userEntity.Food.Add(foodEntity);
             }
 
-            if (remark is not null && remark.Length > 0) {
+            if (remark is not null) {
                 await AddOrUpdateRemarkAsync(userId, foodId, remark,
                                         cancellationToken);
             }
@@ -260,7 +260,7 @@ CancellationToken cancellationToken) {
         /// <param name="remark">Remark to set.</param>
         /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
         /// <returns>Empty <see cref="Task"/>.</returns>
-        private async Task AddOrUpdateRemarkAsync(int userId, int foodId, string remark,
+        private async Task AddOrUpdateRemarkAsync(int userId, int foodId, string? remark,
     CancellationToken cancellationToken = default) {
             UserFoodRemarks_DBEntity? remarkEntity =
                 await _db.UserFoodRemark.SingleOrDefaultAsync(
@@ -273,11 +273,51 @@ CancellationToken cancellationToken) {
                 _db.UserFoodRemark.Add(new UserFoodRemarks_DBEntity {
                     User_Id = userId,
                     Food_Id = foodId,
-                    Food_Remark = remark
+                    Food_Remark = string.IsNullOrWhiteSpace(remark) ? null : remark
                 });
             } else {
-                remarkEntity.Food_Remark = remark;
+                remarkEntity.Food_Remark = string.IsNullOrWhiteSpace(remark) ? null : remark;
             }
+        }
+
+        /// <summary>Removes one saved package/serving option for a favorite food.</summary>
+        public async Task<bool> RemoveFavoriteFoodOptionAsync(
+    int userId,
+    int foodId,
+    decimal weight,
+    CancellationToken cancellationToken = default) {
+            UserFoodOptions_DBEntity? option = await _db.UserFoodOptions
+                .SingleOrDefaultAsync(x =>
+                    x.User_Id == userId && x.Food_Id == foodId &&
+                    x.Weight_Total == weight,
+                    cancellationToken);
+
+            if (option is null) {
+                return false;
+            }
+
+            _db.UserFoodOptions.Remove(option);
+            await SaveChangesDBAsync(cancellationToken);
+            return true;
+        }
+
+        /// <summary>Removes a food from one user's favorites without deleting the food.</summary>
+        public async Task<bool> RemoveFavoriteFoodAsync(
+    int userId,
+    int foodId,
+    CancellationToken cancellationToken = default) {
+            Users_DBEntity? user = await _db.Users
+                .Include(x => x.Food)
+                .SingleOrDefaultAsync(x => x.Id == userId, cancellationToken);
+
+            Food_DBEntity? favorite = user?.Food.SingleOrDefault(x => x.Id == foodId);
+            if (favorite is null) {
+                return false;
+            }
+
+            user!.Food.Remove(favorite);
+            await SaveChangesDBAsync(cancellationToken);
+            return true;
         }
 
         /// <summary>

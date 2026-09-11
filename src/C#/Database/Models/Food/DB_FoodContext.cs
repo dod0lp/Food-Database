@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Food_Database.Database.Descriptors;
 
 namespace Food_Database.Models;
 
-public partial class DB_FoodContext : DbContext {
+public partial class DB_FoodContext : IdentityDbContext<Users_DBEntity, IdentityRole<int>, int> {
     public DB_FoodContext(DbContextOptions<DB_FoodContext> options)
         : base(options) {
     }
@@ -19,9 +20,9 @@ public partial class DB_FoodContext : DbContext {
 
     public virtual DbSet<UserFoodRemarks_DBEntity> UserFoodRemark { get; set; }
 
-    public virtual DbSet<Users_DBEntity> Users { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Food_DBEntity>(entity => {
             entity.Property(e => e.Carbs_Sugar).HasColumnType("decimal(16, 2)");
             entity.Property(e => e.Carbs_Total).HasColumnType("decimal(16, 2)");
@@ -101,6 +102,10 @@ public partial class DB_FoodContext : DbContext {
         });
 
         modelBuilder.Entity<Users_DBEntity>(entity => {
+            // Identity configures AspNetUsers by default. The application user
+            // is intentionally stored in the pre-existing Users table instead.
+            entity.ToTable(DB_Food_Descriptors.Table.Users);
+
             entity.HasMany(d => d.Food).WithMany(p => p.User)
                 .UsingEntity<Dictionary<string, object>>(
                     "UserFoodFavorites",

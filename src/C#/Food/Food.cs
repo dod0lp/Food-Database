@@ -350,6 +350,7 @@
         /// </summary>
         public sealed class FavoriteFood {
             public Food Food { get; set; } = null!;
+            public string? Remark { get; set; }
             public List<FavoriteFoodOption> Options { get; set; } = new();
         }
 

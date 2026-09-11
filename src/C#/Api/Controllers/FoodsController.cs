@@ -34,6 +34,33 @@ public sealed class FoodsController : ControllerBase {
     }
 
     [Authorize]
+    [HttpPost]
+    public async Task<ActionResult<Food>> CreateSimpleFood(CreateSimpleFoodRequest request) {
+        int? userId = CurrentUserId();
+        if (userId is null || string.IsNullOrWhiteSpace(request.Name)) {
+            return BadRequest("A name and authenticated user are required.");
+        }
+
+        var nutrients = new Nutrients(
+            new Energy(request.EnergyKcal ?? -1),
+            new Fat((double)(request.FatTotal ?? -1), (double)(request.FatSaturated ?? -1)),
+            new Carbohydrates((double)(request.CarbsTotal ?? -1), (double)(request.CarbsSugar ?? -1)),
+            new Protein((double)(request.ProteinTotal ?? -1)),
+            new Salt((double)(request.SaltTotal ?? -1)));
+        var food = new Food(
+            -1,
+            request.Name.Trim(),
+            100,
+            nutrients,
+            request.Description ?? string.Empty);
+
+        Food created = await _foods.AddFoodAsync(food, userId.Value, cancellationToken: HttpContext.RequestAborted);
+        await _foods.SetFavoriteFoodAsync(userId.Value, created.Id, cancellationToken: HttpContext.RequestAborted);
+
+        return CreatedAtAction(nameof(GetOne), new { foodId = created.Id }, created);
+    }
+
+    [Authorize]
     [HttpPost("composites")]
     public async Task<ActionResult<Food>> CreateComposite(CreateCompositeFoodRequest request) {
         int? userId = CurrentUserId();
@@ -53,9 +80,28 @@ public sealed class FoodsController : ControllerBase {
             request.Description ?? string.Empty,
             HttpContext.RequestAborted);
 
+        if (created is not null) {
+            await _foods.SetFavoriteFoodAsync(
+                userId.Value,
+                created.Id,
+                cancellationToken: HttpContext.RequestAborted);
+        }
+
         return created is null
             ? BadRequest("At least one existing ingredient with a positive weight is required.")
             : CreatedAtAction(nameof(GetOne), new { foodId = created.Id }, created);
+    }
+
+    [Authorize]
+    [HttpGet("{foodId:int}/favorite")]
+    public async Task<ActionResult<bool>> IsFavorite(int foodId) {
+        int? userId = CurrentUserId();
+        if (userId is null) {
+            return Unauthorized();
+        }
+
+        return Ok(await _foods.IsUserFavoriteFoodAsync(
+            userId.Value, foodId, HttpContext.RequestAborted));
     }
 
     [Authorize]
@@ -87,6 +133,33 @@ public sealed class FoodsController : ControllerBase {
             HttpContext.RequestAborted);
 
         return food is null ? NotFound() : Ok(food);
+    }
+
+    [Authorize]
+    [HttpDelete("{foodId:int}/favorite")]
+    public async Task<IActionResult> RemoveFavorite(int foodId) {
+        int? userId = CurrentUserId();
+        if (userId is null) {
+            return Unauthorized();
+        }
+
+        return await _foods.RemoveFavoriteFoodAsync(userId.Value, foodId, HttpContext.RequestAborted)
+            ? NoContent()
+            : NotFound();
+    }
+
+    [Authorize]
+    [HttpDelete("{foodId:int}/favorite/options/{weight:decimal}")]
+    public async Task<IActionResult> RemoveFavoriteOption(int foodId, decimal weight) {
+        int? userId = CurrentUserId();
+        if (userId is null) {
+            return Unauthorized();
+        }
+
+        return await _foods.RemoveFavoriteFoodOptionAsync(
+            userId.Value, foodId, weight, HttpContext.RequestAborted)
+            ? NoContent()
+            : NotFound();
     }
 
     private int? CurrentUserId() =>

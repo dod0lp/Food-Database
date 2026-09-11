@@ -9,6 +9,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
     expose:
       - "8080"
+    volumes:
+      - api_data_protection:/root/.aspnet/DataProtection-Keys
 
   web:
     build: ./web/angular
@@ -16,3 +18,6 @@ services:
       - api
     ports:
       - "4200:80"
+
+volumes:
+  api_data_protection:

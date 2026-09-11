@@ -22,6 +22,17 @@ CREATE TABLE AspNetRoles
 CREATE UNIQUE INDEX RoleNameIndex ON AspNetRoles(NormalizedName)
     WHERE NormalizedName IS NOT NULL;
 
+CREATE TABLE AspNetRoleClaims
+(
+    Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_AspNetRoleClaims PRIMARY KEY,
+    RoleId INT NOT NULL,
+    ClaimType NVARCHAR(MAX) NULL,
+    ClaimValue NVARCHAR(MAX) NULL,
+    CONSTRAINT FK_AspNetRoleClaims_Roles_RoleId
+        FOREIGN KEY (RoleId) REFERENCES AspNetRoles(Id) ON DELETE CASCADE
+);
+CREATE INDEX IX_AspNetRoleClaims_RoleId ON AspNetRoleClaims(RoleId);
+
 CREATE TABLE AspNetUserClaims
 (
     Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_AspNetUserClaims PRIMARY KEY,

@@ -22,7 +22,8 @@ if (string.IsNullOrWhiteSpace(connectionString)) {
     string? user = builder.Configuration["DB_USER"];
     string? password = builder.Configuration["DB_PASSWORD"];
 
-    if ([address, port, database, user, password].Any(string.IsNullOrWhiteSpace)) {
+    if (new[] { address, port, database, user, password }
+        .Any(string.IsNullOrWhiteSpace)) {
         throw new InvalidOperationException(
             "Set ConnectionStrings:FoodDatabase or DB_ADDRESS, DB_PORT, DB_NAME, DB_USER, and DB_PASSWORD.");
     }

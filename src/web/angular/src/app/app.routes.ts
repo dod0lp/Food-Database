@@ -9,5 +9,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'favorites', canActivate: [authGuard], loadComponent: () => import('./food/favorites.component').then(c => c.FavoritesComponent) },
+  { path: 'foods/new', canActivate: [authGuard], loadComponent: () => import('./food/create-food.component').then(c => c.CreateFoodComponent) },
+  { path: 'foods/:id', loadComponent: () => import('./food/food-detail.component').then(c => c.FoodDetailComponent) },
   { path: '**', redirectTo: '' }
 ];

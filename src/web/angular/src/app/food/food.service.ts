@@ -45,7 +45,9 @@ export class FoodService {
   setFavorite(id: number, remark: string | null, options: { weight: number; price: number | null }[] = []): Observable<Food> {
     return this.http.put<Food>(`/api/foods/${id}/favorite`, { remark, options });
   }
-  removeFavorite(id: number): Observable<void> { return this.http.delete<void>(`/api/foods/${id}/favorite`); }
+  removeFavorite(id: number, deletePersonalData = false): Observable<void> {
+    return this.http.delete<void>(`/api/foods/${id}/favorite?deletePersonalData=${deletePersonalData}`);
+  }
   removeOption(id: number, weight: number): Observable<void> {
     return this.http.delete<void>(`/api/foods/${id}/favorite/options/${weight}`);
   }

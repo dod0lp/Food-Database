@@ -29,6 +29,13 @@ import { FavoriteFood, FoodService } from './food.service';
             <label>Price EUR <input [name]="'price' + favorite.food.id" type="number" step="0.01" [(ngModel)]="newPrices[favorite.food.id]"></label>
             <button (click)="addOption(favorite)">Save size</button>
           </div>
+          <fieldset>
+            <legend>When removing this favorite</legend>
+            <label><input type="radio" [name]="'removeData' + favorite.food.id" value="keep"
+              [(ngModel)]="removeDataChoices[favorite.food.id]"> Keep my remark and package options</label>
+            <label><input type="radio" [name]="'removeData' + favorite.food.id" value="delete"
+              [(ngModel)]="removeDataChoices[favorite.food.id]"> Delete my remark and package options too</label>
+          </fieldset>
           <button class="danger" (click)="removeFavorite(favorite)">Remove from favorites</button>
         </article>
       }
@@ -41,6 +48,7 @@ export class FavoritesComponent implements OnInit {
   readonly favorites = signal<FavoriteFood[]>([]);
   newWeights: Record<number, number | null> = {};
   newPrices: Record<number, number | null> = {};
+  removeDataChoices: Record<number, 'keep' | 'delete'> = {};
   readonly loading = signal(true);
   readonly error = signal('');
 
@@ -62,7 +70,8 @@ export class FavoritesComponent implements OnInit {
   }
 
   removeFavorite(favorite: FavoriteFood): void {
-    this.foods.removeFavorite(favorite.food.id).subscribe(() => this.load());
+    const deletePersonalData = this.removeDataChoices[favorite.food.id] === 'delete';
+    this.foods.removeFavorite(favorite.food.id, deletePersonalData).subscribe(() => this.load());
   }
 
   private load(): void {
@@ -71,6 +80,9 @@ export class FavoritesComponent implements OnInit {
     this.foods.favorites().subscribe({
       next: favorites => {
         this.favorites.set(favorites);
+        for (const favorite of favorites) {
+          this.removeDataChoices[favorite.food.id] ??= 'keep';
+        }
         this.loading.set(false);
       },
       error: () => {

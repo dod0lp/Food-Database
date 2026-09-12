@@ -137,13 +137,19 @@ public sealed class FoodsController : ControllerBase {
 
     [Authorize]
     [HttpDelete("{foodId:int}/favorite")]
-    public async Task<IActionResult> RemoveFavorite(int foodId) {
+    public async Task<IActionResult> RemoveFavorite(
+        int foodId,
+        [FromQuery] bool deletePersonalData = false) {
         int? userId = CurrentUserId();
         if (userId is null) {
             return Unauthorized();
         }
 
-        return await _foods.RemoveFavoriteFoodAsync(userId.Value, foodId, HttpContext.RequestAborted)
+        return await _foods.RemoveFavoriteFoodAsync(
+            userId.Value,
+            foodId,
+            deletePersonalData,
+            HttpContext.RequestAborted)
             ? NoContent()
             : NotFound();
     }

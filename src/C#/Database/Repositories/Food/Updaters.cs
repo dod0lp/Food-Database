@@ -301,10 +301,15 @@ CancellationToken cancellationToken) {
             return true;
         }
 
-        /// <summary>Removes a food from one user's favorites without deleting the food.</summary>
+        /// <summary>
+        /// Removes a food from one user's favorites without deleting the food.
+        /// Personal remark and package options are retained by default so they
+        /// are available again if the user re-favorites the food.
+        /// </summary>
         public async Task<bool> RemoveFavoriteFoodAsync(
     int userId,
     int foodId,
+    bool deletePersonalData = false,
     CancellationToken cancellationToken = default) {
             Users_DBEntity? user = await _db.Users
                 .Include(x => x.Food)
@@ -313,6 +318,21 @@ CancellationToken cancellationToken) {
             Food_DBEntity? favorite = user?.Food.SingleOrDefault(x => x.Id == foodId);
             if (favorite is null) {
                 return false;
+            }
+
+            if (deletePersonalData) {
+                List<UserFoodOptions_DBEntity> options = await _db.UserFoodOptions
+                    .Where(x => x.User_Id == userId && x.Food_Id == foodId)
+                    .ToListAsync(cancellationToken);
+                _db.UserFoodOptions.RemoveRange(options);
+
+                UserFoodRemarks_DBEntity? remark = await _db.UserFoodRemark
+                    .SingleOrDefaultAsync(x =>
+                        x.User_Id == userId && x.Food_Id == foodId,
+                        cancellationToken);
+                if (remark is not null) {
+                    _db.UserFoodRemark.Remove(remark);
+                }
             }
 
             user!.Food.Remove(favorite);

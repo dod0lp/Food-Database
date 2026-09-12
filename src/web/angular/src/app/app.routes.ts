@@ -5,7 +5,8 @@ import { LoginComponent } from './auth/login.component';
 import { RegisterComponent } from './auth/register.component';
 
 export const routes: Routes = [
-  { path: '', component: FoodListComponent },
+  { path: '', component: FoodListComponent, data: { scope: 'system' } },
+  { path: 'my-foods', component: FoodListComponent, canActivate: [authGuard], data: { scope: 'mine' } },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'favorites', canActivate: [authGuard], loadComponent: () => import('./food/favorites.component').then(c => c.FavoritesComponent) },

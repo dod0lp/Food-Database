@@ -22,6 +22,8 @@ public sealed record CreateSimpleFoodRequest(
 
 public sealed record FavoriteFoodOptionRequest(decimal Weight, decimal? Price);
 
+public sealed record FoodPageResponse(IReadOnlyList<Food> Items, int Total);
+
 public sealed record SetFavoriteFoodRequest(
     string? Remark,
     IReadOnlyList<FavoriteFoodOptionRequest>? Options);

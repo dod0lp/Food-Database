@@ -17,14 +17,37 @@ public sealed class FoodsController : ControllerBase {
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Food>>> GetMany(
-        [FromQuery] int from = 1,
-        [FromQuery] int to = 20) {
-        if (to - from > 99) {
-            return BadRequest("Request at most 100 foods at a time.");
+    public async Task<ActionResult<FoodPageResponse>> GetSystemFoods(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50) {
+        if (page < 1 || pageSize is < 1 or > 100) {
+            return BadRequest("Page must be positive and pageSize must be from 1 to 100.");
         }
 
-        return Ok(await _foods.GetFoodsAsync(from, to, HttpContext.RequestAborted));
+        List<Food> items = await _foods.GetSystemFoodsAsync(
+            page, pageSize, HttpContext.RequestAborted);
+        int total = await _foods.GetSystemFoodCountAsync(HttpContext.RequestAborted);
+        return Ok(new FoodPageResponse(items, total));
+    }
+
+    [Authorize]
+    [HttpGet("mine")]
+    public async Task<ActionResult<FoodPageResponse>> GetMyFoods(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50) {
+        int? userId = CurrentUserId();
+        if (userId is null) {
+            return Unauthorized();
+        }
+        if (page < 1 || pageSize is < 1 or > 100) {
+            return BadRequest("Page must be positive and pageSize must be from 1 to 100.");
+        }
+
+        List<Food> items = await _foods.GetUserCreatedFoodsAsync(
+            userId.Value, page, pageSize, HttpContext.RequestAborted);
+        int total = await _foods.GetUserCreatedFoodCountAsync(
+            userId.Value, HttpContext.RequestAborted);
+        return Ok(new FoodPageResponse(items, total));
     }
 
     [HttpGet("{foodId:int}")]

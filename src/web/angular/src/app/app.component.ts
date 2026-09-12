@@ -10,6 +10,7 @@ import { AuthService } from './auth/auth.service';
       <a routerLink="/">Food Database</a>
       @if (auth.currentUser()) {
         <a routerLink="/favorites">Favorites</a>
+        <a routerLink="/my-foods">My foods</a>
         <a routerLink="/foods/new">Create food</a>
         <button (click)="logout()">Sign out</button>
       } @else {

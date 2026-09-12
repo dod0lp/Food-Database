@@ -97,6 +97,57 @@ namespace Food_Database.Database.Repositories.Foods {
             return [.. entities.Select(x => x.ToDomainWithIngredients())];
         }
 
+        /// <summary>Gets one page of foods supplied by the system, not users.</summary>
+        public Task<List<Food>> GetSystemFoodsAsync(
+    int page,
+    int pageSize,
+    CancellationToken cancellationToken = default) =>
+            GetFoodPageAsync(
+                _db.Food.Where(x => x.UserCreatedFood == null),
+                page,
+                pageSize,
+                cancellationToken);
+
+        /// <summary>Gets one page of foods created by one user.</summary>
+        public Task<List<Food>> GetUserCreatedFoodsAsync(
+    int userId,
+    int page,
+    int pageSize,
+    CancellationToken cancellationToken = default) =>
+            GetFoodPageAsync(
+                _db.Food.Where(x =>
+                    x.UserCreatedFood != null && x.UserCreatedFood.User_Id == userId),
+                page,
+                pageSize,
+                cancellationToken);
+
+        public Task<int> GetSystemFoodCountAsync(CancellationToken cancellationToken = default) =>
+            _db.Food.CountAsync(x => x.UserCreatedFood == null, cancellationToken);
+
+        public Task<int> GetUserCreatedFoodCountAsync(
+    int userId,
+    CancellationToken cancellationToken = default) =>
+            _db.Food.CountAsync(x =>
+                x.UserCreatedFood != null && x.UserCreatedFood.User_Id == userId,
+                cancellationToken);
+
+        private async Task<List<Food>> GetFoodPageAsync(
+    IQueryable<Food_DBEntity> query,
+    int page,
+    int pageSize,
+    CancellationToken cancellationToken) {
+            List<Food_DBEntity> entities = await query
+                .AsNoTracking()
+                .OrderBy(x => x.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Include(x => x.FoodIngredientsFood)
+                    .ThenInclude(x => x.Ingredient_Food)
+                .ToListAsync(cancellationToken);
+
+            return [.. entities.Select(x => x.ToDomainWithIngredients())];
+        }
+
         /// <summary>
         /// Function to get favorite <see cref="Food"/>s out of database for certain <see cref="Users_DBEntity.Id"/>.
         /// </summary>

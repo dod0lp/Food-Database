@@ -23,6 +23,8 @@ export interface FavoriteFood {
   options: { weight: number; price: number | null }[];
 }
 
+export interface FoodPage { items: Food[]; total: number; }
+
 export interface SimpleFoodRequest {
   name: string; description: string | null; energyKcal: number | null;
   fatTotal: number | null; fatSaturated: number | null;
@@ -34,7 +36,12 @@ export interface SimpleFoodRequest {
 export class FoodService {
   constructor(private readonly http: HttpClient) {}
 
-  list(): Observable<Food[]> { return this.http.get<Food[]>('/api/foods?from=1&to=50'); }
+  list(page: number, pageSize: number): Observable<FoodPage> {
+    return this.http.get<FoodPage>(`/api/foods?page=${page}&pageSize=${pageSize}`);
+  }
+  myFoods(page: number, pageSize: number): Observable<FoodPage> {
+    return this.http.get<FoodPage>(`/api/foods/mine?page=${page}&pageSize=${pageSize}`);
+  }
   get(id: number): Observable<Food> { return this.http.get<Food>(`/api/foods/${id}`); }
   isFavorite(id: number): Observable<boolean> { return this.http.get<boolean>(`/api/foods/${id}/favorite`); }
   favorites(): Observable<FavoriteFood[]> { return this.http.get<FavoriteFood[]>('/api/foods/favorites'); }

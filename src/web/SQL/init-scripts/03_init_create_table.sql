@@ -18,8 +18,8 @@ BEGIN
         Id INT IDENTITY(1,1) NOT NULL
             CONSTRAINT PK_Users PRIMARY KEY,
 
-        -- ASP.NET Core Identity fields. PasswordHash is written only through
-        -- UserManager during registration, never directly by application SQL.
+        -- ASP.NET Core Identity fields.
+        -- PasswordHash written only through UserManager during registration
         UserName NVARCHAR(256) NULL,
         NormalizedUserName NVARCHAR(256) NULL,
         Email NVARCHAR(256) NULL,

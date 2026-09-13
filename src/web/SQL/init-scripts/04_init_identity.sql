@@ -1,4 +1,3 @@
--- Supporting ASP.NET Core Identity tables for a fresh Food database.
 USE [$(DB_NAME)];
 GO
 

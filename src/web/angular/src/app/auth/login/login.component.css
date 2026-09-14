@@ -1,0 +1,3 @@
+form { display:grid; gap:1rem; max-width:24rem; }
+label { display:grid; gap:.35rem; }
+input { padding:.5rem; }

@@ -1,0 +1,1 @@
+form, .nutrients { display:grid; gap:1rem; margin-top:1rem; } label { display:grid; gap:.3rem; } .nutrients { grid-template-columns:repeat(auto-fit,minmax(10rem,1fr)); } .ingredient { display:flex; gap:1rem; align-items:end; } textarea { min-height:4rem; }

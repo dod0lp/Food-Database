@@ -1,0 +1,33 @@
+<section class="card">
+      <h1>Create food</h1>
+      <label><input type="radio" name="kind" [(ngModel)]="kind" value="simple"> Simple food</label>
+      <label><input type="radio" name="kind" [(ngModel)]="kind" value="composite"> Meal / composite food</label>
+      <form (ngSubmit)="submit()">
+        <label>Name <input name="name" [(ngModel)]="name" required maxlength="200"></label>
+        <label>Description <textarea name="description" [(ngModel)]="description"></textarea></label>
+        @if (kind === 'simple') {
+          <p>All nutrient values are per 100 g. Leave a value blank when unknown.</p>
+          <div class="nutrients">
+            <label>Energy kcal <input name="energy" type="number" [(ngModel)]="energy"></label>
+            <label>Fat g <input name="fat" type="number" step="0.01" [(ngModel)]="fat"></label>
+            <label>Saturated fat g <input name="saturated" type="number" step="0.01" [(ngModel)]="saturated"></label>
+            <label>Carbs g <input name="carbs" type="number" step="0.01" [(ngModel)]="carbs"></label>
+            <label>Sugar g <input name="sugar" type="number" step="0.01" [(ngModel)]="sugar"></label>
+            <label>Protein g <input name="protein" type="number" step="0.01" [(ngModel)]="protein"></label>
+            <label>Salt g <input name="salt" type="number" step="0.01" [(ngModel)]="salt"></label>
+          </div>
+        } @else {
+          <p>Use existing food IDs and the actual grams used in the recipe.</p>
+          @for (ingredient of ingredients; track $index) {
+            <div class="ingredient">
+              <label>Food ID <input [name]="'id' + $index" type="number" [(ngModel)]="ingredient.foodId" required></label>
+              <label>Grams <input [name]="'weight' + $index" type="number" step="0.01" [(ngModel)]="ingredient.weightInGrams" required></label>
+              <button type="button" (click)="removeIngredient($index)">Remove</button>
+            </div>
+          }
+          <button type="button" (click)="addIngredient()">Add ingredient</button>
+        }
+        @if (error) { <p class="error">{{ error }}</p> }
+        <button [disabled]="saving">Create and favorite</button>
+      </form>
+    </section>

@@ -1,0 +1,29 @@
+@if (food | async; as item) {
+      <section class="card">
+        <a routerLink="/">â† All foods</a>
+        <h1>{{ item.name }}</h1>
+        @if (item.description) { <p>{{ item.description }}</p> }
+        <h2>Nutrients per {{ item.weight }} g</h2>
+        <dl>
+          <dt>Energy</dt><dd>{{ item.nutrientContent.energy.kcal }} kcal</dd>
+          <dt>Fat</dt><dd>{{ item.nutrientContent.fatContent.total }} g</dd>
+          <dt>Saturated fat</dt><dd>{{ item.nutrientContent.fatContent.saturated }} g</dd>
+          <dt>Carbs</dt><dd>{{ item.nutrientContent.carbohydrateContent.total }} g</dd>
+          <dt>Sugar</dt><dd>{{ item.nutrientContent.carbohydrateContent.sugar }} g</dd>
+          <dt>Protein</dt><dd>{{ item.nutrientContent.protein.total }} g</dd>
+          <dt>Salt</dt><dd>{{ item.nutrientContent.salt.total }} g</dd>
+        </dl>
+        @if (item.ingredients.length) {
+          <h2>Ingredients</h2>
+          <ul>@for (ingredient of item.ingredients; track ingredient.id) {
+            <li><a [routerLink]="['/foods', ingredient.id]">{{ ingredient.name }}</a> â€” {{ ingredient.weight | number:'1.0-2' }} g</li>
+          }</ul>
+        }
+        @if (auth.currentUser() && !isFavorite()) {
+          <button (click)="favorite(item.id)">Add to favorites</button>
+        } @else if (auth.currentUser()) {
+          <p>This food is in <a routerLink="/favorites">your favorites</a>.</p>
+        }
+        @if (message()) { <p>{{ message() }}</p> }
+      </section>
+    } @else { <p>Loading foodâ€¦</p> }

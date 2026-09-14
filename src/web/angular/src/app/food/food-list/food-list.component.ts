@@ -1,28 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Food, FoodService } from './food.service';
+import { Food, FoodService } from '../food.service';
 
 @Component({
   imports: [RouterLink],
-  template: `
-    <section class="card">
-      <h1>{{ mine ? 'My foods' : 'Foods' }}</h1>
-      @if (loading()) { <p>Loading foods…</p> }
-      @if (error()) { <p class="error">{{ error() }}</p> }
-      @if (!loading() && !foods().length) {
-        <p>{{ mine ? 'You have not created any foods yet.' : 'No system foods found.' }}</p>
-      }
-      <ul>@for (food of foods(); track food.id) {
-        <li><a [routerLink]="['/foods', food.id]">{{ food.name }}</a> <small>#{{ food.id }}</small></li>
-      }</ul>
-      <nav class="pages">
-        <button type="button" (click)="previous()" [disabled]="page() === 1">← Previous</button>
-        <span>Page {{ page() }} of {{ pageCount() }}</span>
-        <button type="button" (click)="next()" [disabled]="page() >= pageCount()">Next →</button>
-      </nav>
-    </section>
-  `,
-  styles: `.pages { display:flex; align-items:center; gap:1rem; margin-top:1rem; }`
+  templateUrl: './food-list.component.html',
+  styleUrl: './food-list.component.css'
 })
 export class FoodListComponent implements OnInit {
   private readonly foodsApi = inject(FoodService);

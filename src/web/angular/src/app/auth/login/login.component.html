@@ -1,0 +1,10 @@
+<section class="card">
+  <h1>Sign in</h1>
+  <form (ngSubmit)="submit()">
+    <label>Email <input name="email" type="email" [(ngModel)]="email" required></label>
+    <label>Password <input name="password" type="password" [(ngModel)]="password" required></label>
+    @if (error) { <p class="error">{{ error }}</p> }
+    <button [disabled]="saving">Sign in</button>
+  </form>
+  <p>New here? <a routerLink="/register">Create an account</a>.</p>
+</section>

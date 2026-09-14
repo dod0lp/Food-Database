@@ -1,0 +1,1 @@
+dl { display:grid; grid-template-columns: 10rem 1fr; gap:.3rem 1rem; } dt { font-weight:600; } dd { margin:0; }

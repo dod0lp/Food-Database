@@ -1,0 +1,117 @@
+<section class="card favorites-card">
+      <div class="favorites-heading">
+        <div>
+          <h1>My favorites</h1>
+          <p class="muted">Open a food to view or change its personal details.</p>
+        </div>
+        <aside class="removal-settings" aria-label="Favorite removal preference">
+          <span>When removing a favorite</span>
+          <label><input type="radio" name="removeData" value="keep" [(ngModel)]="removeDataChoice"> Keep my details</label>
+          <label><input type="radio" name="removeData" value="delete" [(ngModel)]="removeDataChoice"> Delete my details too</label>
+        </aside>
+      </div>
+
+      @if (loading()) { <p>Loading favorites...</p> }
+      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (message()) { <p class="message">{{ message() }}</p> }
+      @if (!loading() && !favorites().length) { <p>You have no favorites yet.</p> }
+
+      <div class="favorite-list">
+        @for (favorite of favorites(); track favorite.food.id) {
+          <article class="favorite-item">
+            <div class="favorite-name" (click)="toggleExpanded(favorite.food.id)">
+              <button class="expander" type="button" (click)="$event.stopPropagation(); toggleExpanded(favorite.food.id)"
+                [attr.aria-expanded]="isExpanded(favorite.food.id)"
+                [attr.aria-label]="isExpanded(favorite.food.id) ? 'Hide details for ' + favorite.food.name : 'Show details for ' + favorite.food.name">
+                {{ isExpanded(favorite.food.id) ? '-' : '+' }}
+              </button>
+              <a [routerLink]="['/foods', favorite.food.id]" (click)="$event.stopPropagation()">{{ favorite.food.name }}</a>
+            </div>
+
+            @if (isExpanded(favorite.food.id)) {
+              <div class="favorite-details">
+                @if (nutritionRows(favorite.food).length) {
+                  <section class="detail-section nutrition-section">
+                    <div class="detail-title"><h2>Nutrients per {{ favorite.food.weight }} g</h2></div>
+                    <dl class="nutrients">
+                      @for (nutrient of nutritionRows(favorite.food); track nutrient.label) {
+                        <dt>{{ nutrient.label }}</dt><dd>{{ formatDecimal(nutrient.value) }} {{ nutrient.unit }}</dd>
+                      }
+                    </dl>
+                  </section>
+                }
+                <section class="detail-section">
+                  <div class="detail-title">
+                    <h2>Remark</h2>
+                    @if (!isEditingRemark(favorite.food.id)) {
+                      <button type="button" class="text-button" (click)="openRemarkEditor(favorite)">{{ hasRemark(favorite) ? 'Edit remark' : '+ Add remark' }}</button>
+                    }
+                  </div>
+                  @if (hasRemark(favorite) && !isEditingRemark(favorite.food.id)) { <p class="remark">{{ favorite.remark }}</p> }
+                  @if (isEditingRemark(favorite.food.id)) {
+                    <label class="editor-label">Your remark
+                      <textarea [name]="'remark' + favorite.food.id" [(ngModel)]="remarkDrafts[favorite.food.id]"></textarea>
+                    </label>
+                    <div class="actions">
+                      <button type="button" (click)="saveRemark(favorite)" [disabled]="isBusy(favorite.food.id)">Save remark</button>
+                      <button type="button" class="text-button" (click)="closeRemarkEditor(favorite.food.id)">Cancel</button>
+                    </div>
+                  }
+                </section>
+
+                <section class="detail-section">
+                  <div class="detail-title">
+                    <h2>Package sizes</h2>
+                    @if (!isAddingOption(favorite.food.id)) {
+                      <button type="button" class="text-button" (click)="openOptionEditor(favorite.food.id)">+ Add package size</button>
+                    }
+                  </div>
+                  @if (favorite.options.length) {
+                    <div class="package-table">
+                      <div class="package-table-heading" aria-hidden="true">
+                        <span>Package</span><span>Price</span><span>Per 100 g</span><span></span>
+                      </div>
+                      @for (option of favorite.options; track option.weight) {
+                        <div class="package-row">
+                          <strong>{{ formatDecimal(option.weight) }} g</strong>
+                          <span class="price">@if (option.price !== null) { {{ formatPrice(option.price) }} } @else { No price }</span>
+                          <span>@if (option.price !== null) { {{ formatPrice(pricePer100g(option.price, option.weight)) }} } @else { - }</span>
+                          <div class="option-actions">
+                            <button type="button" class="text-button" (click)="openOptionEditor(favorite.food.id, option.weight, option.price)">Edit</button>
+                            <button type="button" class="text-button remove-option" (click)="removeOption(favorite, option.weight)" [disabled]="isBusy(favorite.food.id)">Remove</button>
+                          </div>
+                          @if (nutritionRows(favorite.food, option.weight).length) {
+                            <div class="package-nutrients"><strong>Nutrients for this {{ formatDecimal(option.weight) }} g package</strong>
+                              @for (nutrient of nutritionRows(favorite.food, option.weight); track nutrient.label; let last = $last) { <span>{{ nutrient.label }} {{ formatDecimal(nutrient.value) }} {{ nutrient.unit }}@if (!last) { | }</span> }
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (isAddingOption(favorite.food.id)) {
+                    <div class="option-editor">
+                      @if (isEditingOption(favorite.food.id)) {
+                        <div class="locked-weight"><span>Package weight</span><strong>{{ formatDecimal(newWeights[favorite.food.id] ?? 0) }} g</strong></div>
+                      } @else {
+                        <label>Weight (g)<input [name]="'weight' + favorite.food.id" type="number" min="1" [(ngModel)]="newWeights[favorite.food.id]"></label>
+                      }
+                      <label>Price (optional)<input [name]="'price' + favorite.food.id" type="number" min="0" step="0.01" [(ngModel)]="newPrices[favorite.food.id]"></label>
+                      <div class="actions">
+                        <button type="button" (click)="addOption(favorite)" [disabled]="isBusy(favorite.food.id)">{{ isEditingOption(favorite.food.id) ? 'Save price' : 'Save size' }}</button>
+                        <button type="button" class="text-button" (click)="closeOptionEditor(favorite.food.id)">Cancel</button>
+                      </div>
+                    </div>
+                  }
+                </section>
+
+                <div class="remove-favorite">
+                  <button type="button" class="danger" (click)="removeFavorite(favorite)" [disabled]="isBusy(favorite.food.id)">Remove from favorites</button>
+                  <small>{{ removeDataChoice === 'keep' ? 'Your remark and package sizes will be kept.' : 'Your remark and package sizes will be deleted.' }}</small>
+                </div>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    </section>

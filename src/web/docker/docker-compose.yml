@@ -1,20 +1,47 @@
 services:
   sqlserver:
     build:
-      context: ./../sql
-      dockerfile: Dockerfile
-    container_name: sqlserver_food
+      context: ../SQL
+    env_file:
+      - ./.env
     environment:
-      - SA_PASSWORD=${SA_PASSWORD}
-      - ACCEPT_EULA=${ACCEPT_EULA}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_SERVER=${DB_ADDRESS},${DB_PORT}
+      DB_SERVER: localhost,1433
     ports:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" -C || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  api:
+    build:
+      context: ../../C#
+      dockerfile: Api/Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DB_ADDRESS: sqlserver
+      DB_PORT: 1433
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    expose:
+      - "8080"
+    volumes:
+      - api_data_protection:/root/.aspnet/DataProtection-Keys
+
+  web:
+    build: ../angular
+    depends_on:
+      - api
+    ports:
+      - "4200:80"
 
 volumes:
   sqlserver_data:
+  api_data_protection:

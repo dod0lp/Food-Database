@@ -18,6 +18,9 @@ public static class ProgramTestFood {
     const int simpleMixCount = 30;
     const int compositeMixCount = 75;
 
+    private static readonly string ROOT = "../../../";
+    private static readonly string CONSTRAINT_CHECK = ROOT + "tests/database-constraints-check.txt";
+
     private static readonly FoodNutrient[] MassNutrients = [
         FoodNutrient.Fat_Total,
         FoodNutrient.Carbs_Total,
@@ -31,7 +34,7 @@ public static class ProgramTestFood {
         new(FoodNutrient.Carbs_Total, FoodNutrient.Carbs_Sugar)
     ];
 
-    static async Task Main() {
+    static async Task Main(string[] args) {
         var options = new DbContextOptionsBuilder<DB_FoodContext>()
             .UseSqlServer(
                 DB_Food_Descriptors.ConnectionString,
@@ -40,8 +43,18 @@ public static class ProgramTestFood {
 
         using var db = new DB_FoodContext(options);
 
-        await EnsureDummyData(db);
-        await CheckDBConstraintsAsync(db);
+
+        if (args.Contains("--seed", StringComparer.OrdinalIgnoreCase)) {
+            await EnsureDummyData(db);
+            Console.WriteLine("Seed data is ready.");
+            return;
+        }
+
+        if (args.Contains("--checkdb", StringComparer.OrdinalIgnoreCase)) {
+            await CheckDBConstraintsAsync(db);
+            Console.WriteLine($"Data checked. Results file is in $ProjectRoot/tests/.");
+            return;
+        }
 
         Users_DBEntity? user = await db.Users
             .Include(x => x.Food)
@@ -581,7 +594,7 @@ public static class ProgramTestFood {
             }
         }
 
-        string reportPath = Path.Combine(Environment.CurrentDirectory, "../../database-constraints.txt");
+        string reportPath = Path.Combine(Environment.CurrentDirectory, CONSTRAINT_CHECK);
         await File.WriteAllTextAsync(reportPath, report.ToString(),
                                                     cancellationToken);
     }

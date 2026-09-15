@@ -1,6 +1,6 @@
 @if (food | async; as item) {
       <section class="card">
-        <a routerLink="/">â† All foods</a>
+        <a routerLink="/">&lt;-- All foods</a>
         <h1>{{ item.name }}</h1>
         @if (item.description) { <p>{{ item.description }}</p> }
         <h2>Nutrients per {{ item.weight }} g</h2>
@@ -16,7 +16,7 @@
         @if (item.ingredients.length) {
           <h2>Ingredients</h2>
           <ul>@for (ingredient of item.ingredients; track ingredient.id) {
-            <li><a [routerLink]="['/foods', ingredient.id]">{{ ingredient.name }}</a> â€” {{ ingredient.weight | number:'1.0-2' }} g</li>
+            <li><a [routerLink]="['/foods', ingredient.id]">{{ ingredient.name }}</a> | {{ ingredient.weight | number:'1.0-2' }} g</li>
           }</ul>
         }
         @if (auth.currentUser() && !isFavorite()) {
@@ -26,4 +26,4 @@
         }
         @if (message()) { <p>{{ message() }}</p> }
       </section>
-    } @else { <p>Loading foodâ€¦</p> }
+    } @else { <p>Loading food</p> }

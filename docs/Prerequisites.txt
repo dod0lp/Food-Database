@@ -1,5 +1,0 @@
-Docker (will download MicrosoftSQL)
-C# .NET, EntityFramework
-Drawio - viewing diagram
-
-Preferably - Visual Studio

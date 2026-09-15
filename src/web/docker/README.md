@@ -1,25 +1,35 @@
-# Food Database Docker stack
+# Food Database Setup
 
-From this folder, this docker will start `SQL Server`, `.NET API`, and the `Angular` web app:
+## Setup
+- Choose this folder and start docker. `src/web/docker`
+- This will start `SQL Server`, `.NET API`, and the `Angular` web app:
+    ```sh
+    docker compose up --build
+    ```
+    *You need to wait for containers to start.*
 
-```sh
-docker compose up --build
-```
+## Running application
+- **Open** webapp on <http://localhost:4200>.
 
-(You need to wait for containers to start)
+## Shut down
+- To **stop services**, use `docker compose down`.
+- The database persists in the `sqlserver_data` docker volume.
+- `docker compose down -v` to remove database data.
 
-To seed data, tested only for empty database, run
-```sh
-dotnet run --project ../../C#/Food-Database.csproj -- --seed
-```
+## Development
+#### Potential development issues
+When I was writing code on windows, there have been error for clean `git clone` setup, that it couldn't load startup script because of line endings.
+I hopefully fixed that.
+If you are developing on windows, and you get error about `startup.sh`, first thing to look for is line endings on `../SQL/startup.sh`.
 
-To check database values if they fall within application logic, run
-```sh
-dotnet run --project ../../C#/Food-Database.csproj -- --checkdb
-```
+### Seed dummy data
+- To seed data, tested only for empty database, run
+    ```sh
+    dotnet run --project ../../C#/Food-Database.csproj -- --seed
+    ```
 
-**Open** webapp on <http://localhost:4200>.
-
-**Stop services** with `docker compose down`.
-The database persists in the `sqlserver_data` docker volume.
-(`docker compose down -v` to remove database data.)
+### Check databse values
+- To check database values if they fall within application logic, run
+    ```sh
+    dotnet run --project ../../C#/Food-Database.csproj -- --checkdb
+    ```

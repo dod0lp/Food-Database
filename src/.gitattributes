@@ -1,0 +1,3 @@
+# line endings for .sh with linux EOL
+# i believe this shouldve fixed startup.sh sqlserver problem
+*.sh text eol=lf

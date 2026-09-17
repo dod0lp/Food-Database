@@ -1,8 +1,8 @@
 # Food Database Setup
 
 ## Setup
-- Choose this folder and start docker. `src/web/docker`
-- This will start `SQL Server`, `.NET API`, and the `Angular` web app:
+- Choose this folder, `src/web/docker`.
+- Following will start `SQL Server`, `.NET API`, and the `Angular` web app:
     ```sh
     docker compose up --build
     ```

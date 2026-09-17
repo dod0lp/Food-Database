@@ -2,6 +2,6 @@ Database contains food with nutrients values (normalized to 100g).
 
 User can do following:
 Choose already exisitng food as his favorite.
-Create new food as his favorite (if unfavorite, to be removed from database [theoretically 2 users can think of different products even when same nutrients -- use user remark]).
+Create new food as his favorite (if unfavorite, possibly(?) to be removed from database [theoretically 2 users can think of different products even when same nutrients -- likely use user remark]).
 Set weight of his favorite food (optional, multiple weights [package size, ingredient size]).
 Set price for his favorite food (optional, once for each size).

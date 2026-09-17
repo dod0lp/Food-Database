@@ -1,0 +1,14 @@
+.gitignore
+
+.vs
+*.sln
+*.slnx
+obj
+bin
+
+*.json
+
+!/src/web/angular/*.json
+src/web/angular/node_modules
+src/web/angular/dist
+src/web/angular/.angular

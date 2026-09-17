@@ -280,7 +280,15 @@ CancellationToken cancellationToken) {
             }
         }
 
-        /// <summary>Removes one saved package/serving option for a favorite food.</summary>
+        /// <summary>
+        /// Removes a specific favorite food option for a user.
+        /// </summary>
+        /// <param name="userId">ID of the user.</param>
+        /// <param name="foodId">ID of the food.</param>
+        /// <param name="weight">Weight of the option to remove.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+        /// <returns><b>True</b> if the option was removed.<br></br>
+        /// <b>False</b> otherwise.</returns>
         public async Task<bool> RemoveFavoriteFoodOptionAsync(
     int userId,
     int foodId,
@@ -302,10 +310,17 @@ CancellationToken cancellationToken) {
         }
 
         /// <summary>
-        /// Removes a food from one user's favorites without deleting the food.
+        /// Removes a food from one user's favorites without deleting the food.<br></br>
         /// Personal remark and package options are retained by default so they
-        /// are available again if the user re-favorites the food.
+        ///     are available again if the user re-favorites the food.
         /// </summary>
+        /// <param name="userId">ID of the user.</param>
+        /// <param name="foodId">ID of the food.</param>
+        /// <param name="deletePersonalData">Whether to delete personal data associated with the favorite food.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+        /// <returns><b>True</b> if the food was removed from favorites.<br></br>
+        /// <b>False</b> if some error.</returns>
+        /// <remarks>This might clog up database if users will frequently add and remove favorite foods.</remarks>
         public async Task<bool> RemoveFavoriteFoodAsync(
     int userId,
     int foodId,
@@ -322,14 +337,15 @@ CancellationToken cancellationToken) {
 
             if (deletePersonalData) {
                 List<UserFoodOptions_DBEntity> options = await _db.UserFoodOptions
-                    .Where(x => x.User_Id == userId && x.Food_Id == foodId)
+                    .Where(x => x.User_Id == userId
+                                && x.Food_Id == foodId)
                     .ToListAsync(cancellationToken);
                 _db.UserFoodOptions.RemoveRange(options);
 
                 UserFoodRemarks_DBEntity? remark = await _db.UserFoodRemark
-                    .SingleOrDefaultAsync(x =>
-                        x.User_Id == userId && x.Food_Id == foodId,
-                        cancellationToken);
+                    .SingleOrDefaultAsync(x => x.User_Id == userId 
+                                            && x.Food_Id == foodId,
+                                                cancellationToken);
                 if (remark is not null) {
                     _db.UserFoodRemark.Remove(remark);
                 }

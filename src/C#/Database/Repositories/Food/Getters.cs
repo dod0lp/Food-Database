@@ -97,7 +97,13 @@ namespace Food_Database.Database.Repositories.Foods {
             return [.. entities.Select(x => x.ToDomainWithIngredients())];
         }
 
-        /// <summary>Gets one page of foods supplied by the system, not users.</summary>
+        /// <summary>
+        /// Gets one page of system foods (foods created by the system, not by users) from the database.
+        /// </summary>
+        /// <param name="page">Page number.</param>
+        /// <param name="pageSize">Number of items per page.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+        /// <returns>List of system foods for the specified page.</returns>
         public Task<List<Food>> GetSystemFoodsAsync(
     int page,
     int pageSize,
@@ -109,6 +115,11 @@ namespace Food_Database.Database.Repositories.Foods {
                 cancellationToken);
 
         /// <summary>Gets one page of foods created by one user.</summary>
+        /// <param name="userId">ID of the user.</param>
+        /// <param name="page">Page number.</param>
+        /// <param name="pageSize">Number of items per page.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+        /// <returns>List of foods created by the specified user for the specified page.</returns>
         public Task<List<Food>> GetUserCreatedFoodsAsync(
     int userId,
     int page,
@@ -121,9 +132,20 @@ namespace Food_Database.Database.Repositories.Foods {
                 pageSize,
                 cancellationToken);
 
+        /// <summary>
+        /// Gets the count of system foods in the database.
+        /// </summary>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+        /// <returns>The number of system foods in the database.</returns>
         public Task<int> GetSystemFoodCountAsync(CancellationToken cancellationToken = default) =>
             _db.Food.CountAsync(x => x.UserCreatedFood == null, cancellationToken);
 
+        /// <summary>
+        /// Gets the count of foods created by a specific user.
+        /// </summary>
+        /// <param name="userId">ID of the user.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+        /// <returns>The number of foods created by the specified user.</returns>
         public Task<int> GetUserCreatedFoodCountAsync(
     int userId,
     CancellationToken cancellationToken = default) =>
@@ -131,6 +153,14 @@ namespace Food_Database.Database.Repositories.Foods {
                 x.UserCreatedFood != null && x.UserCreatedFood.User_Id == userId,
                 cancellationToken);
 
+        /// <summary>
+        /// Gets one page of foods from the database based on a given query (e.g. no user-created food)
+        /// </summary>
+        /// <param name="query">The query to filter foods.</param>
+        /// <param name="page">The page number to retrieve.</param>
+        /// <param name="pageSize">The number of items per page.</param>
+        /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
+        /// <returns>List of foods for the specified page.</returns>
         private async Task<List<Food>> GetFoodPageAsync(
     IQueryable<Food_DBEntity> query,
     int page,
@@ -145,7 +175,8 @@ namespace Food_Database.Database.Repositories.Foods {
                     .ThenInclude(x => x.Ingredient_Food)
                 .ToListAsync(cancellationToken);
 
-            return [.. entities.Select(x => x.ToDomainWithIngredients())];
+            return [.. 
+                entities.Select(x => x.ToDomainWithIngredients())];
         }
 
         /// <summary>

@@ -1,6 +1,5 @@
 ﻿using DotNetEnv;
 using Food_Database.Database.Descriptors;
-using Food_Database.Database.Repositories.Foods;
 using Food_Database.Models;
 using FoodBase;
 using FoodParser;
@@ -58,7 +57,7 @@ public static class ProgramTestFood {
 
         if (args.Contains("--checkdb", StringComparer.OrdinalIgnoreCase)) {
             await CheckDBConstraintsAsync(db);
-            Console.WriteLine($"Data checked. Results file is in $ProjectRoot/tests/.");
+            Console.WriteLine($"Data checked. Results file is in $ProjectRoot/src/tests/.");
             return;
         }
 

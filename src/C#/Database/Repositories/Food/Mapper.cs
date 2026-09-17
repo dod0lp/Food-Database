@@ -12,7 +12,7 @@
         /// <summary>
         /// Constant to represent unknown value for nutrients.
         /// </summary>
-        private const double Unknown = -1d;
+        public const double Unknown = -1d;
 
         /// <summary>
         /// Maps a <see cref="Food_DBEntity"/> to a <see cref="Food"/> domain model, adjusting nutrient values based on the specified weight.

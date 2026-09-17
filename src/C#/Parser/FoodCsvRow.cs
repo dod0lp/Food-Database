@@ -15,6 +15,9 @@ public class FoodCsv {
 }
 
 public sealed class FoodCsvMap : ClassMap<FoodCsv> {
+    private static readonly string CsvPath = Path.Combine(
+        Food_Database.ProjectPaths.SrcDir, "C#", "Parser", "food.csv");
+
     public FoodCsvMap() {
         Map(x => x.Name).Name("Description");
         Map(x => x.Calories).Name("Data.Kilocalories");
@@ -26,7 +29,11 @@ public sealed class FoodCsvMap : ClassMap<FoodCsv> {
     }
 
     public static async Task ParseCsvIntoDB(DB_FoodContext db, int count) {
-        using var reader = new StreamReader("../../../Parser/food.csv"); // windows--from visual studio bin path
+        if (!File.Exists(CsvPath)) {
+            throw new FileNotFoundException("Seed CSV file was not found.", CsvPath);
+        }
+
+        using var reader = new StreamReader(CsvPath);
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
         csv.Context.RegisterClassMap<FoodCsvMap>();

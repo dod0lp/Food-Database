@@ -18,8 +18,10 @@ public static class ProgramTestFood {
     const int simpleMixCount = 30;
     const int compositeMixCount = 75;
 
-    private static readonly string ROOT = "../../../";
-    private static readonly string CONSTRAINT_CHECK = ROOT + "tests/database-constraints-check.txt";
+    private static readonly string TESTS = Path.Combine(
+        Food_Database.ProjectPaths.SrcDir, "tests");
+    private static readonly string CONSTRAINT_REPORT = Path.Combine(
+        TESTS, "database-constraints-check.txt");
 
     private static readonly FoodNutrient[] MassNutrients = [
         FoodNutrient.Fat_Total,
@@ -35,6 +37,10 @@ public static class ProgramTestFood {
     ];
 
     static async Task Main(string[] args) {
+        if (!Directory.Exists(TESTS)) {
+            Directory.CreateDirectory(TESTS);
+        }
+
         var options = new DbContextOptionsBuilder<DB_FoodContext>()
             .UseSqlServer(
                 DB_Food_Descriptors.ConnectionString,
@@ -594,8 +600,7 @@ public static class ProgramTestFood {
             }
         }
 
-        string reportPath = Path.Combine(Environment.CurrentDirectory, CONSTRAINT_CHECK);
-        await File.WriteAllTextAsync(reportPath, report.ToString(),
+        await File.WriteAllTextAsync(CONSTRAINT_REPORT, report.ToString(),
                                                     cancellationToken);
     }
 

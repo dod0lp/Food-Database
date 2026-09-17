@@ -23,6 +23,9 @@ I hopefully fixed that.
 If you are developing on windows, and you get error about `startup.sh`, first thing to look for is line endings on `../SQL/startup.sh`.
 
 ### Seed dummy data
+- Uses `src/C#/Parser/food.csv` file with predefined column names.
+- File is from some open-source dataset.
+  - This particular file has missing salt values, so they are randomly generated, so it's technically possible that sum of columns is bigger than 100.
 - To seed data, tested only for empty database, run
     ```sh
     dotnet run --project ../../C#/Food-Database.csproj -- --seed

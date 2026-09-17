@@ -1,7 +1,6 @@
 using Food_Database.Database.Repositories.Foods;
 using Food_Database.Database.Descriptors;
 using Food_Database.Models;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 string? connectionString = builder.Configuration.GetConnectionString("FoodDatabase");
 
 // The existing SQL Docker setup exposes these variables from web/docker/.env.
-// A direct ConnectionStrings__FoodDatabase value still takes precedence for
-// production deployments or user secrets.
+// A direct ConnectionStrings__FoodDatabase should have priority.
 if (string.IsNullOrWhiteSpace(connectionString)) {
     string? address = builder.Configuration["DB_ADDRESS"];
     string? port = builder.Configuration["DB_PORT"];

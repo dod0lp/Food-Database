@@ -1,14 +1,15 @@
-using Food_Database.Api.Contracts;
-using Foods = Food_Database.Database.Repositories.Foods;
-using FoodBase;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-
-using static Food_Database.Database.Repositories.Foods.Mapper;
-using Food_Database.Database.Repositories.Foods;
-using static Food_Database.Database.Descriptors.DB_Food_Descriptors;
 using Microsoft.AspNetCore.Http.HttpResults;
+
+using FoodBase;
+using Food_Database.Api.Contracts;
+
+using Foods = Food_Database.Database.Repositories.Foods;
+using Food_Database.Database.Repositories.Foods;
+using static Food_Database.Database.Repositories.Foods.Mapper;
+using static Food_Database.Database.Descriptors.DB_Food_Descriptors;
 
 namespace Food_Database.Api.Controllers;
 
@@ -51,7 +52,7 @@ public sealed class FoodsController : ControllerBase {
     public async Task<ActionResult<FoodPageResponse>> GetSystemFoods(
     [FromQuery] int page = 1,
     [FromQuery] int pageSize = DefaultPageSize) {
-        if (page < 1 || IsValidPageSize(pageSize)) {
+        if (page < 1 || !IsValidPageSize(pageSize)) {
             return _BadPageSize();
         }
 
@@ -97,7 +98,7 @@ public sealed class FoodsController : ControllerBase {
         if (userId is null) {
             return Unauthorized();
         }
-        if (page < 1 || IsValidPageSize(pageSize)) {
+        if (page < 1 || !IsValidPageSize(pageSize)) {
             return _BadPageSize();
         }
 

@@ -7,14 +7,17 @@ import { Food, FoodService } from '../food.service';
   templateUrl: './food-list.component.html',
   styleUrl: './food-list.component.css'
 })
+
 export class FoodListComponent implements OnInit {
   private readonly foodsApi = inject(FoodService);
   private readonly route = inject(ActivatedRoute);
+
   readonly foods = signal<Food[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
   readonly page = signal(1);
   readonly total = signal(0);
+
   readonly pageSize = 50;
   mine = false;
 
@@ -26,14 +29,17 @@ export class FoodListComponent implements OnInit {
   }
 
   previous(): void { if (this.page() > 1) { this.load(this.page() - 1); } }
+
   next(): void { if (this.page() < this.pageCount()) { this.load(this.page() + 1); } }
 
   private load(page: number): void {
     this.loading.set(true);
     this.error.set('');
+
     const request = this.mine
       ? this.foodsApi.myFoods(page, this.pageSize)
       : this.foodsApi.list(page, this.pageSize);
+      
     request.subscribe({
       next: response => {
         this.foods.set(response.items);

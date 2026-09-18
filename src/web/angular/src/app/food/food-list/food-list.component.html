@@ -1,16 +1,22 @@
 <section class="card">
   <h1>{{ mine ? 'My foods' : 'Foods' }}</h1>
-  @if (loading()) { <p>Loading foods&hellip;</p> }
+  @if (loading()) { <p>Loading foods...</p> }
+
   @if (error()) { <p class="error">{{ error() }}</p> }
+
   @if (!loading() && !foods().length) {
     <p>{{ mine ? 'You have not created any foods yet.' : 'No system foods found.' }}</p>
   }
+
   <ul>@for (food of foods(); track food.id) {
     <li><a [routerLink]="['/foods', food.id]">{{ food.name }}</a> <small>#{{ food.id }}</small></li>
   }</ul>
+
   <nav class="pages">
     <button type="button" (click)="previous()" [disabled]="page() === 1">&larr; Previous</button>
+
     <span>Page {{ page() }} of {{ pageCount() }}</span>
+
     <button type="button" (click)="next()" [disabled]="page() >= pageCount()">Next &rarr;</button>
   </nav>
 </section>

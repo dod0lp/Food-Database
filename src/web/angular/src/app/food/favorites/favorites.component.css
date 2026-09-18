@@ -26,3 +26,4 @@
     .remove-favorite { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-top:.4rem; } .danger { color:#a13a2a; border-color:#e7b6ae; background:#fff7f5; }
     .message { color:#12633d; }
     @media (max-width: 600px) { .favorites-heading { display:block; } .removal-settings { margin-top:1rem; } .favorite-details { padding-left:0; } .package-table-heading { display:none; } .package-row { grid-template-columns:1fr auto; } .package-row > :nth-child(2), .package-row > :nth-child(3) { font-size:.9rem; } .package-nutrients { grid-column:1 / -1; } }
+/* generated css */

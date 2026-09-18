@@ -13,7 +13,6 @@ interface IngredientInput {
   templateUrl: './create-food.component.html',
   styleUrl: './create-food.component.css'
 })
-
 export class CreateFoodComponent {
   private readonly foods = inject(FoodService);
   private readonly router = inject(Router);

@@ -14,7 +14,6 @@ interface NutrientRow {
   templateUrl: './favorites.component.html',
   styleUrl: './favorites.component.css'
 })
-
 export class FavoritesComponent implements OnInit {
   private readonly foods = inject(FoodService);
 

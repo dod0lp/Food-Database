@@ -7,7 +7,6 @@ import { Food, FoodService } from '../food.service';
   templateUrl: './food-list.component.html',
   styleUrl: './food-list.component.css'
 })
-
 export class FoodListComponent implements OnInit {
   private readonly foodsApi = inject(FoodService);
   private readonly route = inject(ActivatedRoute);

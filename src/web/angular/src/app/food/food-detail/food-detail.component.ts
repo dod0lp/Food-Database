@@ -10,7 +10,6 @@ import { FoodService } from '../food.service';
   templateUrl: './food-detail.component.html',
   styleUrl: './food-detail.component.css'
 })
-
 export class FoodDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly foods = inject(FoodService);

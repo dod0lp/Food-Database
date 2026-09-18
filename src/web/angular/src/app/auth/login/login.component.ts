@@ -11,6 +11,7 @@ import { AuthService } from '../auth.service';
 export class LoginComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+
   email = '';
   password = '';
   error = '';
@@ -21,7 +22,8 @@ export class LoginComponent {
     this.error = '';
     this.auth.login(this.email, this.password).subscribe({
       next: () => this.router.navigateByUrl('/'),
-      error: () => { this.error = 'Sign-in failed. Check your email and password.'; this.saving = false; },
+      error: () => { this.error = 'Sign-in failed. Check your email and password.';
+                      this.saving = false; },
       complete: () => this.saving = false
     });
   }

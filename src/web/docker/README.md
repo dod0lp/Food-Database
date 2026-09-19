@@ -1,7 +1,9 @@
+[Programmer documentation](../../../docs/programmer_docs/README.md)
+
 # Food Database Setup
 
 ## Setup
-- Choose this folder, `src/web/docker`.
+- Choose folder `src/web/docker`.
 - Following will start `SQL Server`, `.NET API`, and the `Angular` web app:
     ```sh
     docker compose up --build
@@ -14,9 +16,16 @@
 ## Shut down
 - To **stop services**, use `docker compose down`.
 - The database persists in the `sqlserver_data` docker volume.
-- `docker compose down -v` to remove database data.
+- Login data has its own volume `api_data_protection`.
+- `docker compose down -v` to remove **ALL** database data, even those logins.
 
 ## Development
+
+### Food-Database C# project
+- **Backbone** with functions to work with database.
+- `Main()` function:
+  - Used for testing, writing anything that you need to test out (see below)
+  - Not used for production.
 
 ### Seed dummy data (dotnet required)
 - Uses `src/C#/Parser/food.csv` file with predefined column names.

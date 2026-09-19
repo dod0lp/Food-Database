@@ -1,18 +1,25 @@
 # Food-Database
-**Full-Stack C# app** providing *information about food*, meals and its *nutrients*./
-(initially with focus on Back-End part)
+**C#** + **Angular** webapp providing *information about food*, meals and its *nutrients*.
 
-To get started, go into `src/web/docker` and read `README.md`.
+## Getting started
+To get started, read [running the project](src/web/docker/README.md).
+
+## Documentation
+
+- [Programmers documentation](docs/programmer_docs/README.md)
+- [User stories](docs/user%20stories.md)
 
 ## Prerequisites
-### To use the app
-There are really no prerequisties to simply use the app, except docker that will download everything else.
-
+### Using app
 - **Docker**
-### To development
-- **dotnet** to seed data or check if nutrient data are within application logic
+  - Will download everything needed to start and use the app.
+- **Web browser**, I guess.
 
-- Optional for better development, *Visual Studio* and some environment for *Angular*.
+### Development
+- **dotnet** to seed data or check if nutrient data are within application logic
+- Optional for better development:
+  - **Visual Studio**
+  - *Some environment* for **Angular**
 - Development is with following versions [old project version]
   - **.NET** *10.0.10* [8.0]
   - **EntityFramework** *10.0.10* [8.0]

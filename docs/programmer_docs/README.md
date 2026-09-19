@@ -34,7 +34,7 @@ This is the developer guide for the whole project.\
 
 ## Development workflow
 
-- [Coupling and change impact](development/coupling-and-change-impact.md)
+- [What to avoid](development/what-to-avoid.md)
 - [Adding a feature](development/adding-a-feature.md)
 - [Known implementation notes](development/known-implementation-notes.md)
 - [Suggested conventions](development/suggested-conventions.md)

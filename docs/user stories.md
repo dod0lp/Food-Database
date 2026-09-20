@@ -1,4 +1,5 @@
 Database contains food with nutrients values (normalized to 100g).
+User works with those foods in webapp interface.
 
 User can do following:
 - Choose already exisitng food as their favorite.

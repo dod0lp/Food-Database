@@ -13,7 +13,8 @@ To get started, read [running the project](src/web/docker/README.md).
 ### Using app
 - **Docker**
   - Will download everything needed to start and use the app.
-- **Web browser**, I guess.
+  - On windows you probably need to have Docker Desktop running.
+- **Web browser** to browse application.
 
 ### Development
 - **dotnet** to seed data or check if nutrient data are within application logic

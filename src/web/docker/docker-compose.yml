@@ -2,16 +2,18 @@ services:
   sqlserver:
     build:
       context: ../SQL
+      args:
+        DATABASE_PORT: ${SQL_PORT}
     env_file:
       - ./.env
     environment:
-      DB_SERVER: localhost,1433
-    ports:
-      - "1433:1433"
+      # reachable only from the docker
+      MSSQL_TCP_PORT: ${SQL_PORT}
+      DB_SERVER: localhost,${SQL_PORT}
     volumes:
       - sqlserver_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" -C || exit 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S \"localhost,$$MSSQL_TCP_PORT\" -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" -C || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -21,26 +23,35 @@ services:
     build:
       context: ../../C#
       dockerfile: Api/Dockerfile
+      args:
+        API_PORT: ${API_PORT}
     env_file:
       - ./.env
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:${API_PORT}
       DB_ADDRESS: sqlserver
-      DB_PORT: 1433
+      DB_PORT: ${SQL_PORT}
     depends_on:
       sqlserver:
         condition: service_healthy
-    expose:
-      - "8080"
     volumes:
       - api_data_protection:/root/.aspnet/DataProtection-Keys
 
   web:
-    build: ../angular
+    build:
+      context: ../angular
+      args:
+        API_PORT: ${API_PORT}
+        WEB_PORT: ${WEB_PORT}
+    environment:
+      API_PORT: ${API_PORT}
+      WEB_PORT: ${WEB_PORT}
     depends_on:
       - api
     ports:
-      - "4200:80"
+      # only host port
+      - "${WEB_PORT}:${WEB_PORT}"
 
 volumes:
   sqlserver_data:

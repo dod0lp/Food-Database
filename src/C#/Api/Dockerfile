@@ -11,6 +11,8 @@ RUN dotnet publish Api/Food-Database.Api.csproj -c Release -o /app/publish --no-
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish ./
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
+ARG API_PORT=8080
+ENV API_PORT=${API_PORT}
+ENV ASPNETCORE_URLS=http://+:${API_PORT}
+EXPOSE ${API_PORT}
 ENTRYPOINT ["dotnet", "Food-Database.Api.dll"]

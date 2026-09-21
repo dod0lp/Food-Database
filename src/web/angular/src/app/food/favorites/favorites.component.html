@@ -33,9 +33,9 @@
                 @if (nutritionRows(favorite.food).length) {
                   <section class="detail-section nutrition-section">
                     <div class="detail-title"><h2>Nutrients per {{ favorite.food.weight }} g</h2></div>
-                    <dl class="nutrients">
+                      <dl class="nutrients">
                       @for (nutrient of nutritionRows(favorite.food); track nutrient.label) {
-                        <dt>{{ nutrient.label }}</dt><dd>{{ formatDecimal(nutrient.value) }} {{ nutrient.unit }}</dd>
+                        <dt>{{ nutrient.label }}</dt><dd>{{ formatter.formatNutrientValue(nutrient) }}</dd>
                       }
                     </dl>
                   </section>
@@ -73,16 +73,16 @@
                       </div>
                       @for (option of favorite.options; track option.weight) {
                         <div class="package-row">
-                          <strong>{{ formatDecimal(option.weight) }} g</strong>
-                          <span class="price">@if (option.price !== null) { {{ formatPrice(option.price) }} } @else { No price }</span>
-                          <span>@if (option.price !== null) { {{ formatPrice(pricePer100g(option.price, option.weight)) }} } @else { - }</span>
+                          <strong>{{ formatter.formatDecimal(option.weight) }} g</strong>
+                          <span class="price">@if (option.price !== null) { {{ formatter.formatPrice(option.price) }} } @else { No price }</span>
+                          <span>@if (option.price !== null) { {{ formatter.formatPrice(pricePerWeight(option.price, option.weight, 100)) }} } @else { - }</span>
                           <div class="option-actions">
                             <button type="button" class="text-button" (click)="openOptionEditor(favorite.food.id, option.weight, option.price)">Edit</button>
                             <button type="button" class="text-button remove-option" (click)="removeOption(favorite, option.weight)" [disabled]="isBusy(favorite.food.id)">Remove</button>
                           </div>
                           @if (nutritionRows(favorite.food, option.weight).length) {
-                            <div class="package-nutrients"><strong>Nutrients for this {{ formatDecimal(option.weight) }} g package</strong>
-                              @for (nutrient of nutritionRows(favorite.food, option.weight); track nutrient.label; let last = $last) { <span>{{ nutrient.label }} {{ formatDecimal(nutrient.value) }} {{ nutrient.unit }}@if (!last) { | }</span> }
+                            <div class="package-nutrients"><strong>Nutrients for this {{ formatter.formatDecimal(option.weight) }} g package</strong>
+                              @for (nutrient of nutritionRows(favorite.food, option.weight); track nutrient.label; let last = $last) { <span>{{ nutrient.label }} {{ formatter.formatNutrientValue(nutrient) }}@if (!last) { | }</span> }
                             </div>
                           }
                         </div>
@@ -92,7 +92,7 @@
                   @if (isAddingOption(favorite.food.id)) {
                     <div class="option-editor">
                       @if (isEditingOption(favorite.food.id)) {
-                        <div class="locked-weight"><span>Package weight</span><strong>{{ formatDecimal(newWeights[favorite.food.id] ?? 0) }} g</strong></div>
+                        <div class="locked-weight"><span>Package weight</span><strong>{{ formatter.formatDecimal(newWeights[favorite.food.id] ?? 0) }} g</strong></div>
                       } @else {
                         <label>Weight (g)<input [name]="'weight' + favorite.food.id" type="number" min="1" [(ngModel)]="newWeights[favorite.food.id]"></label>
                       }
@@ -107,7 +107,13 @@
 
                 <div class="remove-favorite">
                   <button type="button" class="danger" (click)="removeFavorite(favorite)" [disabled]="isBusy(favorite.food.id)">Remove from favorites</button>
-                  <small>{{ removeDataChoice === 'keep' ? 'Your remark and package sizes will be kept.' : 'Your remark and package sizes will be deleted.' }}</small>
+                  @if (removeDataChoice === 'keep') {
+                    <small>Your remark and package sizes will be <strong>kept</strong>.</small>
+                  }
+
+                  @if (removeDataChoice === 'delete') {
+                    <small>Your remark and package sizes will be <strong>deleted</strong>.</small>
+                  }
                 </div>
               </div>
             }

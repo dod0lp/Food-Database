@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Food, FoodService } from '../food.service';
+import { FoodService } from '../food.service';
+import type { Food } from '../food.types';
 
 @Component({
   imports: [RouterLink],

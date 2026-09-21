@@ -1,14 +1,13 @@
 import { Component, inject, OnInit, signal, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { FavoriteFood, Food, FoodService } from '../food.service';
+import { FoodService } from '../food.service';
+import type { FavoriteFood, Food, NutrientRow } from '../food.types';
+import { FoodFormatter } from '../food.types';
 
-interface NutrientRow {
-  label: string;
-  value: number;
-  unit: string;
-}
-
+/**
+ * Class component for favorite food.
+ */
 @Component({
   imports: [FormsModule, RouterLink],
   templateUrl: './favorites.component.html',
@@ -16,6 +15,7 @@ interface NutrientRow {
 })
 export class FavoritesComponent implements OnInit {
   private readonly foods = inject(FoodService);
+  readonly formatter = new FoodFormatter();
 
   readonly favorites = signal<FavoriteFood[]>([]);
 
@@ -43,6 +43,12 @@ export class FavoritesComponent implements OnInit {
   hasRemark(favorite: FavoriteFood): boolean { return !!favorite.remark?.trim(); }
   toggleExpanded(id: number): void { this.toggleId(this.expandedIds, id); }
 
+  /**
+   * Returns formatted NutrientRow for food.
+   * @param food Food to format its values.
+   * @param targetWeight Weight to format into.
+   * @returns Formatted NutrientRow from food.
+   */
   nutritionRows(food: Food, targetWeight = food.weight): NutrientRow[] {
     const factor = food.weight > 0 ? (targetWeight / food.weight) : 1;
 
@@ -54,26 +60,45 @@ export class FavoritesComponent implements OnInit {
       { label: 'Sugar', value: food.nutrientContent.carbohydrateContent.sugar, unit: 'g' },
       { label: 'Protein', value: food.nutrientContent.protein.total, unit: 'g' },
       { label: 'Salt', value: food.nutrientContent.salt.total, unit: 'g' }
-    ]
-      .filter(nutrient => Number.isFinite(nutrient.value) && nutrient.value >= 0)
-      .map(nutrient => ({ ...nutrient, value: nutrient.value * factor }));
+    ].map(nutrient => ({
+      label: nutrient.label,
+      value: (Number.isFinite(nutrient.value) && nutrient.value >= 0)
+            ? nutrient.value * factor
+            : -1,
+      unit: nutrient.unit
+    }));
   }
 
-  pricePer100g(price: number, weight: number): number { return weight > 0 ? price * 100 / weight : 0; }
+  /**
+   * Helper to return price per weight.
+   * @param price Current price.
+   * @param weight Current weight.
+   * @param targetWeight Target weight.
+   * @returns Price per desired weight.
+   */
+  pricePerWeight(price: number, weight: number, targetWeight: number): number { return weight > 0 ? price * targetWeight / weight : 0; }
 
-  formatDecimal(value: number, minimumFractionDigits = 0, maximumFractionDigits = 2): string {
-    return new Intl.NumberFormat('sk-SK', { minimumFractionDigits, maximumFractionDigits }).format(value);
-  }
-
-  formatPrice(value: number): string { return `${this.formatDecimal(value, 2, 2)}€`; }
-
+  /**
+   * Helper function to open remark editor.
+   * @param favorite Favorite food object.
+   */
   openRemarkEditor(favorite: FavoriteFood): void {
     this.remarkDrafts[favorite.food.id] = favorite.remark ?? '';
     this.addId(this.remarkEditorIds, favorite.food.id);
   }
 
+  /**
+   * Helper function to close remark editor.
+   * @param id ID of a food.
+   */
   closeRemarkEditor(id: number): void { this.removeId(this.remarkEditorIds, id); }
 
+  /**
+   * Function to open option editor for food by ID.
+   * @param id ID of a food.
+   * @param weight Weight of a food.
+   * @param price Price of a food.
+   */
   openOptionEditor(id: number, weight?: number, price?: number | null): void {
     this.editingOptionWeights[id] = weight ?? null;
     this.newWeights[id] = weight ?? null;
@@ -81,22 +106,38 @@ export class FavoritesComponent implements OnInit {
     this.addId(this.optionEditorIds, id);
   }
 
+  /**
+   * Functiont o close option editor for food by ID.
+   * @param id ID of a food.
+   */
   closeOptionEditor(id: number): void {
     delete this.editingOptionWeights[id]; delete this.newWeights[id]; delete this.newPrices[id];
     this.removeId(this.optionEditorIds, id);
   }
 
+  /**
+   * Function to save remark for a food.
+   * @param favorite Favorite food object to remark.
+   */
   saveRemark(favorite: FavoriteFood): void {
     const id = favorite.food.id;
     const remark = this.remarkDrafts[id]?.trim() || null;
     this.setBusy(id, true);
 
     this.foods.setFavorite(id, remark).subscribe({
-      next: () => { this.updateFavorite(id, current => ({ ...current, remark })); this.closeRemarkEditor(id); this.message.set('Remark saved.'); this.setBusy(id, false); },
+      next: () => { this.updateFavorite(id, current =>
+                ({ ...current, remark }));
+                this.closeRemarkEditor(id); this.message.set('Remark saved.');
+                this.setBusy(id, false); },
       error: () => this.operationFailed(id)
     });
   }
 
+  /**
+   * Function to add option to favorite food.
+   * @param favorite Favorite food object.
+   * @returns Returns if weight is not correct, and sets error.
+   */
   addOption(favorite: FavoriteFood): void {
     const id = favorite.food.id;
     const weight = this.newWeights[id];
@@ -116,6 +157,11 @@ export class FavoritesComponent implements OnInit {
     });
   }
 
+  /**
+   * Remove favorite food option.
+   * @param favorite Favorite food object.
+   * @param weight Weight key to remove.
+   */
   removeOption(favorite: FavoriteFood, weight: number): void {
     const id = favorite.food.id;
     this.setBusy(id, true);
@@ -128,6 +174,10 @@ export class FavoritesComponent implements OnInit {
     });
   }
 
+  /**
+   * Remove favorite food.
+   * @param favorite Favorite food to remove.
+   */
   removeFavorite(favorite: FavoriteFood): void {
     const id = favorite.food.id;
     this.setBusy(id, true);
@@ -138,6 +188,9 @@ export class FavoritesComponent implements OnInit {
     });
   }
 
+  /**
+   * Helper function to load favorite foods.
+   */
   private load(): void {
     this.loading.set(true); this.error.set('');
 
@@ -147,15 +200,49 @@ export class FavoritesComponent implements OnInit {
     });
   }
 
+  /**
+   * Helper function to set error if operation failed.
+   * @param id ID of a food.
+   */
   private operationFailed(id: number): void { this.setBusy(id, false); this.error.set('That change could not be saved. Please try again.'); }
+
+  /**
+   * Function to update favorite foods.
+   * @param id ID of a food to update.
+   * @param update Object to update.
+   */
   private updateFavorite(id: number, update: (favorite: FavoriteFood) => FavoriteFood): void {
     this.favorites.update(items => items.map(item => item.food.id === id ? update(item) : item));
   }
+
+  /**
+   * Helper function to set busy food.
+   * @param id ID ofa  food to set.
+   * @param busy If is busy.
+   */
   private setBusy(id: number, busy: boolean): void { busy ? this.addId(this.busyIds, id) : this.removeId(this.busyIds, id); }
+
+  /**
+   * Helper function to add ID of a food.
+   * @param store Set of favorite foods.
+   * @param id ID of a food to add.
+   */
   private addId(store: WritableSignal<Set<number>>, id: number): void { store.update(ids => new Set(ids).add(id)); }
+
+  /**
+   * Helper function to remove ID of a food.
+   * @param store Set of favorite foods.
+   * @param id ID of a food to remove.
+   */
   private removeId(store: WritableSignal<Set<number>>, id: number): void {
     store.update(ids => { const next = new Set(ids); next.delete(id); return next; });
   }
+
+  /**
+   * Helper function to toggle expanded food by its ID in a favorite food set.
+   * @param store Set offavorite foods.
+   * @param id ID of a food to toggle.
+   */
   private toggleId(store: WritableSignal<Set<number>>, id: number): void {
     store.update(ids => { const next = new Set(ids); next.has(id) ? next.delete(id) : next.add(id); return next; });
   }

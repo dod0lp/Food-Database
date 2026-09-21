@@ -1,18 +1,21 @@
-@if (food | async; as item) {
+@if (food | async; as result) {
+  @if (result.kind === 'found') {
+    @let item = result.food;
       <section class="card">
         <a routerLink="/">&lt;-- All foods</a>
+        @if (auth.currentUser()) {
+          <br>
+          <a routerLink="/favorites">Favorites</a>
+        }
         <h1>{{ item.name }}</h1>
         @if (item.description) { <p>{{ item.description }}</p> }
         <h2>Nutrients per {{ item.weight }} g</h2>
 
         <dl>
-          <dt>Energy</dt><dd>{{ item.nutrientContent.energy.kcal }} kcal</dd>
-          <dt>Fat</dt><dd>{{ item.nutrientContent.fatContent.total }} g</dd>
-          <dt>Saturated fat</dt><dd>{{ item.nutrientContent.fatContent.saturated }} g</dd>
-          <dt>Carbs</dt><dd>{{ item.nutrientContent.carbohydrateContent.total }} g</dd>
-          <dt>Sugar</dt><dd>{{ item.nutrientContent.carbohydrateContent.sugar }} g</dd>
-          <dt>Protein</dt><dd>{{ item.nutrientContent.protein.total }} g</dd>
-          <dt>Salt</dt><dd>{{ item.nutrientContent.salt.total }} g</dd>
+          @for (row of nutritionRows(item.nutrientContent); track row.label) {
+            <dt>{{ row.label }}</dt>
+            <dd>{{ formatter.formatNutrientValue(row) }}</dd>
+          }
         </dl>
 
         @if (item.ingredients.length) {
@@ -30,4 +33,17 @@
 
         @if (message()) { <p>{{ message() }}</p> }
       </section>
-    } @else { <p>Loading food...</p> }
+  } @else if (result.kind === 'not-found') {
+    <section class="card">
+      <a routerLink="/">&lt;-- All foods</a>
+      <h1>Food not found</h1>
+      <p>This food does not exist or is no longer available.</p>
+    </section>
+  } @else {
+    <section class="card">
+      <a routerLink="/">&lt;-- All foods</a>
+      <h1>Could not load food</h1>
+      <p>Please try again later.</p>
+    </section>
+  }
+} @else { <p>Loading food...</p> }

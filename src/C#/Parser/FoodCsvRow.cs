@@ -4,7 +4,12 @@ using Food_Database.Models;
 using System.Globalization;
 
 namespace FoodParser;
-public class FoodCsv {
+
+/// <summary>
+/// Represents a row in the food CSV file
+/// </summary>
+/// <remarks>Should be normalized to 100g</remarks>
+public class FoodCsvRow {
     public string? Name { get; set; }
     public decimal? Calories { get; set; }
     public decimal? Fat { get; set; }
@@ -14,9 +19,12 @@ public class FoodCsv {
     public decimal? Protein { get; set; }
 }
 
-public sealed class FoodCsvMap : ClassMap<FoodCsv> {
+/// <summary>
+/// Maps the CSV columns to the FoodCsvRow for parsing.
+/// </summary>
+public sealed class FoodCsvMap : ClassMap<FoodCsvRow> {
     private static readonly string CsvPath = Path.Combine(
-        Food_Database.ProjectPaths.SrcDir, "C#", "Parser", "food.csv");
+        Food_Database.ProjectPaths.SrcDir, "..", "data", "foodinput", "food.csv");
 
     public FoodCsvMap() {
         Map(x => x.Name).Name("Description");
@@ -28,6 +36,13 @@ public sealed class FoodCsvMap : ClassMap<FoodCsv> {
         Map(x => x.Protein).Name("Data.Protein");
     }
 
+    /// <summary>
+    /// Parses the food CSV file and inserts parsed data into the database.
+    /// </summary>
+    /// <param name="db">DB context of database where to insert food.</param>
+    /// <param name="count">Number of rows to parse.</param>
+    /// <returns>Empty <see cref="Task"/></returns>
+    /// <exception cref="FileNotFoundException">When file doesn't exist.</exception>
     public static async Task ParseCsvIntoDB(DB_FoodContext db, int count) {
         if (!File.Exists(CsvPath)) {
             throw new FileNotFoundException("Seed CSV file was not found.", CsvPath);
@@ -38,7 +53,7 @@ public sealed class FoodCsvMap : ClassMap<FoodCsv> {
 
         csv.Context.RegisterClassMap<FoodCsvMap>();
 
-        var foods = csv.GetRecords<FoodCsv>()
+        var foods = csv.GetRecords<FoodCsvRow>()
             .Where(x => !string.IsNullOrWhiteSpace(x.Name))
             .Select(x => new Food_DBEntity {
                 Name = x.Name is null ? "No-Name" : x.Name[..Math.Min(x.Name.Length, 25)],
@@ -55,5 +70,6 @@ public sealed class FoodCsvMap : ClassMap<FoodCsv> {
             .ToList();
 
         db.Food.AddRange(foods);
+        await db.SaveChangesAsync();
     }
 }

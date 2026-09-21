@@ -188,10 +188,9 @@
                 $"{food.Description}"
             };
 
-            List<string> ingredientsInfo = new();
-            try {
-                ingredientsInfo = food.Ingredients.Select(ingredient => ingredient.Name).ToList();
-            } catch { }
+            List<string> ingredientsInfo = food.Ingredients?
+                .Select(ingredient => ingredient.Name)
+                .ToList() ?? new List<string>();
 
             string allIngredients = string.Join(",", ingredientsInfo);
             string foodInfo = $"Contains: {allIngredients}";

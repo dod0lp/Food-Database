@@ -3,6 +3,24 @@
 
 # Getting started
 
+## Prerequisites
+### Using app
+- **Docker**
+  - Will download everything needed to start and use the app.
+  - On windows you probably need to have Docker Desktop running.
+- **Web browser** to browse application.
+
+### Development
+- **dotnet** to seed data or check if nutrient data are within application logic
+- Optional for better development:
+  - **Visual Studio**
+  - *Some environment* for **Angular**
+- Development is with following versions [old project version]
+  - **.NET** *10.0.10* [8.0]
+  - **EntityFramework** *10.0.10* [8.0]
+  - **TypeScript** *5.9.3* [5.5]
+  - **Angular** is set to *^21.0.0* [18]
+
 ## Documentation
 
 - [Programmers documentation](docs/programmer_docs/README.md)
@@ -38,7 +56,7 @@
   - Not used for production.
 
 ### Seed dummy data (dotnet required)
-- Uses `src/C#/Parser/food.csv` file with predefined column names.
+- Uses `data/foodinput/food.csv` with predefined column names.
 - File is from some open-source dataset.
   - This particular file has missing salt values, so they are randomly generated, so it's technically possible that sum of columns is bigger than 100.
 - To seed data, tested only for empty database, run
@@ -56,21 +74,3 @@
 When I was writing code on windows, there have been error for clean `git clone` setup, that it couldn't load startup script because of line endings.
 I hopefully fixed that.
 If you are developing on windows, and you get error about `startup.sh`, first thing to look for is line endings on `../SQL/startup.sh`.
-
-## Prerequisites
-### Using app
-- **Docker**
-  - Will download everything needed to start and use the app.
-  - On windows you probably need to have Docker Desktop running.
-- **Web browser** to browse application.
-
-### Development
-- **dotnet** to seed data or check if nutrient data are within application logic
-- Optional for better development:
-  - **Visual Studio**
-  - *Some environment* for **Angular**
-- Development is with following versions [old project version]
-  - **.NET** *10.0.10* [8.0]
-  - **EntityFramework** *10.0.10* [8.0]
-  - **TypeScript** *5.9.3* [5.5]
-  - **Angular** is set to *^21.0.0* [18]

@@ -2,6 +2,9 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from './auth/auth.service';
 
+/**
+ * Component for loading the main application, and user information.
+ */
 @Component({
   selector: 'app-root',
   imports: [RouterLink, RouterOutlet],
@@ -15,5 +18,8 @@ export class AppComponent {
     this.auth.loadMe().subscribe();
   }
 
+  /**
+   * Logs out current user.
+   */
   logout(): void { this.auth.logout().subscribe(); }
 }

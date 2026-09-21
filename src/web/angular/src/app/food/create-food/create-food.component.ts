@@ -8,6 +8,9 @@ interface IngredientInput {
   weightInGrams: number | null;
 }
 
+/**
+ * Class component for creating a food.
+ */
 @Component({
   imports: [FormsModule],
   templateUrl: './create-food.component.html',
@@ -43,14 +46,24 @@ export class CreateFoodComponent {
     { key: 'salt', label: 'Salt', unit: 'g', step: 0.01 }
   ] as const;
 
+  /**
+   * Add an empty ingredient to the composite food form.
+   */
   addIngredient(): void {
     this.ingredients.push({ foodId: null, weightInGrams: null });
   }
 
+  /**
+   * Remove an ingredient from the composite food form.
+   * @param index Index of the ingredient to remove.
+   */
   removeIngredient(index: number): void {
     this.ingredients.splice(index, 1);
   }
 
+  /**
+   * Create a simple or composite food from the form values.
+   */
   submit(): void {
     this.saving = true;
     this.error = '';
@@ -81,5 +94,8 @@ export class CreateFoodComponent {
       .subscribe({ next: food => this.router.navigate(['/foods', food.id]), error: () => this.fail() });
   }
 
+  /**
+   * Set an error when food creation fails.
+   */
   private fail(): void { this.saving = false; this.error = 'Could not create the food. Check the values and ingredient IDs.'; }
 }

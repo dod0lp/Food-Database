@@ -13,10 +13,10 @@
   }</ul>
 
   <nav class="pages">
-    <button type="button" (click)="previous()" [disabled]="page() === 1">&larr; Previous</button>
+    <button type="button" (click)="previousPage()" [disabled]="page() === 1">&larr; Previous</button>
 
     <span>Page {{ page() }} of {{ pageCount() }}</span>
 
-    <button type="button" (click)="next()" [disabled]="page() >= pageCount()">Next &rarr;</button>
+    <button type="button" (click)="nextPage()" [disabled]="page() >= pageCount()">Next &rarr;</button>
   </nav>
 </section>

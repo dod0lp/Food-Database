@@ -3,6 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth.service';
 
+/**
+ * Class component for user registration.
+ */
 @Component({
   imports: [FormsModule, RouterLink],
   templateUrl: './register.component.html',
@@ -17,6 +20,9 @@ export class RegisterComponent {
   error = '';
   saving = false;
 
+  /**
+   * Register the user with the entered email and password.
+   */
   submit(): void {
     this.saving = true;
     this.error = '';

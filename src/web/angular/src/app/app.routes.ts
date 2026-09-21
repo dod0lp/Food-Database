@@ -4,6 +4,9 @@ import { FoodListComponent } from './food/food-list/food-list.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 
+/**
+ * Routes for links, api...
+ */
 export const routes: Routes = [
   { path: '', component: FoodListComponent, data: { scope: 'system' } },
   { path: 'my-foods', component: FoodListComponent, canActivate: [authGuard], data: { scope: 'mine' } },

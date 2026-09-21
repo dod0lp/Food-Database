@@ -3,6 +3,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FoodService } from '../food.service';
 import type { Food } from '../food.types';
 
+/**
+ * Component for listing foods.
+ */
 @Component({
   imports: [RouterLink],
   templateUrl: './food-list.component.html',
@@ -18,20 +21,38 @@ export class FoodListComponent implements OnInit {
   readonly page = signal(1);
   readonly total = signal(0);
 
+  /** Number of foods per page */
   readonly pageSize = 50;
   mine = false;
 
+  /**
+   * Gets page count based on number of foods and pagesize.
+   * @returns Page count.
+   */
   pageCount(): number { return Math.max(1, Math.ceil(this.total() / this.pageSize)); }
 
+  /**
+   * Init function.
+   */
   ngOnInit(): void {
     this.mine = this.route.snapshot.data['scope'] === 'mine';
     this.load(1);
   }
 
-  previous(): void { if (this.page() > 1) { this.load(this.page() - 1); } }
+  /**
+   * Loads the previous page of foods.
+   */
+  previousPage(): void { if (this.page() > 1) { this.load(this.page() - 1); } }
 
-  next(): void { if (this.page() < this.pageCount()) { this.load(this.page() + 1); } }
+  /**
+   * Loads next page for foods.
+   */
+  nextPage(): void { if (this.page() < this.pageCount()) { this.load(this.page() + 1); } }
 
+  /**
+   * Loads page based on page number.
+   * @param page Pgae number.
+   */
   private load(page: number): void {
     this.loading.set(true);
     this.error.set('');

@@ -3,6 +3,10 @@ import { CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { AuthService } from './auth.service';
 
+/**
+ * Protect routes that require an authenticated user.
+ * @returns True for an authenticated user.
+ */
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
@@ -11,5 +15,7 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
 
-  return auth.loadMe().pipe(map(user => user ? true : router.createUrlTree(['/login'])));
+  return auth.loadMe().pipe(map(user => user
+          ? true
+          : router.createUrlTree(['/login'])));
 };

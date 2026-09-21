@@ -3,6 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth.service';
 
+/**
+ * Component for user login.
+ */
 @Component({
   imports: [FormsModule, RouterLink],
   templateUrl: './login.component.html',
@@ -17,6 +20,9 @@ export class LoginComponent {
   error = '';
   saving = false;
 
+  /**
+   * Submit login.
+   */
   submit(): void {
     this.saving = true;
     this.error = '';

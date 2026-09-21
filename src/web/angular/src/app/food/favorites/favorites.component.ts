@@ -34,13 +34,57 @@ export class FavoritesComponent implements OnInit {
   readonly remarkDrafts: Record<number, string> = {};
   removeDataChoice: 'keep' | 'delete' = 'keep';
 
+  /**
+   * Load favorite foods when the component starts.
+   */
   ngOnInit(): void { this.load(); }
+
+  /**
+   * Helper function to check if a food card is expanded.
+   * @param id ID of a food.
+   * @returns True when the food card is expanded.
+   */
   isExpanded(id: number): boolean { return this.expandedIds().has(id); }
+
+  /**
+   * Helper function to check if a food remark is being edited.
+   * @param id ID of a food.
+   * @returns True when the remark editor is open.
+   */
   isEditingRemark(id: number): boolean { return this.remarkEditorIds().has(id); }
+
+  /**
+   * Helper function to check if the option editor is open for a food.
+   * @param id ID of a food.
+   * @returns True when the option editor is open.
+   */
   isAddingOption(id: number): boolean { return this.optionEditorIds().has(id); }
+
+  /**
+   * Helper function to check if an existing food option is being edited.
+   * @param id ID of a food.
+   * @returns True when an existing option is being edited.
+   */
   isEditingOption(id: number): boolean { return ((this.editingOptionWeights[id] !== null) && (this.editingOptionWeights[id] !== undefined)); }
+
+  /**
+   * Check whether an operation is running for a food.
+   * @param id ID of a food.
+   * @returns True when the food is busy.
+   */
   isBusy(id: number): boolean { return this.busyIds().has(id); }
+
+  /**
+   * Check whether a favorite food has a remark.
+   * @param favorite Favorite food object.
+   * @returns True when the favorite has a non-empty remark.
+   */
   hasRemark(favorite: FavoriteFood): boolean { return !!favorite.remark?.trim(); }
+
+  /**
+   * Expand or collapse a food card.
+   * @param id ID of a food.
+   */
   toggleExpanded(id: number): void { this.toggleId(this.expandedIds, id); }
 
   /**
@@ -149,9 +193,13 @@ export class FavoritesComponent implements OnInit {
 
     this.foods.setFavorite(id, null, [{ weight, price }]).subscribe({
       next: () => {
-        this.updateFavorite(id, current => ({ ...current, options: [...current.options.filter(x => x.weight !== weight), { weight, price }].sort((a, b) => a.weight - b.weight) }));
+        this.updateFavorite(id, current => ({ ...current,
+                options: [...current.options.filter(x => x.weight !== weight), { weight, price }]
+                  .sort((a, b) => a.weight - b.weight) }));
         const wasEditing = this.isEditingOption(id);
-        this.closeOptionEditor(id); this.message.set(wasEditing ? 'Package price saved.' : 'Package size saved.'); this.setBusy(id, false);
+        this.closeOptionEditor(id);
+        this.message.set(wasEditing ? 'Package price saved.' : 'Package size saved.');
+        this.setBusy(id, false);
       },
       error: () => this.operationFailed(id)
     });
@@ -183,7 +231,11 @@ export class FavoritesComponent implements OnInit {
     this.setBusy(id, true);
 
     this.foods.removeFavorite(id, this.removeDataChoice === 'delete').subscribe({
-      next: () => { this.favorites.update(items => items.filter(item => item.food.id !== id)); this.removeId(this.expandedIds, id); this.message.set('Removed from favorites.'); this.setBusy(id, false); },
+      next: () => { this.favorites.update(items =>
+        items.filter(item => item.food.id !== id));
+        this.removeId(this.expandedIds, id);
+        this.message.set('Removed from favorites.');
+        this.setBusy(id, false); },
       error: () => this.operationFailed(id)
     });
   }

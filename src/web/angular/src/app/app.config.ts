@@ -4,6 +4,9 @@ import { provideRouter } from '@angular/router';
 import { authInterceptor } from './auth/auth.interceptor';
 import { routes } from './app.routes';
 
+/**
+ * Configs the app.
+ */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),

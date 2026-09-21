@@ -12,6 +12,9 @@ services:
       DB_SERVER: localhost,${SQL_PORT}
     volumes:
       - sqlserver_data:/var/opt/mssql
+    ports:
+      # for local development
+      - "127.0.0.1:${SQL_PORT}:${SQL_PORT}"
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S \"localhost,$$MSSQL_TCP_PORT\" -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" -C || exit 1"]
       interval: 10s

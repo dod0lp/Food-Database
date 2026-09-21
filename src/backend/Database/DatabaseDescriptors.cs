@@ -27,10 +27,7 @@ public static class DB_Food_Descriptors {
         DotNetEnv.Env.Load(env_location);
     }
 
-    // possible TODO: Possibly make it so that those variables for food database are read from '.env' docker file
-    // to be saved in launchsettings.json or similar
-    // or relative path to .env be saved there
-    private static readonly string server = Environment.GetEnvironmentVariable("DB_SERVER") ?? "localhost";
+    private static readonly string server = Environment.GetEnvironmentVariable("DB_SERVER") ?? "tcp:127.0.0.1,1433";
     private static readonly string database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "db_food";
     private static readonly string user = Environment.GetEnvironmentVariable("DB_USER") ?? "BackendCSharp";
     private static readonly string password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Password@123";

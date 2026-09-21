@@ -12,4 +12,4 @@ It calls `base.OnModelCreating(modelBuilder)` first, then maps food tables and m
 
 The context exposes `Food`, `FoodIngredients`, `UserCreatedFood`, `UserFoodOptions`, `UserFoodRemark`, and inherited Identity sets including `Users` and `Roles`.
 
-The fresh schema is defined in `src/web/SQL/init-scripts/`, not EF. EF has schema [from SQL](../database/data-model.md).
+The fresh schema is defined in `infrastructure/database/init-scripts/`, not EF. EF has schema [from SQL](../database/data-model.md).

@@ -7,7 +7,7 @@ This is the developer guide for the whole project.\
 
 ## Setup
 
-- [Running project](../../src/web/docker/README.md)
+- [Running project](../../infrastructure/README.md)
 
 ## Project overview
 

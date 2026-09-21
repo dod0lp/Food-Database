@@ -2,7 +2,7 @@
 
 # API layer
 
-`src/C#/Api/Program.cs` configures context/repositories, SQL Server connection, Identity, `food-auth` cookie, authorization, CORS, forwarded headers, rate-limiting.\
+`src/backend/Api/Program.cs` configures context/repositories, SQL Server connection, Identity, `food-auth` cookie, authorization, CORS, forwarded headers, rate-limiting.\
 Connection settings are from `ConnectionStrings:FoodDatabase` from args, or `DB_Descriptors.MakeConnectionString` from .env file.
 
 Identity is integrated in the existing `Users` table stores as `Users_DBEntity : IdentityUser<int>`, using the same integer IDs.
@@ -32,5 +32,5 @@ Identity is integrated in the existing `Users` table stores as `Users_DBEntity :
 | `GET /api/foods/favorites` | Yes | List favorite with options and remarks. |
 | `DELETE /api/foods/{foodId}/favorite/options/{weight}` | Yes | Remove one option. |
 
-Request/response records are in `src/C#/Api/Contracts/`.
+Request/response records are in `src/backend/Api/Contracts/`.
 Tried to map names such as `energyKcal` properly, but in `Angular` they are camelCase and in `API C# Contracst` PascalCase.

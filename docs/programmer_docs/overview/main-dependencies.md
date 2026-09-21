@@ -14,5 +14,5 @@
 | `Angular 21` | Browser UI (and sending API requests). |
 | `Docker` | Starts and downloads everything with one command |
 
-Exact C# package versions are in `src/C#/Food-Database.csproj`.\
+Exact C# package versions are in `src/backend/Food-Database.csproj`.\
 API obtains its framework dependencies from the .NET Web SDK.

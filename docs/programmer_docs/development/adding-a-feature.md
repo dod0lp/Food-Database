@@ -6,7 +6,7 @@ For stored-food changes, use this order.
 
 0. Use new git branch, also need clean to database volume, or set new one.
 1. Define everything: shared/private data, units, unknown/default behaviour, ownership, and deletion behaviour.
-2. Change files, probably add a new one, `src/web/SQL/init-scripts/`. Ideally plan an existing-db upgrade.
+2. Change files, probably add a new one, `infrastructure/database/init-scripts/`. Ideally plan an existing-db upgrade.
 3. Match it in EF entity classes and `DB_FoodContext.OnModelCreating`.
 4. Update domain types and `Mapper`, keeping 100g and `NULL`/`-1` rules.
 5. Add/extend a repository operation with validation, async EF calls, and cancellation token.

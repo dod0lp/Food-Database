@@ -23,7 +23,9 @@
 
 ## Documentation
 
-- [Programmers documentation](docs/programmer_docs/README.md)
+- [Programmers documentation](docs/programmers-docs.md)
+- [User documentation](docs/user-docs.md)
+- [Programmers documentation (short)](docs/programmer_docs/README.md)
 - [User stories](docs/user%20stories.md)
 
 ## Setup

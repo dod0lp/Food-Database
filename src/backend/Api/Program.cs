@@ -1,34 +1,23 @@
 using Food_Database.Database.Repositories.Foods;
 using Food_Database.Database.Descriptors;
 using Food_Database.Models;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 using AuthRepository = Food_Database.Database.Repositories.Auth.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string? connectionString = builder.Configuration.GetConnectionString("FoodDatabase");
-
-// The existing SQL Docker setup exposes these variables from web/docker/.env.
-// A direct ConnectionStrings__FoodDatabase should have priority.
-if (string.IsNullOrWhiteSpace(connectionString)) {
-    string? address = builder.Configuration["DB_ADDRESS"];
-    string? port = builder.Configuration["DB_PORT"];
-    string? database = builder.Configuration["DB_NAME"];
-    string? user = builder.Configuration["DB_USER"];
-    string? password = builder.Configuration["DB_PASSWORD"];
-
-    if (new[] { address, port, database, user, password }
-        .Any(string.IsNullOrWhiteSpace)) {
-        throw new InvalidOperationException(
-            "Set ConnectionStrings:FoodDatabase or DB_ADDRESS, DB_PORT, DB_NAME, DB_USER, and DB_PASSWORD.");
-    }
-
-    connectionString = DB_Descriptors.MakeConnectionString(
-        $"{address},{port}", database!, user!, password!, trustedServerCertificate: true);
-}
+string connectionString = DB_Food_Descriptors.GetConnectionString(
+    builder.Configuration.GetConnectionString("FoodDatabase"),
+    builder.Configuration["DB_ADDRESS"],
+    builder.Configuration["DB_PORT"],
+    builder.Configuration["DB_NAME"],
+    builder.Configuration["DB_USER"],
+    builder.Configuration["DB_PASSWORD"]);
 
 string[] allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
@@ -61,6 +50,7 @@ builder.Services.ConfigureApplicationCookie(options => {
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
 builder.Services.AddScoped<Repository>();
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddCors(options => options.AddPolicy("angular", policy => policy
@@ -82,6 +72,45 @@ builder.Services.AddRateLimiter(options => options.AddPolicy("auth", context =>
 
 var app = builder.Build();
 
+// podla tutorialu
+app.UseExceptionHandler(errorApp => errorApp.Run(async context => {
+    Exception? exception = context.Features
+        .Get<IExceptionHandlerFeature>()?.Error;
+
+    if (exception is null) {
+        return;
+    }
+
+    ILogger<Program> logger = context.RequestServices
+        .GetRequiredService<ILogger<Program>>();
+    logger.LogError(exception,
+        "Unhandled error while processing {Method} {Path}",
+        context.Request.Method, context.Request.Path);
+
+    int statusCode;
+    string title;
+    string detail;
+
+    if (exception is DbUpdateException) {
+        statusCode = StatusCodes.Status409Conflict;
+        title = "Database update could not be completed";
+        detail = "Error with database operations. Refresh and try again.";
+    } else if (IsDatabaseUnavailable(exception)) {
+        statusCode = StatusCodes.Status503ServiceUnavailable;
+        title = "Database temporarily unavailable";
+        detail = "Try again shortly.";
+    } else {
+        statusCode = StatusCodes.Status500InternalServerError;
+        title = "Unexpected server error";
+        detail = "Try again later.";
+    }
+
+    await Results.Problem(
+        statusCode: statusCode,
+        title: title,
+        detail: detail)
+        .ExecuteAsync(context);
+}));
 app.UseForwardedHeaders();
 app.UseCors("angular");
 app.UseRateLimiter();
@@ -90,3 +119,10 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static bool IsDatabaseUnavailable(Exception exception) {
+    return 
+        (exception is SqlException or TimeoutException)
+            || exception.InnerException is not null
+            && IsDatabaseUnavailable(exception.InnerException);
+}

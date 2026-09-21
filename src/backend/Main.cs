@@ -1,8 +1,10 @@
-﻿using DotNetEnv;
+﻿using CsvHelper;
+using DotNetEnv;
 using Food_Database.Database.Descriptors;
 using Food_Database.Models;
 using FoodBase;
 using FoodParser;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -10,6 +12,10 @@ using Foods = Food_Database.Database.Repositories.Foods;
 
 namespace ProgramTestFood;
 
+/// <summary>
+/// Debugging. Args runner.
+/// Class for running main, tests, etc.
+/// </summary>
 public static class ProgramTestFood {
     private static readonly int UserId = Random.Shared.Next(1, userCountWanted + 1);
     const int userCountWanted = 30;
@@ -35,7 +41,39 @@ public static class ProgramTestFood {
         new(FoodNutrient.Carbs_Total, FoodNutrient.Carbs_Sugar)
     ];
 
-    static async Task Main(string[] args) {
+    /// <summary>
+    /// Main entry point for the program.
+    /// </summary>
+    /// <param name="args">Args.</param>
+    /// <returns><b>1</b> if error happened.</returns>
+    static async Task<int> Main(string[] args) {
+        try {
+            await RunMainAsync(args);
+            return 0;
+        } catch (Exception exception)
+            when (IsDatabaseException(exception)) {
+                Console.Error.WriteLine(
+                    "Database operation failed." +
+                    "Check if SQL Server is running " +
+                    "and that the connection settings are correct.");
+                Console.Error.WriteLine($"Details: {exception.GetBaseException().Message}");
+
+                return 1;
+        }
+    }
+
+    /// <summary>
+    /// Helper function to see if there is database exception.
+    /// </summary>
+    private static bool IsDatabaseException(Exception exception) =>
+        exception is SqlException or DbUpdateException or TimeoutException ||
+        exception.InnerException is not null &&
+            IsDatabaseException(exception.InnerException);
+
+    /// <summary>
+    /// Runs main.
+    /// </summary>
+    private static async Task RunMainAsync(string[] args) {
         if (!Directory.Exists(TESTS)) {
             Directory.CreateDirectory(TESTS);
         }
@@ -49,15 +87,21 @@ public static class ProgramTestFood {
         using var db = new DB_FoodContext(options);
 
 
+        bool ranArg = false;
+
         if (args.Contains("--seed", StringComparer.OrdinalIgnoreCase)) {
             await EnsureDummyData(db);
             Console.WriteLine("Seed data is ready.");
-            return;
+            ranArg = true;
         }
 
         if (args.Contains("--checkdb", StringComparer.OrdinalIgnoreCase)) {
             await CheckDBConstraintsAsync(db);
             Console.WriteLine($"Data checked. Results file is in $ProjectRoot/src/tests/.");
+            ranArg = true;
+        }
+
+        if (ranArg) {
             return;
         }
 
@@ -123,6 +167,9 @@ public static class ProgramTestFood {
         }
     }
 
+    /// <summary>
+    /// Helper to append food ID to database food names for easier debugging and testing.
+    /// </summary>
     private static async Task<int> HelperAppendFoodID(DB_FoodContext db, int startId) {
         CancellationToken ct = default;
 
@@ -153,6 +200,9 @@ public static class ProgramTestFood {
                     ct);
     }
 
+    /// <summary>
+    /// Function to seed database with dummy data. Using csv file by <see cref="CsvParser"/>.
+    /// </summary>
     private static async Task EnsureDummyData(DB_FoodContext db) {
         // add users
         if (await db.Users.Take(userCountWanted).CountAsync() < userCountWanted) {
@@ -179,7 +229,7 @@ public static class ProgramTestFood {
         // create mixed foods from simple foods without ingredients
         if (await db.Food.Take(wanted).CountAsync() < wanted) {
             for (int i = 0; i < simpleMixCount; i++) {
-                await TestCreateFoodSimple(db, Random.Shared.Next(1, userCountWanted + 1));
+                await TestCreateFoodFromSimple(db, Random.Shared.Next(1, userCountWanted + 1));
             }
 
             await db.SaveChangesAsync();
@@ -200,6 +250,9 @@ public static class ProgramTestFood {
         await db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Function to get foods from database and display their ID and Name.
+    /// </summary>
     private static void BrowseFoods(DB_FoodContext db) {
         var foods = db.Food
             .AsNoTracking()
@@ -213,6 +266,9 @@ public static class ProgramTestFood {
         }
     }
 
+    /// <summary>
+    /// Function to get food by ID from database and display its details.
+    /// </summary>
     private static void GetFoodById(DB_FoodContext db) {
         Console.Write("Food ID: ");
 
@@ -244,18 +300,27 @@ public static class ProgramTestFood {
         Console.WriteLine($"Salt:          {Format(food.Salt_Total, "g")}");
     }
 
+    /// <summary>
+    /// Helper formatter function
+    /// </summary>
     private static string Format(int? value, string unit) {
         return value.HasValue
             ? $"{value.Value} {unit}"
             : "-1";
     }
 
+    /// <summary>
+    /// Helper formatter function
+    /// </summary>
     private static string Format(decimal? value, string unit) {
         return value.HasValue
             ? $"{value.Value} {unit}"
             : "-1";
     }
 
+    /// <summary>
+    /// Function to test creating a new food and adding it to the user's favorites.
+    /// </summary>
     private static void CreateFoodAndFavorite(
         DB_FoodContext db,
         int userId) {
@@ -326,6 +391,9 @@ public static class ProgramTestFood {
             $"Created food {newFood.Id}: {newFood.Name} and added to favorites.");
     }
 
+    /// <summary>
+    /// Function to favorite an existing food by ID for the user.
+    /// </summary>
     private static async Task FavoriteExistingFoodAsync(
         DB_FoodContext db,
         int userId) {
@@ -366,6 +434,9 @@ public static class ProgramTestFood {
         Console.WriteLine($"Added {food.Id}: {food.Name} to favorites.");
     }
 
+    /// <summary>
+    /// Function to show the user's favorite foods with their options.
+    /// </summary>
     private static async Task ShowFavoritesWithOptionsAsync(
     DB_FoodContext db,
     int userId) {
@@ -408,6 +479,9 @@ public static class ProgramTestFood {
         }
     }
 
+    /// <summary>
+    /// Testing favorite food options for a user.
+    /// </summary>
     private static async Task TestFavoriteFoodOptions(DB_FoodContext db, int userId) {
         var repo = new Foods.Repository(db);
         var ct = CancellationToken.None; // default is none so it's w.e. if used here
@@ -435,7 +509,14 @@ public static class ProgramTestFood {
         await ShowFavoritesWithOptionsAsync(db, userId);
     }
 
-    private static async Task TestCreateFoodSimple(DB_FoodContext db, int userId, bool silenced = true) {
+    /// <summary>
+    /// Testing create composite food from simple foods.
+    /// </summary>
+    /// <param name="db"></param>
+    /// <param name="userId"></param>
+    /// <param name="silenced"></param>
+    /// <returns></returns>
+    private static async Task TestCreateFoodFromSimple(DB_FoodContext db, int userId, bool silenced = true) {
         var repo = new Foods.Repository(db);
         Dictionary<int, decimal> ingredientWeights;
 
@@ -479,6 +560,9 @@ public static class ProgramTestFood {
         }
     }
 
+    /// <summary>
+    /// Testing create composite food from existing composite foods.
+    /// </summary>
     private static async Task TestCreateFoodFromExistingComposite(DB_FoodContext db, int userId, bool silenced = true) {
         var repo = new Foods.Repository(db);
 
@@ -603,6 +687,9 @@ public static class ProgramTestFood {
                                                     cancellationToken);
     }
 
+    /// <summary>
+    /// Helper function to get all violation based on set rules.
+    /// </summary>
     private static async Task<List<FoodConstraintViolation>>
     GetViolations(
     DB_FoodContext db,
@@ -794,6 +881,9 @@ public static class ProgramTestFood {
         };
     }
 
+    /// <summary>
+    /// Enum representing food nutrients, without calories.
+    /// </summary>
     private enum FoodNutrient {
         Fat_Total,
         Fat_Saturated,
@@ -803,6 +893,9 @@ public static class ProgramTestFood {
         Salt_Total
     }
 
+    /// <summary>
+    /// Abstract record representing some food constraint violation.
+    /// </summary>
     private abstract record FoodConstraintViolation(
     int FoodId,
     string FoodName) {
@@ -812,6 +905,9 @@ public static class ProgramTestFood {
         public abstract string ToReportLine();
     }
 
+    /// <summary>
+    /// Record representing a violation of a nutrient bound for a food.
+    /// </summary>
     private sealed record FoodNutrientBoundViolation(
     int FoodId,
     string FoodName,
@@ -822,6 +918,9 @@ public static class ProgramTestFood {
             $"{Nutrient} = {Value:0.##}";
     }
 
+    /// <summary>
+    /// Record representing a violation of the total nutrient mass for a food.
+    /// </summary>
     private sealed record FoodNutrientTotalViolation(
     int FoodId,
     string FoodName,
@@ -830,6 +929,9 @@ public static class ProgramTestFood {
             $"  Food {FoodId} ({FoodName}): {Total:0.##} g";
     }
 
+    /// <summary>
+    /// Record representing a violation where a nutrient subset exceeds its total for a food.
+    /// </summary>
     private sealed record FoodNutrientSubsetViolation(
     int FoodId,
     string FoodName,
@@ -843,9 +945,15 @@ public static class ProgramTestFood {
             $"but {Total} = {TotalValue:0.##} g";
     }
 
+    /// <summary>
+    /// Record representing a definition of a nutrient subset and its total.
+    /// </summary>
     private sealed record NutrientSubsetDefinition(
                 FoodNutrient Total, FoodNutrient Subset);
 
+    /// <summary>
+    /// Gets formatted ingredient tree for foods and its nutrients and its nutrients.
+    /// </summary>
     public static async Task<string?> GetFoodIngredientTreeInputAsync(DB_FoodContext db) {
         Console.Write("Food ID: ");
 
@@ -858,6 +966,9 @@ public static class ProgramTestFood {
         return res;
     }
 
+    /// <summary>
+    /// Creates ingredient tree for foods and its nutrients and its nutrients.
+    /// </summary>
     public static async Task<string> GetFoodIngredientTreeAsync(
     DB_FoodContext db,
     int foodId,
@@ -887,6 +998,9 @@ public static class ProgramTestFood {
         return result.ToString();
     }
 
+    /// <summary>
+    /// Recursively creates formatted ingredient tree for foods and its nutrients and its nutrients.
+    /// </summary>
     private static async Task GetFoodIngredientTreeRecursiveAsync(
     DB_FoodContext db,
     Food_DBEntity food,

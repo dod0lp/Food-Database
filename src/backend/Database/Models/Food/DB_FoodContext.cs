@@ -28,8 +28,10 @@ public partial class DB_FoodContext : IdentityDbContext<Users_DBEntity, Identity
             entity.Property(e => e.Carbs_Total).HasColumnType("decimal(16, 2)");
             entity.Property(e => e.Fat_Saturated).HasColumnType("decimal(16, 2)");
             entity.Property(e => e.Fat_Total).HasColumnType("decimal(16, 2)");
-            entity.Property(e => e.Food_Description).HasMaxLength(4000);
-            entity.Property(e => e.Name).HasMaxLength(200);
+            entity.Property(e => e.Food_Description)
+                .HasMaxLength(DB_Food_Descriptors.MaxFoodDescriptionLength);
+            entity.Property(e => e.Name)
+                .HasMaxLength(DB_Food_Descriptors.MaxFoodNameLength);
             entity.Property(e => e.Protein_Total).HasColumnType("decimal(16, 2)");
             entity.Property(e => e.Salt_Total).HasColumnType("decimal(16, 2)");
         });
@@ -88,7 +90,8 @@ public partial class DB_FoodContext : IdentityDbContext<Users_DBEntity, Identity
         modelBuilder.Entity<UserFoodRemarks_DBEntity>(entity => {
             entity.HasKey(e => new { e.User_Id, e.Food_Id });
 
-            entity.Property(e => e.Food_Remark).HasMaxLength(4000);
+            entity.Property(e => e.Food_Remark)
+                .HasMaxLength(DB_Food_Descriptors.MaxFoodDescriptionLength);
 
             entity.HasOne(d => d.Food).WithMany(p => p.UserFoodRemark)
                 .HasForeignKey(d => d.Food_Id)
@@ -108,7 +111,7 @@ public partial class DB_FoodContext : IdentityDbContext<Users_DBEntity, Identity
 
             entity.HasMany(d => d.Food).WithMany(p => p.User)
                 .UsingEntity<Dictionary<string, object>>(
-                    "UserFoodFavorites",
+                    DB_Food_Descriptors.Table.UserFoodFavorites,
                     r => r.HasOne<Food_DBEntity>().WithMany()
                         .HasForeignKey("Food_Id")
                         .OnDelete(DeleteBehavior.ClientSetNull)

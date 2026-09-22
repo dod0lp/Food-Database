@@ -6,6 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Food-Database.csproj" />
+    <ProjectReference Include="..\backend-library\FoodDatabase.Library.csproj" />
   </ItemGroup>
 </Project>

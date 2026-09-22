@@ -6,11 +6,16 @@ three running services in the background:
 - **ASP.NET Core**: the HTTP API
 - **SQL Server**: stores application data
 
-`src` organization: `C# project` contains the food domain, Entity
-Framework Core entities, repositories, CSV import, and a console entry point.
-The `API` is a separate web project, that references that project.
-This keeps the web host out of the console executable, while both programs can use the
-same database. Angular is API.
+`backend-library` contains the food domain, Entity Framework Core entities,
+repositories, and CSV import.\
+`backend-cli` and `backend-http` are separate projects that reference it.
+This keeps the web host out of the console exe,
+while both programs use the same database.\
+Angular calls the API.
+
+The `.env` is required by Docker Compose.
+Its values are development defaults.\
+**Production deployment must set new values without committing `.env` file.**
 
 Request path is:
 1) Angular
@@ -19,21 +24,21 @@ Request path is:
 4) Shared domain model, mapper, EF Core entities
 5) `DB_FoodContext`, SQL Server
 
-The console program in `src/backend/Main.cs` can call
+The console program in `backend-cli/Main.cs` can call
 repository and context directly -- for testing, maintenance checks (*--checkdb*), and seeding data
 (*--seed*, should be done on empty database only).
 Keep calculation and rules in the shared C# layers.
 
 Code is meant as follows:\
-`src/backend/Food/` for the `Food`, `Nutrients`, and related domain types\
-`src/backend/Database/Models/` for EF entities and the context\
-`src/backend/Database/Repositories/Foods/` for food operations\
-`src/backend/Api/` for API startup, contracts, and controllers\
-`src/web/angular/` for the web client\
-`infrastructure/` for Docker Compose, and SQL Server initialisation\
-`src/backend/Parser/` is the CSV importer\
-The shared project file is `src/backend/Food-Database.csproj`, and its `Main()`
-is a development/console entry point, not runner for PAI.
+`backend-library/Food/` for the `Food`, `Nutrients`, and related domain types\
+`backend-library/Database/Models/` for EF entities and the context\
+`backend-library/Database/Repositories/Food/` for food operations\
+`backend-http/` for API startup, contracts, and controllers\
+`frontend/` for the web client\
+`compose.yaml` and `database/` for Docker Compose and SQL Server initialisation\
+`backend-library/Parser/` is the CSV importer\
+The shared project file is `backend-library/FoodDatabase.Library.csproj`.
+`backend-cli/Main.cs` is a development/console entry point, not runner for PAI.
 
 Currently C# projects are .NET 10.\
 The **backend** uses:\
@@ -93,7 +98,7 @@ the food tables or it will break Identity model.
 Identity is mapped to the existing integer-keyed `Users` table,
 so the user's Identity ID is also the ID used for food-related ownership.
 
-The schema is made by modular SQL scripts in `infrastructure/database/init-scripts/`.
+The schema is made by modular SQL scripts in `database/init-scripts/`.
 The scripts create missing tables ,but do not alter existing ones.
 So a schema change **needs** matching SQL creation changes **and** EF entity/context
 changes.
@@ -113,7 +118,7 @@ Favorites, remarks, and options are private user data,
 so every read must be filtered by the authenticated user ID.
 Ofcourse writes/updates also need to be authentificated.
 
-**API** starts in `src/backend/Api/Program.cs`, where it configures the context
+**API** starts in `backend-http/Program.cs`, where it configures the context
 and repositories, SQL Server connection, and for *Identity* following:\
 `food-auth` cookie, authorization, CORS, forwarded headers, rate limiting.\
 The connection is read from `ConnectionStrings:FoodDatabase` arguments,
@@ -122,7 +127,7 @@ Controllers validate HTTP input, get current user ID, call a repository,
 and return HTTP responses.
 They must not query `DB_FoodContext` directly or
 return EF entities as public contracts.
-Request and response records should be only in `src/backend/Api/Contracts/`.\
+Request and response records should be only in `backend-http/Contracts/`.\
 The API has public registration, sign in, sign out, paged system food, food details reads.\
 Auth current-user endpoints, and endpoints for user's foods,
 simple and composite food creation. Also user favorites, options, and remarks.\
@@ -160,13 +165,13 @@ Test the database logic, at least through `Main.cs`.
 Test the Docker clean start, and maybe also test user auth.\
 Then update user and programmer documentation, and user stories.
 
-`dotnet run --project src/backend/Food-Database.csproj -- --checkdb`
+`dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --checkdb`
 checks nutrient data with application rules, using read-onyl operations.\
-`dotnet run --project src/backend/Food-Database.csproj -- --seed`
+`dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --seed`
 imports CSV seed data from `data/foodinput/food.csv`. It is intended only
 for an empty database.\
 The source CSV has no salt column, so generated
 salt values can make its total nutrient values exceed 100g and cause that
 check to report a problem.\
 A clean Windows clone that fails to load the SQL startup script
-should also be checked for incorrect line endings in `infrastructure/database/startup.sh`.
+should also be checked for incorrect line endings in `database/startup.sh`.

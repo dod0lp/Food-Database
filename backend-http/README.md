@@ -1,12 +1,13 @@
 # Food Database API
 
-The API is the web layer using existing `Food-Database` project operations with EntityFramework.
+The API is the HTTP layer using the shared `backend-library` project operations with Entity Framework.
 It uses ASP.NET Core Identity with `Users_DBEntity : IdentityUser<int>`, so a
 signed-in user has the same integer ID already used for food data.
 
 ## Run locally
 
-ConnectionString values are used from `.env`. Just run docker as defined in `docs`.
+Connection-string values are read from the repository-root `.env`. Run Docker Compose
+from the repository root as described in the main README.
 
 ## Endpoints
 

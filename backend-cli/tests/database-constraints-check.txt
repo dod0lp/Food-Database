@@ -1,0 +1,29 @@
+Database constraint check:
+=== OK === All non-null nutrient gram values are between 0 and 100 per 100g.
+=== OK === The known nutrient total is at most 100g for every food.
+=== NOT OK === Nutrient subsets larger than their total:
+  Food 15 (CHEESE,COTTAGE,LOWFAT,2% ): Carbs_Sugar = 3.67 g, but Carbs_Total = 3.66 g
+  Food 55 (CREAM,SOUR,CULTURED): Carbs_Sugar = 3.5 g, but Carbs_Total = 2.88 g
+  Food 70 (MILK,WHL,3.25% MILKFAT): Carbs_Sugar = 5.26 g, but Carbs_Total = 4.52 g
+  Food 72 (MILK,RED FAT,FLUID,2%MILK): Carbs_Sugar = 5.06 g, but Carbs_Total = 4.68 g
+  Food 75 (MILK,LOWFAT,FLUID,1% MILK): Carbs_Sugar = 5.2 g, but Carbs_Total = 4.99 g
+  Food 78 (MILK,NONFAT,FLUID,W/ VIT ): Carbs_Sugar = 5.09 g, but Carbs_Total = 4.96 g
+  Food 120 (EGG,WHL,CKD,POACHED): Carbs_Sugar = 0.77 g, but Carbs_Total = 0.76 g
+  Food 138 (CHEESE FD,PAST PROCESS,AM): Carbs_Sugar = 7.43 g, but Carbs_Total = 7.29 g
+  Food 140 (MILK,NONFAT,FLUID,WO/ VIT): Carbs_Sugar = 5.09 g, but Carbs_Total = 4.85 g
+=== NOT OK === Composite foods whose ingredient weights do not total 100g:
+  Food 253: 99.99 g (difference: -0.01 g)
+  Food 257: 99.99 g (difference: -0.01 g)
+  Food 262: 99.99 g (difference: -0.01 g)
+  Food 271: 100.01 g (difference: +0.01 g)
+  Food 282: 99.99 g (difference: -0.01 g)
+  Food 286: 99.99 g (difference: -0.01 g)
+  Food 290: 99.99 g (difference: -0.01 g)
+  Food 314: 100.01 g (difference: +0.01 g)
+  Food 319: 99.99 g (difference: -0.01 g)
+  Food 325: 99.99 g (difference: -0.01 g)
+  Food 328: 100.01 g (difference: +0.01 g)
+  Food 331: 100.01 g (difference: +0.01 g)
+  Food 333: 99.99 g (difference: -0.01 g)
+  Food 337: 99.99 g (difference: -0.01 g)
+  Food 339: 99.99 g (difference: -0.01 g)

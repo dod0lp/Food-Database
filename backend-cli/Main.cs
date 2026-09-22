@@ -24,7 +24,7 @@ public static class ProgramTestFood {
     const int compositeMixCount = 75;
 
     private static readonly string TESTS = Path.Combine(
-        Food_Database.ProjectPaths.SrcDir, "tests");
+        Food_Database.ProjectPaths.ProjectRoot, "backend-cli", "tests");
     private static readonly string CONSTRAINT_REPORT = Path.Combine(
         TESTS, "database-constraints-check.txt");
 
@@ -97,7 +97,7 @@ public static class ProgramTestFood {
 
         if (args.Contains("--checkdb", StringComparer.OrdinalIgnoreCase)) {
             await CheckDBConstraintsAsync(db);
-            Console.WriteLine($"Data checked. Results file is in $ProjectRoot/src/tests/.");
+            Console.WriteLine("Data checked. Results file is in backend-cli/tests/.");
             ranArg = true;
         }
 

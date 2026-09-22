@@ -25,37 +25,37 @@
 
 - [Programmers documentation](docs/programmers-docs.md)
 - [User documentation](docs/user-docs.md)
-- [Programmers documentation (short)](docs/programmer_docs/README.md)
 - [User stories](docs/user%20stories.md)
 
 ## Setup
 - Following will start `SQL Server`, `.NET API`, and the `Angular` web app:
     ```sh
-    cd infrastructure
     docker compose up --build
     ```
     *You need to wait for containers to start.*
 
 ## Running application
 - **Open** webapp on <http://localhost:4200>.
-- Set `WEB_PORT`, `API_PORT`, and `SQL_PORT` in `infrastructure/.env` to
+- Set `WEB_PORT`, `API_PORT`, and `SQL_PORT` in `.env` to
   configure the web, API, and SQL Server ports. Only `WEB_PORT` is published
   to the host; the API and database are reachable only by the other Compose
   services.
+- The `.env` is required by Docker Compose.
+  Its values are development defaults.\
+  **Production deployment must set new values without committing `.env` file.**
 
 ## Shut down
-- From `infrastructure`, use `docker compose down` to **stop services**.
+- From the repository root, use `docker compose down` to **stop services**.
 - The database persists in the `sqlserver_data` docker volume.
 - Login data has its own volume `api_data_protection`.
 - `docker compose down -v` to remove **ALL** database data, even those logins.
 
 ## Development
 
-### Food-Database C# project
-- **Backbone** with functions to work with database.
-- `Main()` function:
-  - Used for testing, writing anything that you need to test out (see below)
-  - Not used for production.
+### Backend projects
+- `backend-library` is the shared domain, data-access, and CSV-import library.
+- `backend-cli` is the console program for testing, database values checks, seeding...
+- `backend-http` is the ASP.NET Core HTTP API used by the web application.
 
 ### Seed dummy data (dotnet required)
 - Uses `data/foodinput/food.csv` with predefined column names.
@@ -63,16 +63,17 @@
   - This particular file has missing salt values, so they are randomly generated, so it's technically possible that sum of columns is bigger than 100.
 - To seed data, tested only for empty database, run
     ```sh
-    dotnet run --project src/backend/Food-Database.csproj -- --seed
+    dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --seed
     ```
 
 ### Check databse values (dotnet required)
 - To check database values if they fall within application logic, run
     ```sh
-    dotnet run --project src/backend/Food-Database.csproj -- --checkdb
+    dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --checkdb
     ```
 
 #### Potential development issues
 When I was writing code on windows, there have been error for clean `git clone` setup, that it couldn't load startup script because of line endings.
 I hopefully fixed that.
-If you are developing on windows, and you get error about `startup.sh`, first thing to look for is line endings on `infrastructure/database/startup.sh`.
+If you are developing on Windows and `startup.sh` you get error about, first thing to look for is
+line endings in `database/startup.sh`.

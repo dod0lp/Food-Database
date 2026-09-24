@@ -24,7 +24,7 @@ public class FoodCsvRow {
 /// </summary>
 public sealed class FoodCsvMap : ClassMap<FoodCsvRow> {
     private static readonly string CsvPath = Path.Combine(
-        Food_Database.ProjectPaths.ProjectRoot, "data", "foodinput", "food.csv");
+        Food_Database.ProjectPaths.ProjectRoot, "data", "seed_data", "food.csv");
 
     public FoodCsvMap() {
         Map(x => x.Name).Name("Description");

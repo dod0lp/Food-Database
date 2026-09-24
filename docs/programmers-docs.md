@@ -168,7 +168,7 @@ Then update user and programmer documentation, and user stories.
 `dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --checkdb`
 checks nutrient data with application rules, using read-onyl operations.\
 `dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --seed`
-imports CSV seed data from `data/foodinput/food.csv`. It is intended only
+imports CSV seed data from `data/seed_data/food.csv`. It is intended only
 for an empty database.\
 The source CSV has no salt column, so generated
 salt values can make its total nutrient values exceed 100g and cause that

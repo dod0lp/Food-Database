@@ -58,7 +58,7 @@
 - `backend-http` is the ASP.NET Core HTTP API used by the web application.
 
 ### Seed dummy data (dotnet required)
-- Uses `data/foodinput/food.csv` with predefined column names.
+- Uses `data/seed_data/food.csv` with predefined column names.
 - File is from some open-source dataset.
   - This particular file has missing salt values, so they are randomly generated, so it's technically possible that sum of columns is bigger than 100.
 - To seed data, tested only for empty database, run

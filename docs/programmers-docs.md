@@ -18,11 +18,29 @@ Its values are development defaults.\
 **Production deployment must set new values without committing `.env` file.**
 
 Request path is:
-1) Angular
-2) `/api/...` HTTP requests
-3) ASP.NET Core controllers and contracts
-4) Shared domain model, mapper, EF Core entities
-5) `DB_FoodContext`, SQL Server
+1) The browser runs the `Angular` by `Nginx`.
+2) `Angular` sends JSON requests to */api/...*. `Nginx` forwards them to the `ASP.NET Core API`.
+3) `ASP.NET Core` handles **routing**, **auth**[entification, authorization],
+and other configured stuff before callng `controller`.
+4) `Controllers` **bind** HTTP contracts, obtain the current user
+   when needed, and call the `Food repository` or `ASP.NET Core Identity`.
+5) The `Food repository` queries or updates `DB_FoodContext`. `Mapper` converts
+   between `EF entities` and domain `Food` objects, in both directions.
+6) `EF Core` communicates with `SQL Server`. Responses return through the same
+   HTTP path (well, reversed..).
+
+```mermaid
+flowchart LR
+    Browser[Browser<br/>Angular] -->|/api/...| Proxy[Nginx]
+    Proxy --> Pipeline[ASP.NET Core routing]
+    Pipeline --> Controllers[Controllers<br/>HTTP contracts]
+    Controllers --> Repository[Food repository]
+    Controllers --> Identity[ASP.NET Core Identity]
+    Repository --> Context[DB_FoodContext<br/>EF entities]
+    Identity --> Context
+    Context --> SQL[(SQL Server)]
+    Repository -. uses .-> Mapper[Mapper<br/>EF entities to/from domain Food]
+```
 
 The console program in `backend-cli/Main.cs` can call
 repository and context directly -- for testing, maintenance checks (*--checkdb*), and seeding data
@@ -60,6 +78,12 @@ Mapping *DB->Domain* converts `NULL` to `-1`, saving converts unknown values to 
 and normalizes known values to 100g based on foodw eight.
 **New operations should use these conventions above.**
 
+```mermaid
+flowchart LR
+    DB[Database Food<br/>values per 100g] -->|NULL becomes -1| Domain[Domain Food<br/>values for its Weight]
+    Domain -->|Scale to 100g<br/>-1 becomes NULL| DB
+```
+
 `FoodBase.Food` is the in-memory food representation.
 It includes *ID, name, weight, nutrients, description, and ingredients*.
 This and `Nutrients` support operations for scaling and combining foods.
@@ -69,6 +93,15 @@ A *composite food* is created by:
 3) Adding their weights and nutrients in the domain model
 4) Saving the result normalized again to 100g\
 Its ingredient proportions are also saved relative to 100g.
+
+```mermaid
+flowchart LR
+    Load[Load ingredients] --> Scale[Scale to requested weights]
+    Scale --> Combine[Combine weight and nutrients]
+    Combine --> Normalize[Normalize result to 100g]
+    Normalize --> Save[Save food and ingredient proportions]
+```
+
 If ingredient has an *ID <= 0* it also adds ingredient to database.
 Only positive ingredient weights should be used.
 Do not rely only on database self-reference protection.
@@ -78,7 +111,12 @@ Do not rely only on database self-reference protection.
 `Getters.cs` is for reads, generally using `AsNoTracking`\
 `Updaters.cs` creates and changes data\
 `Helpers.cs` handles common checks for data existence, etc.\
-`Mapper.cs` converts between databse entities and the domain model.\
+`Mapper.cs` converts between databse entities and the domain model.
+> [!WARNING]
+> Repository operations do EF records using key properties like `Id`,
+and don't have to use EF object itself, because of usage of mapping.
+But anyway try to have as little as possible operations for database.
+
 Common reads are `GetFoodAsync`, `GetFoodsAsync`, `GetSystemFoodsAsync`.
 There are also `GetUserCreatedFoodsAsync`, and `GetFavoritesWithOptionsAsync`.
 Creation uses `AddFoodAsync` and `CreateCompositeFoodAsync`.
@@ -113,10 +151,39 @@ Database tables are `Food` where all foods are stored, so for simple and composi
 `UserFoodOptions` for personal package sizes and optional prices\
 `UserFoodRemarks` for one private remark per user and food\
 For closer look look at `.sql` scripts.
+
+`Food` table contains the food ID, description, calories, and nutrients.
+This is simplified schema. For more information or other table information
+look into [schema creation script](../database/init-scripts/03_init_create_table.sql).
+
+
+```mermaid
+classDiagram
+    class Food {
+        ID
+        Name
+        Description
+        Calories
+        Nutrients
+    }
+```
+
 `Food` and its description are shared data.
 Favorites, remarks, and options are private user data,
 so every read must be filtered by the authenticated user ID.
 Ofcourse writes/updates also need to be authentificated.
+
+Relationss of database tables:
+
+```mermaid
+flowchart LR
+    UserLinks[UserCreatedFood<br/>UserFoodFavorites<br/>UserFoodOptions<br/>UserFoodRemarks]
+    Ingredients[FoodIngredients]
+    UserLinks -->|User_Id| Users[(Users)]
+    UserLinks -->|Food_Id| Food[(Food)]
+    Ingredients -->|Food_Id| Food
+    Ingredients -->|Ingredient_Food_Id| Food
+```
 
 **API** starts in `backend-http/Program.cs`, where it configures the context
 and repositories, SQL Server connection, and for *Identity* following:\

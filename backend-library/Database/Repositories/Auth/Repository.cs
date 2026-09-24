@@ -21,7 +21,7 @@ public sealed class Repository {
     public Task<Users_DBEntity?> GetByEmailAsync(string email) =>
         _users.FindByEmailAsync(email);
 
-    public async Task<IdentityResult> RegisterAsync(
+    public async Task<(IdentityResult Result, Users_DBEntity User)> RegisterAsync(
         string email,
         string password,
         CancellationToken cancellationToken = default) {
@@ -30,6 +30,8 @@ public sealed class Repository {
             Email = email
         };
 
-        return await _users.CreateAsync(user, password);
+        IdentityResult result = await
+                _users.CreateAsync(user, password);
+        return (result, user);
     }
 }

@@ -57,8 +57,9 @@ public sealed class AuthController : ControllerBase {
             return ValidationProblem("Email and password are required.");
         }
 
-        IdentityResult result = await _authRepository.RegisterAsync(
-            request.Email.Trim(), request.Password, HttpContext.RequestAborted);
+        (IdentityResult result, Users_DBEntity user) =
+            await _authRepository.RegisterAsync(
+                request.Email.Trim(), request.Password, HttpContext.RequestAborted);
 
         if (!result.Succeeded) {
             foreach (IdentityError error in result.Errors) {
@@ -67,9 +68,6 @@ public sealed class AuthController : ControllerBase {
 
             return ValidationProblem(ModelState);
         }
-
-        Users_DBEntity user =(await 
-                _authRepository.GetByEmailAsync(request.Email.Trim()))!;
 
         return CreatedAtAction(nameof(Me),
                     new CurrentUserResponse(user.Id, user.Email!));

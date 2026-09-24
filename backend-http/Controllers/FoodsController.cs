@@ -216,6 +216,11 @@ public sealed class FoodsController : ControllerBase {
             return Unauthorized();
         }
 
+        if (!await _foods.FoodExistsAsync(
+                foodId, HttpContext.RequestAborted)) {
+            return NotFound();
+        }
+
         return Ok(await
                 _foods.IsUserFavoriteFoodAsync(
                     userId.Value, foodId,
@@ -252,6 +257,13 @@ public sealed class FoodsController : ControllerBase {
         int? userId = CurrentUserId();
         if (userId is null) {
             return Unauthorized();
+        }
+
+        if (request.Options?
+            .Any(option =>
+                option.Weight <= 0 || option.Price is < 0) == true) {
+            return BadRequest(
+                "Option weights must be greater than zero and prices cannot be negative.");
         }
 
         IEnumerable<Food.FavoriteFoodOption>? options = 

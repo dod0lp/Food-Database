@@ -56,8 +56,11 @@ Code is meant as follows:\
 `compose.yaml` for Docker Compose\
 `database/` for SQL Server initialisation\
 `backend-library/Parser/` is the CSV importer\
-The shared project file is `backend-library/FoodDatabase.Library.csproj`.
-`backend-cli/Main.cs` is a development/console entry point, not runner for PAI.
+The shared project file is `backend-library/FoodDatabase.Library.csproj`.\
+`backend-cli/Main.cs` is a development/console entry point, not runner for API.
+
+<details>
+<summary>Hide/show components diagram</summary>
 
 ```mermaid
 flowchart LR
@@ -72,6 +75,9 @@ flowchart LR
     LibraryProject["FoodDatabase.Library.csproj"] --> SharedLibrary["Shared backend library"]
     CliMain["backend-cli/Main.cs"] --> CliOperations["Development checks and seeding"]
 ```
+</details>
+
+======================
 
 Currently C# projects are .NET 10.\
 The **backend** uses:\
@@ -130,6 +136,8 @@ Do not rely only on database self-reference protection.
 > [!WARNING]
 > Repository operations do EF records using key properties like `Id`,
 and don't have to use EF object itself, because of usage of mapping.
+So there are some not-so atomic SQL operations,
+that could be done if only used EF.
 But anyway try to have as little as possible operations for database.
 
 Common reads are `GetFoodAsync`, `GetFoodsAsync`, `GetSystemFoodsAsync`.
@@ -151,6 +159,17 @@ the food tables or it will break Identity model.
 Identity is mapped to the existing integer-keyed `Users` table,
 so the user's Identity ID is also the ID used for food-related ownership.
 
+```mermaid
+flowchart LR
+    Context[DB_FoodContext] -->|inherits| IdentityContext[IdentityDbContext]
+    Context --> ModelCreating[OnModelCreating]
+    ModelCreating -->|first| IdentityMapping[base.OnModelCreating]
+    IdentityMapping -->|then| FoodMapping[Food table mappings]
+    IdentityContext --> UserEntity[Users_DBEntity]
+    UserEntity -->|integer Id| Users[(Users)]
+    Users --> Ownership[Food ownership]
+```
+
 The schema is made by modular SQL scripts in `database/init-scripts/`.
 The scripts create missing tables ,but do not alter existing ones.
 So a schema change **needs** matching SQL creation changes **and** EF entity/context
@@ -164,13 +183,12 @@ Database tables are `Food` where all foods are stored, so for simple and composi
 `UserCreatedFood` to associate a food with its creator\
 `UserFoodFavorites` for user-to-food favorites\
 `UserFoodOptions` for personal package sizes and optional prices\
-`UserFoodRemarks` for one private remark per user and food\
-For closer look look at `.sql` scripts.
+`UserFoodRemarks` for one private remark per user and food
+
+For closer look look into [SQL scripts](../database/init-scripts/03_init_create_table.sql).
 
 `Food` table contains the food ID, description, calories, and nutrients.
-This is simplified schema. For more information or other table information
-look into [schema creation script](../database/init-scripts/03_init_create_table.sql).
-
+This is simplified schema.
 
 ```mermaid
 classDiagram
@@ -225,6 +243,9 @@ In Angular, `food.service.ts` is responsible for food endpoint URLs and TypeScri
 `app.routes.ts` defines pages.\
 A component normally has matching `.ts`, `.html`, and `.css` files.
 
+<details>
+<summary>Hide/show angular diagram</summary>
+
 ```mermaid
 flowchart LR
     FoodService["food.service.ts"] --> FoodHttp["Food API URLs and TypeScript models"]
@@ -235,6 +256,9 @@ flowchart LR
     ComponentTs["Component [.ts]"] -. associated .-> ComponentHtml["Template [.html]"]
     ComponentTs -. associated .-> ComponentCss["Styles [.css]"]
 ```
+</details>
+
+=====================
 
 Do not rely only on browser validation, validate on server as well.
 

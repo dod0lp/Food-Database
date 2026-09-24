@@ -5,13 +5,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { FoodService } from '../food.service';
-import type { Food, NutrientRow } from '../food.types';
-import { FoodFormatter } from '../food.types';
-
-/**
- * Nutrient content from imported Food
- */
-type NutrientContent = Food['nutrientContent'];
+import type { Food } from '../food.types';
+import { FoodFormatter, getNutritionRows, getScaledNutritionRows } from '../food.types';
+import { PortionCalculatorComponent } from '../portion-calculator/portion-calculator.component';
 
 /**
  * Result of request for loading food
@@ -25,7 +21,7 @@ type FoodLoadResult =
  * Class component for food details.
  */
 @Component({
-  imports: [AsyncPipe, DecimalPipe, RouterLink],
+  imports: [AsyncPipe, PortionCalculatorComponent, RouterLink],
   templateUrl: './food-detail.component.html',
   styleUrl: './food-detail.component.css'
 })
@@ -34,6 +30,10 @@ export class FoodDetailComponent {
   private readonly foods = inject(FoodService);
   readonly auth = inject(AuthService);
   readonly formatter = new FoodFormatter();
+
+  readonly nutritionRows = getNutritionRows;
+  readonly scaledNutritionRows = getScaledNutritionRows;
+  portionWeight: number | null = null;
   
   readonly message = signal('');
   readonly isFavorite = signal(false);
@@ -93,19 +93,21 @@ export class FoodDetailComponent {
   }
 
   /**
-   * Nutrition rows for writing out food details into rows, mainly for description for example with "dt" and "dd" html tags
-   * @param content NutrientContent of food.
-   * @returns Row to output
+   * Scales an ingredient amount to the entered portion weight.
+   * @param food Composite food containing the ingredient.
+   * @param ingredientWeight Ingredient amount in the food's base weight.
+   * @returns Scaled ingredient weight, or null when it cannot be calculated.
    */
-  nutritionRows(content: NutrientContent): NutrientRow[] {
-    return [
-      { label: 'Energy', value: content.energy.kcal, unit: 'kcal' },
-      { label: 'Fat', value: content.fatContent.total, unit: 'g' },
-      { label: 'Saturated fat', value: content.fatContent.saturated, unit: 'g' },
-      { label: 'Carbs', value: content.carbohydrateContent.total, unit: 'g' },
-      { label: 'Sugar', value: content.carbohydrateContent.sugar, unit: 'g' },
-      { label: 'Protein', value: content.protein.total, unit: 'g' },
-      { label: 'Salt', value: content.salt.total, unit: 'g' }
-    ];
+  scaledIngredientWeight(food: Food, ingredientWeight: number): number | null {
+    const weight = this.portionWeight;
+
+    if ((typeof weight !== 'number' || !Number.isFinite(weight) || weight <= 0)
+        || (!Number.isFinite(food.weight) || food.weight <= 0)
+        || (!Number.isFinite(ingredientWeight) || ingredientWeight < 0)) {
+      return null;
+    }
+
+    return ingredientWeight * weight / food.weight;
   }
+
 }

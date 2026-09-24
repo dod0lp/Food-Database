@@ -1,6 +1,8 @@
 @if (food | async; as result) {
   @if (result.kind === 'found') {
     @let item = result.food;
+    @let scaledRows = scaledNutritionRows(item, portionWeight);
+    
       <section class="card">
         <a routerLink="/">&lt;-- All foods</a>
         @if (auth.currentUser()) {
@@ -10,18 +12,35 @@
         <h1>{{ item.name }}</h1>
         @if (item.description) { <p>{{ item.description }}</p> }
         <h2>Nutrients per {{ item.weight }} g</h2>
+        <app-portion-calculator [(weight)]="portionWeight"/>
 
         <dl>
-          @for (row of nutritionRows(item.nutrientContent); track row.label) {
+          @for (row of nutritionRows(item); track row.label; let index = $index) {
             <dt>{{ row.label }}</dt>
-            <dd>{{ formatter.formatNutrientValue(row) }}</dd>
+            <dd>{{ formatter.formatNutrientValue(row) }}
+              @if (scaledRows && scaledRows[index].value >= 0) {
+                <span class="scaled-nutrient">&rarr;
+                  {{ formatter.formatNutrientValue(scaledRows[index]) }}
+                </span>
+              }
+            </dd>
           }
         </dl>
 
         @if (item.ingredients.length) {
           <h2>Ingredients</h2>
           <ul>@for (ingredient of item.ingredients; track ingredient.id) {
-            <li><a [routerLink]="['/foods', ingredient.id]">{{ ingredient.name }}</a> | {{ ingredient.weight | number:'1.0-2' }} g</li>
+            @let scaledIngredientAmount = scaledIngredientWeight(item, ingredient.weight);
+            <li>
+              <a [routerLink]="['/foods', ingredient.id]">{{ ingredient.name }}</a>
+                | {{ formatter.formatDecimal(ingredient.weight) }}g
+
+              @if (scaledIngredientAmount !== null) {
+                <span class="scaled-nutrient">&rarr;
+                  {{ formatter.formatDecimal(scaledIngredientAmount) }}g
+                </span>
+              }
+            </li>
           }</ul>
         }
 

@@ -2,20 +2,23 @@ import { Component, inject, OnInit, signal, WritableSignal } from '@angular/core
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FoodService } from '../food.service';
-import type { FavoriteFood, Food, NutrientRow } from '../food.types';
-import { FoodFormatter } from '../food.types';
+import type { FavoriteFood } from '../food.types';
+import { FoodFormatter, getNutritionRows, getScaledNutritionRows } from '../food.types';
+import { PortionCalculatorComponent } from '../portion-calculator/portion-calculator.component';
 
 /**
  * Class component for favorite food.
  */
 @Component({
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, PortionCalculatorComponent, RouterLink],
   templateUrl: './favorites.component.html',
   styleUrl: './favorites.component.css'
 })
 export class FavoritesComponent implements OnInit {
   private readonly foods = inject(FoodService);
   readonly formatter = new FoodFormatter();
+  readonly nutritionRows = getNutritionRows;
+  readonly scaledNutritionRows = getScaledNutritionRows;
 
   readonly favorites = signal<FavoriteFood[]>([]);
 
@@ -32,6 +35,7 @@ export class FavoritesComponent implements OnInit {
   readonly newWeights: Record<number, number | null> = {};
   readonly newPrices: Record<number, number | null> = {};
   readonly remarkDrafts: Record<number, string> = {};
+  readonly portionWeights: Record<number, number | null> = {};
   removeDataChoice: 'keep' | 'delete' = 'keep';
 
   /**
@@ -86,32 +90,6 @@ export class FavoritesComponent implements OnInit {
    * @param id ID of a food.
    */
   toggleExpanded(id: number): void { this.toggleId(this.expandedIds, id); }
-
-  /**
-   * Returns formatted NutrientRow for food.
-   * @param food Food to format its values.
-   * @param targetWeight Weight to format into.
-   * @returns Formatted NutrientRow from food.
-   */
-  nutritionRows(food: Food, targetWeight = food.weight): NutrientRow[] {
-    const factor = food.weight > 0 ? (targetWeight / food.weight) : 1;
-
-    return [
-      { label: 'Energy', value: food.nutrientContent.energy.kcal, unit: 'kcal' },
-      { label: 'Fat', value: food.nutrientContent.fatContent.total, unit: 'g' },
-      { label: 'Saturated fat', value: food.nutrientContent.fatContent.saturated, unit: 'g' },
-      { label: 'Carbs', value: food.nutrientContent.carbohydrateContent.total, unit: 'g' },
-      { label: 'Sugar', value: food.nutrientContent.carbohydrateContent.sugar, unit: 'g' },
-      { label: 'Protein', value: food.nutrientContent.protein.total, unit: 'g' },
-      { label: 'Salt', value: food.nutrientContent.salt.total, unit: 'g' }
-    ].map(nutrient => ({
-      label: nutrient.label,
-      value: (Number.isFinite(nutrient.value) && nutrient.value >= 0)
-            ? nutrient.value * factor
-            : -1,
-      unit: nutrient.unit
-    }));
-  }
 
   /**
    * Helper to return price per weight.

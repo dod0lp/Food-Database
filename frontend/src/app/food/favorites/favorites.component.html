@@ -22,7 +22,9 @@
             <div class="favorite-name" (click)="toggleExpanded(favorite.food.id)">
               <button class="expander" type="button" (click)="$event.stopPropagation(); toggleExpanded(favorite.food.id)"
                 [attr.aria-expanded]="isExpanded(favorite.food.id)"
-                [attr.aria-label]="isExpanded(favorite.food.id) ? 'Hide details for ' + favorite.food.name : 'Show details for ' + favorite.food.name">
+                [attr.aria-label]="isExpanded(favorite.food.id)
+                  ? ('Hide details for ' + favorite.food.name)
+                  : ('Show details for ' + favorite.food.name)">
                 {{ isExpanded(favorite.food.id) ? '-' : '+' }}
               </button>
               <a [routerLink]="['/foods', favorite.food.id]" (click)="$event.stopPropagation()">{{ favorite.food.name }}</a>
@@ -31,11 +33,27 @@
             @if (isExpanded(favorite.food.id)) {
               <div class="favorite-details">
                 @if (nutritionRows(favorite.food).length) {
+                  @let scaledRows = scaledNutritionRows(favorite.food, portionWeights[favorite.food.id]);
+
                   <section class="detail-section nutrition-section">
-                    <div class="detail-title"><h2>Nutrients per {{ favorite.food.weight }} g</h2></div>
+                    <div class="detail-title">
+                      <h2>Nutrients per {{ favorite.food.weight }} g</h2>
+                      <app-portion-calculator
+                        [foodId]="favorite.food.id"
+                        [(weight)]="portionWeights[favorite.food.id]" />
+                    </div>
+
                       <dl class="nutrients">
-                      @for (nutrient of nutritionRows(favorite.food); track nutrient.label) {
-                        <dt>{{ nutrient.label }}</dt><dd>{{ formatter.formatNutrientValue(nutrient) }}</dd>
+                      @for (nutrient of nutritionRows(favorite.food); track nutrient.label; let index = $index) {
+                        <dt>{{ nutrient.label }}</dt>
+                        <dd>{{ formatter.formatNutrientValue(nutrient) }}
+
+                          @if (scaledRows && scaledRows[index].value >= 0) {
+                            <span class="scaled-nutrient">&rarr;
+                              {{ formatter.formatNutrientValue(scaledRows[index]) }}
+                            </span>
+                          }
+                        </dd>
                       }
                     </dl>
                   </section>
@@ -47,7 +65,9 @@
                       <button type="button" class="text-button" (click)="openRemarkEditor(favorite)">{{ hasRemark(favorite) ? 'Edit remark' : '+ Add remark' }}</button>
                     }
                   </div>
+
                   @if (hasRemark(favorite) && !isEditingRemark(favorite.food.id)) { <p class="remark">{{ favorite.remark }}</p> }
+
                   @if (isEditingRemark(favorite.food.id)) {
                     <label class="editor-label">Your remark
                       <textarea [name]="'remark' + favorite.food.id" [(ngModel)]="remarkDrafts[favorite.food.id]"></textarea>
@@ -76,13 +96,21 @@
                           <strong>{{ formatter.formatDecimal(option.weight) }} g</strong>
                           <span class="price">@if (option.price !== null) { {{ formatter.formatPrice(option.price) }} } @else { No price }</span>
                           <span>@if (option.price !== null) { {{ formatter.formatPrice(pricePerWeight(option.price, option.weight, 100)) }} } @else { - }</span>
+
                           <div class="option-actions">
                             <button type="button" class="text-button" (click)="openOptionEditor(favorite.food.id, option.weight, option.price)">Edit</button>
                             <button type="button" class="text-button remove-option" (click)="removeOption(favorite, option.weight)" [disabled]="isBusy(favorite.food.id)">Remove</button>
                           </div>
+
                           @if (nutritionRows(favorite.food, option.weight).length) {
-                            <div class="package-nutrients"><strong>Nutrients for this {{ formatter.formatDecimal(option.weight) }} g package</strong>
-                              @for (nutrient of nutritionRows(favorite.food, option.weight); track nutrient.label; let last = $last) { <span>{{ nutrient.label }} {{ formatter.formatNutrientValue(nutrient) }}@if (!last) { | }</span> }
+                            <div class="package-nutrients">
+                              @for (nutrient of nutritionRows(favorite.food, option.weight); track nutrient.label; let last = $last) {
+                                <span>
+                                  <strong>{{ nutrient.label }}</strong>
+                                  {{ formatter.formatNutrientValue(nutrient) }}
+                                  @if (!last) { | }
+                                </span>
+                              }
                             </div>
                           }
                         </div>

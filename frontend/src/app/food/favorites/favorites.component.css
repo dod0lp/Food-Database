@@ -10,6 +10,7 @@
     .expander:hover { background:#eff6ff; } .favorite-details { padding:0 .15rem 1.25rem 2.4rem; }
     .detail-section { padding:.9rem 0; border-top:1px solid #edf1f5; } .detail-title { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
     .nutrients { display:grid; grid-template-columns:repeat(2, max-content); gap:.25rem .7rem; margin:.65rem 0 0; } .nutrients dt { font-weight:600; } .nutrients dd { margin:0; }
+    .nutrition-section .detail-title { flex-wrap:wrap; } .scaled-nutrient { margin-left:.35rem; color:#8c9eb7; white-space:nowrap; }
     .remark { white-space:pre-wrap; margin:.65rem 0 0; color:#334155; }
     .text-button { border:0; padding:.2rem; background:transparent; color:#075eab; text-decoration:underline; cursor:pointer; }
     .text-button:disabled { color:#94a3b8; cursor:default; } .editor-label { display:grid; gap:.35rem; max-width:34rem; margin-top:.65rem; }
@@ -20,7 +21,7 @@
     .package-row { padding:.7rem; border-top:1px solid #dce5ee; } .package-row > strong { font-size:1.05rem; color:#172554; }
     .price { font-weight:700; color:#12633d; } .option-actions { display:flex; gap:.45rem; white-space:nowrap; }
     .package-nutrients { grid-column:1 / -1; border-top:1px dashed #dce5ee; padding-top:.5rem; color:#475569; font-size:.86rem; line-height:1.65; }
-    .package-nutrients strong { color:#334155; margin-right:.45rem; } .package-nutrients span { white-space:nowrap; }
+    .package-nutrients strong { color:#334155; } .package-nutrients span { white-space:nowrap; }
     .remove-option { color:#a13a2a; } .option-editor { display:flex; flex-wrap:wrap; align-items:end; gap:.7rem; margin-top:.7rem; }
     .option-editor label, .locked-weight { display:grid; gap:.3rem; font-size:.9rem; } .locked-weight { padding:.38rem .6rem; min-width:7rem; border:1px solid #dce5ee; border-radius:.35rem; background:#f8fafc; } input { max-width:11rem; }
     .remove-favorite { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-top:.4rem; } .danger { color:#a13a2a; border-color:#e7b6ae; background:#fff7f5; }

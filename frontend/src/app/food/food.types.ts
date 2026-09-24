@@ -45,6 +45,46 @@ export type NutrientRow = {
 }
 
 /**
+ * Builds nutrient rows for a food, scaled to the requested weight.
+ * @param food Food containing the base nutrient values.
+ * @param targetWeight Weight for which nutrient values should be calculated.
+ * @returns Nutrient rows scaled to the target weight.
+ */
+export function getNutritionRows(food: Food, targetWeight = food.weight): NutrientRow[] {
+  const factor = food.weight > 0 ? targetWeight / food.weight : 1;
+
+  return [
+    { label: 'Energy', value: food.nutrientContent.energy.kcal, unit: 'kcal' },
+    { label: 'Fat', value: food.nutrientContent.fatContent.total, unit: 'g' },
+    { label: 'Saturated fat', value: food.nutrientContent.fatContent.saturated, unit: 'g' },
+    { label: 'Carbs', value: food.nutrientContent.carbohydrateContent.total, unit: 'g' },
+    { label: 'Sugar', value: food.nutrientContent.carbohydrateContent.sugar, unit: 'g' },
+    { label: 'Protein', value: food.nutrientContent.protein.total, unit: 'g' },
+    { label: 'Salt', value: food.nutrientContent.salt.total, unit: 'g' }
+  ].map(nutrient => ({
+    ...nutrient,
+    value: Number.isFinite(nutrient.value) && nutrient.value >= 0
+      ? nutrient.value * factor
+      : -1
+  }));
+}
+
+/**
+ * Calculates scaled nutrient rows (when the requested weight is valid).
+ * @param food Food containing the base nutrient values.
+ * @param targetWeight Requested portion weight.
+ * @returns Scaled rows, or null when the requested weight is invalid.
+ */
+export function getScaledNutritionRows(
+  food: Food,
+  targetWeight: number | null | undefined
+): NutrientRow[] | null {
+  return (typeof targetWeight === 'number' && Number.isFinite(targetWeight) && targetWeight > 0)
+    ? getNutritionRows(food, targetWeight)
+    : null;
+}
+
+/**
  * Class providing formatting of units for food.
  */
 export class FoodFormatter {

@@ -1,0 +1,10 @@
+<label>Calculate for
+  <input
+    [name]="inputName()"
+    type="number"
+    min="0.01"
+    step="1"
+    placeholder="e.g. 150"
+    [ngModel]="weight()"
+    (ngModelChange)="weight.set($event)">g
+</label>

@@ -53,10 +53,25 @@ Code is meant as follows:\
 `backend-library/Database/Repositories/Food/` for food operations\
 `backend-http/` for API startup, contracts, and controllers\
 `frontend/` for the web client\
-`compose.yaml` and `database/` for Docker Compose and SQL Server initialisation\
+`compose.yaml` for Docker Compose\
+`database/` for SQL Server initialisation\
 `backend-library/Parser/` is the CSV importer\
 The shared project file is `backend-library/FoodDatabase.Library.csproj`.
 `backend-cli/Main.cs` is a development/console entry point, not runner for PAI.
+
+```mermaid
+flowchart LR
+    FoodFiles["backend-library</br>/Food/"] --> DomainTypes["Food, Nutrients, and domain types"]
+    ModelFiles["backend-library</br>/Database/Models/"] --> EFModels["EF entities and DB_FoodContext"]
+    RepositoryFiles["backend-library</br>/Database/Repositories/Food/"] --> FoodOperations["Food database operations"]
+    HttpFiles["backend-http/"] --> ApiLayer["API startup, contracts, and controllers"]
+    FrontendFiles["frontend/"] --> WebClient["Angular web client"]
+    Docker["compose.yaml"] --> Deployment["Docker Compose"]
+    Database["database/"] --> DatabaseInit["Database initialization"]
+    ParserFiles["backend-library/Parser/"] --> CsvImport["CSV import"]
+    LibraryProject["FoodDatabase.Library.csproj"] --> SharedLibrary["Shared backend library"]
+    CliMain["backend-cli/Main.cs"] --> CliOperations["Development checks and seeding"]
+```
 
 Currently C# projects are .NET 10.\
 The **backend** uses:\
@@ -209,6 +224,18 @@ In Angular, `food.service.ts` is responsible for food endpoint URLs and TypeScri
 `auth.guard.ts` protects signed-in routes,\
 `app.routes.ts` defines pages.\
 A component normally has matching `.ts`, `.html`, and `.css` files.
+
+```mermaid
+flowchart LR
+    FoodService["food.service.ts"] --> FoodHttp["Food API URLs and TypeScript models"]
+    AuthService["auth.service.ts"] --> AuthState["Authentication API and current user state"]
+    AuthInterceptor["auth.interceptor.ts"] --> CookieCredentials["Include cookie credentials"]
+    AuthGuard["auth.guard.ts"] --> ProtectedRoutes["Protect signed-in routes"]
+    AppRoutes["app.routes.ts"] --> Pages["Map URLs to page components"]
+    ComponentTs["Component [.ts]"] -. associated .-> ComponentHtml["Template [.html]"]
+    ComponentTs -. associated .-> ComponentCss["Styles [.css]"]
+```
+
 Do not rely only on browser validation, validate on server as well.
 
 Don't accept input user ID as the owner of that account. Validate.\

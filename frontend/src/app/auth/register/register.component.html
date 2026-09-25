@@ -2,13 +2,40 @@
   <h1>Create account</h1>
   <p>Use 12+ characters including upper/lowercase, a number, and a symbol.</p>
 
-  <form (ngSubmit)="submit()">
-    <label>Email <input name="email" type="email" [(ngModel)]="email" required></label>
-    <label>Password <input name="password" type="password" [(ngModel)]="password" required minlength="12"></label>
+  <form #registerForm="ngForm" (ngSubmit)="submit(registerForm)" novalidate>
+
+    <label>Email
+      <input #emailControl="ngModel" name="email"
+        type="email" email autocomplete="email"
+        [(ngModel)]="email" required>
+
+      @if (emailControl.invalid && (emailControl.touched || submitted)) {
+        <small class="field-error">
+          @if (emailControl.errors?.['required']) { Enter your email address. }
+          @else { Enter a valid email address. }
+        </small>
+      }
+    </label>
+
+    <label>Password
+      <input #passwordControl="ngModel" name="password"
+        type="password" autocomplete="new-password"
+        [(ngModel)]="password" required minlength="12"
+        pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{12,}$">
+        <!--Stackoverflow regex-->
+
+      @if (passwordControl.invalid && (passwordControl.touched || submitted)) {
+        <small class="field-error">
+          @if (passwordControl.errors?.['required']) { Enter a password. }
+          @else if (passwordControl.errors?.['minlength']) { Password must contain at least 12 characters. }
+          @else { See password requirements above. }
+        </small>
+      }
+    </label>
     
-    @if (error) { <p class="error">{{ error }}</p> }
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
     
-    <button [disabled]="saving">Create account</button>
+    <button type="submit" [disabled]="saving()">{{ saving() ? 'Creating account...' : 'Create account' }}</button>
   </form>
   <p>Already registered? <a routerLink="/login">Sign in</a>.</p>
 </section>

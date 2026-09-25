@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 
@@ -6,6 +6,53 @@ import { catchError, map, Observable, of, tap } from 'rxjs';
  * Interface representing current user.
  */
 export interface CurrentUser { id: number; email: string; }
+
+interface ProblemDetailsResponse {
+  title?: string;
+  detail?: string;
+  errors?: Record<string, string[]>;
+}
+
+/**
+ * Turns auth HTTP failure into a useful message for the user.
+ * @param error Error returned Angular's HTTP.
+ * @param fallback Message when server did not provide useful details.
+ * @returns A safe message auth form.
+ */
+export function getAuthErrorMessage(error: unknown, fallback: string): string {
+  if (!(error instanceof HttpErrorResponse)) {
+    return fallback;
+  }
+
+  if (error.status === 0) {
+    return 'Could not reach the server. Check your connection and try again.';
+  }
+
+  if (error.status === 429) {
+    return 'Too many attempts. Wait a moment and try again.';
+  }
+
+  const problem = error.error as (ProblemDetailsResponse | null);
+  const validationMessages = problem?.errors
+    ? Object.values(problem.errors)
+        .flat()
+        .filter(message => (typeof message === 'string' && message.trim()))
+    : [];
+
+  if (validationMessages.length) {
+    return validationMessages.join(' ');
+  }
+
+  if ((typeof problem?.detail === 'string') && (problem.detail.trim())) {
+    return problem.detail;
+  }
+
+  if (error.status >= 500) {
+    return 'The server is unavailable. Try again later.';
+  }
+
+  return fallback;
+}
 
 /**
  * Auth service for communicating.

@@ -1,12 +1,32 @@
 <section class="card">
   <h1>Sign in</h1>
-  <form (ngSubmit)="submit()">
-    <label>Email <input name="email" type="email" [(ngModel)]="email" required></label>
-    <label>Password <input name="password" type="password" [(ngModel)]="password" required></label>
+  <form #loginForm="ngForm" (ngSubmit)="submit(loginForm)" novalidate>
 
-    @if (error) { <p class="error">{{ error }}</p> }
+    <label>Email
+      <input #emailControl="ngModel" name="email"
+        type="email" email autocomplete="email"
+        [(ngModel)]="email" required>
+
+      @if (emailControl.invalid && (emailControl.touched || submitted)) {
+        <small class="field-error">
+          @if (emailControl.errors?.['required']) { Enter your email address. }
+          @else { Enter a valid email address. }
+        </small>
+      }
+    </label>
+
+    <label>Password
+      <input #passwordControl="ngModel" name="password"
+        type="password" autocomplete="current-password"
+        [(ngModel)]="password" required>
+      @if (passwordControl.invalid && (passwordControl.touched || submitted)) {
+        <small class="field-error">Enter your password.</small>
+      }
+    </label>
+
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
     
-    <button [disabled]="saving">Sign in</button>
+    <button type="submit" [disabled]="saving()">{{ saving() ? 'Signing in...' : 'Sign in' }}</button>
   </form>
   <p>New here? <a routerLink="/register">Create an account</a>.</p>
 </section>

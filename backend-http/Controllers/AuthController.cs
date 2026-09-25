@@ -80,9 +80,14 @@ public sealed class AuthController : ControllerBase {
     /// <returns>The response containing the authenticated user information.</returns>
     [HttpPost("login")]
     public async Task<ActionResult<CurrentUserResponse>> Login(LoginRequest request) {
+        if (string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Password)) {
+            return ValidationProblem("Both email and password are required.");
+        }
+
         Users_DBEntity? user = await _authRepository.GetByEmailAsync(request.Email.Trim());
         if (user is null) {
-            return Unauthorized();
+            return InvalidCredentials();
         }
 
         Microsoft.AspNetCore.Identity.SignInResult result =
@@ -93,11 +98,19 @@ public sealed class AuthController : ControllerBase {
                 lockoutOnFailure: true);
 
         if (!result.Succeeded) {
-            return Unauthorized();
+            return InvalidCredentials();
         }
 
         return Ok(new CurrentUserResponse(user.Id, user.Email!));
     }
+
+    /// <summary>
+    /// Returns the same response for sign-in of unknown accounts and incorrect passwords.
+    /// </summary>
+    private ObjectResult InvalidCredentials() => Problem(
+        statusCode: StatusCodes.Status401Unauthorized,
+        title: "Sign-in failed",
+        detail: "Incorrect email or password.");
 
     [Authorize]
     [HttpPost("logout")]

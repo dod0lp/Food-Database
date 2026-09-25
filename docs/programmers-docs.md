@@ -260,7 +260,64 @@ flowchart LR
 
 =====================
 
-Do not rely only on browser validation, validate on server as well.
+`frontend/src/app/food/food.types.ts` is the shared source for turning a
+`Food` into display rows:
+
+- `NutrientRow` contains a nutrient's label, numeric value, and unit.
+- `getNutritionRows(food, targetWeight)` maps nutrients into rows.
+    It scales known values by
+    `targetWeight / food.weight`, the default target is the food's own weight.
+- `getScaledNutritionRows(food, targetWeight)` validates that an optional
+  target is finite and greater than zero. It returns `null` for an invalid or
+  empty input, for example to hide the calculated column.
+- Unknown nutrients use the domain value `-1`,
+`FoodFormatter.formatNutrientValue` displays it as `Unknown`.
+- `FoodFormatter` uses `Intl.NumberFormat` with the `sk-SK` locale for decimal.
+
+`PortionCalculatorComponent` in
+`frontend/src/app/food/portion-calculator/` is a reusable input.
+Its `weight` model uses Angular two-way binding.
+Its optional `foodId` input is used on the Favorites page to create
+a unique form-control name for every expanded food.
+The normal food-detail page has one `portionWeight`.
+Favorites stores values in `portionWeights`, indexed by food ID.
+
+The food-detail and Favorites templates keep the base nutrient value visible
+and render the scaled value beside it.
+The food-detail page also scales composite food's ingredients weights.\
+Saved favorite package sizes call `getNutritionRows(food, option.weight)`
+to show the nutrients for that package.
+
+> Keep scaling in these shared helpers, rather than duplicating
+the nutrient label/value mapping in components.
+
+The login and registration pages use Angular `NgForm`
+validation with browser validation disabled by `novalidate`.
+This makes `(ngSubmit)` always reach component, which can mark invalid
+controls as touched and show persistent field messages. Registration checks a
+valid email and mirrors the server password policy.\
+**Client validation is only feedback. The server remains the authority.**
+
+Authentication forms keep their error and saving state in Angular signals.
+`getAuthErrorMessage` in `auth.service.ts` converts `HttpErrorResponse` values
+into user friendly messages.
+It handles unreachable API, 4xx responses,
+problem `detail`, server errors, and has caller-provided fallback.\
+Registration for example can show the
+specific Identity validation descriptions returned by the API.
+
+`AuthController.Login` rejects blank credentials with a validation problem.
+Both an unknown account and a wrong or locked-out password call the same
+`InvalidCredentials` helper, which returns HTTP 401 Problem Details with
+generic `Incorrect email or password.`.\
+Different response technically would allow account enumeration.
+
+The authentication rate limiter is a fixed one-minute.
+Rejected requests use HTTP 429,
+which the Angular error helper translates into `wait-and-retry`.
+
+> (again)\
+Do not rely on browser validation, validate on server as source of truth.
 
 Don't accept input user ID as the owner of that account. Validate.\
 Also validate lengths before SQL or EF produces an error. Food
@@ -270,7 +327,9 @@ Nutrient gram fields are non-negative in SQL,
 SQL constraints only cover obvious baseline checks **are not** application
 logic.
 Keep composite weights positive and values normalized.\
-The current password policy is configured in `Program.cs` using `AddIdentity`.
+The password policy and authentication rate limit are configured in
+`Program.cs`. When either changes, update the Angular registration validators
+and both user and programmer documentation to match.
 
 When trying to add food feature, you should first define if data is shared or private,
 its units, unknown/default behaviour, ownership, and ideally deletion behaviour.\

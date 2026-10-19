@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/backend-cli/">
+    <Project Path="backend-cli/FoodDatabase.Cli.csproj" />
+  </Folder>
+  <Folder Name="/backend-http/">
+    <Project Path="backend-http/FoodDatabase.Http.csproj" />
+  </Folder>
+  <Folder Name="/backend-library/">
+    <Project Path="backend-library/FoodDatabase.Library.csproj" />
+  </Folder>
+  <Folder Name="/backend-tests/">
+    <Project Path="backend-tests/FoodDatabase.Tests.csproj" />
+  </Folder>
+</Solution>

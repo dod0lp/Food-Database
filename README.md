@@ -56,6 +56,8 @@
 - `backend-library` is the shared domain, data-access, and CSV-import library.
 - `backend-cli` is the console program for testing, database values checks, seeding...
 - `backend-http` is the ASP.NET Core HTTP API used by the web application.
+- `backend-tests` contains SQL Server integration tests. Each test run creates a
+  new empty temp database (or optionally keeps it for debug).
 
 ### Seed dummy data (dotnet required)
 - Uses `data/seed_data/food.csv` with predefined column names.
@@ -71,6 +73,18 @@
     ```sh
     dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --checkdb
     ```
+
+### Run backend tests
+- Start the local SQL Server service first:
+    ```sh
+    docker compose up -d sqlserver
+    ```
+- Run the tests:
+    ```sh
+    dotnet test backend-tests/FoodDatabase.Tests.csproj
+    ```
+- Set `KEEP_FOOD_DATABASE_TEST_DATABASES=1` to keep the generated database for
+  investigation. The test database name starts with `FoodDatabaseTests_`.
 
 #### Potential development issues
 When I was writing code on windows, there have been error for clean `git clone` setup, that it couldn't load startup script because of line endings.

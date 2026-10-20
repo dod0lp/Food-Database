@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 using FoodBase;
 using static FoodBase.Food;
@@ -21,7 +21,9 @@ namespace Food_Database.Database.Repositories.Foods {
                     x => x.Id == foodId,
                     cancellationToken);
 
-            return entity?.ToDomainWithIngredients();
+            return entity is null
+                ? null
+                : await ToDomainWithIngredientsAsync(entity, cancellationToken);
         }
 
         /// <summary>
@@ -54,7 +56,10 @@ namespace Food_Database.Database.Repositories.Foods {
                 ? (double)savedWeight
                 : DB_Food_Descriptors.NormalizedWeight;
 
-            return entity.ToDomainWithIngredients(weight);
+            return await ToDomainWithIngredientsAsync(
+                entity,
+                cancellationToken,
+                weight);
         }
 
         /// <summary>
@@ -95,7 +100,14 @@ namespace Food_Database.Database.Repositories.Foods {
                     .ThenInclude(x => x.Ingredient_Food)
                 .ToListAsync(cancellationToken);
 
-            return [.. entities.Select(x => x.ToDomainWithIngredients())];
+            List<Food> foods = new();
+            foreach (Food_DBEntity entity in entities) {
+                foods.Add(await ToDomainWithIngredientsAsync(
+                    entity,
+                    cancellationToken));
+            }
+
+            return foods;
         }
 
         /// <summary>
@@ -176,8 +188,14 @@ namespace Food_Database.Database.Repositories.Foods {
                     .ThenInclude(x => x.Ingredient_Food)
                 .ToListAsync(cancellationToken);
 
-            return [.. 
-                entities.Select(x => x.ToDomainWithIngredients())];
+            List<Food> foods = new();
+            foreach (Food_DBEntity entity in entities) {
+                foods.Add(await ToDomainWithIngredientsAsync(
+                    entity,
+                    cancellationToken));
+            }
+
+            return foods;
         }
 
         /// <summary>
@@ -187,8 +205,8 @@ namespace Food_Database.Database.Repositories.Foods {
         /// <param name="cancellationToken"><see cref="CancellationToken"/> for async op.</param>
         /// <returns>List of <see cref="FavoriteFood"/> objects parsed from <see cref="Food_DBEntity"/>.</returns>
         public async Task<List<FavoriteFood>> GetFavoritesWithOptionsAsync(
-            int userId,
-            CancellationToken cancellationToken = default) {
+    int userId,
+    CancellationToken cancellationToken = default) {
             List<Food_DBEntity> user_favorites_entities = await _db.Users
                 .AsNoTracking()
                 .Where(x => x.Id == userId)
@@ -201,25 +219,82 @@ namespace Food_Database.Database.Repositories.Foods {
                 .OrderBy(x => x.Id)
                 .ToListAsync(cancellationToken);
 
-            return
-                [.. user_favorites_entities
-                    .Select(food_entity => new FavoriteFood
-                    {
-                        Food = food_entity.ToDomainWithIngredients(),
+            List<FavoriteFood> favorites = new();
+            foreach (Food_DBEntity entity in user_favorites_entities) {
+                favorites.Add(new FavoriteFood {
+                    Food = await ToDomainWithIngredientsAsync(
+                        entity,
+                        cancellationToken),
 
-                        Remark = food_entity.UserFoodRemark
-                            .SingleOrDefault(x => x.User_Id == userId)
-                            ?.Food_Remark,
+                    Remark = entity.UserFoodRemark
+                        .SingleOrDefault(x => x.User_Id == userId)
+                        ?.Food_Remark,
 
-                        Options = [.. food_entity.UserFoodOptions
-                            .Where(x => x.User_Id == userId)
-                            .OrderBy(x => x.Weight_Total)
-                            .Select(x => new FavoriteFoodOption
-                            {
-                                Weight = x.Weight_Total,
-                                Price = x.Price_Eur
-                            })]
-                    })];
+                    Options = [.. entity.UserFoodOptions
+                        .Where(x => x.User_Id == userId)
+                        .OrderBy(x => x.Weight_Total)
+                        .Select(x => new FavoriteFoodOption
+                        {
+                            Weight = x.Weight_Total,
+                            Price = x.Price_Eur
+                        })]
+                });
+            }
+
+            return favorites;
+        }
+
+        /// <summary>
+        /// Loads every ingredient level before mapping an entity to the domain model.
+        /// </summary>
+        /// <param name="entity">The root food entity.</param>
+        /// <param name="cancellationToken">Cancellation token for database calls.</param>
+        /// <param name="weight">Weight of the returned domain food in grams.</param>
+        /// <returns>The mapped food with its full ingredient tree.</returns>
+        private async Task<Food> ToDomainWithIngredientsAsync(
+    Food_DBEntity entity,
+    CancellationToken cancellationToken,
+    double weight = DB_Food_Descriptors.NormalizedWeight) {
+            await LoadIngredientTreeAsync(
+                entity,
+                new HashSet<int>(),
+                cancellationToken);
+
+            return entity.ToDomainWithIngredients(weight);
+        }
+
+        /// <summary>
+        /// Loads ingredient relations recursively while stopping at circular relations.
+        /// </summary>
+        /// <param name="entity">The entity whose ingredients should be loaded.</param>
+        /// <param name="path">Food IDs on the current ingredient path.</param>
+        /// <param name="cancellationToken">Cancellation token for database calls.</param>
+        /// <returns>An asynchronous load operation.</returns>
+        private async Task LoadIngredientTreeAsync(
+    Food_DBEntity entity,
+    HashSet<int> path,
+    CancellationToken cancellationToken) {
+            if (!path.Add(entity.Id)) {
+                return;
+            }
+
+            List<FoodIngredients_DBEntity> ingredients = await _db.FoodIngredients
+                .AsNoTracking()
+                .Where(relation => relation.Food_Id == entity.Id)
+                .Include(relation => relation.Ingredient_Food)
+                .ToListAsync(cancellationToken);
+            entity.FoodIngredientsFood = ingredients;
+
+            foreach (FoodIngredients_DBEntity relation in ingredients) {
+                if (!path.Contains(relation.Ingredient_Food_Id)) {
+                    await LoadIngredientTreeAsync(
+                        relation.Ingredient_Food,
+                        path,
+                        cancellationToken);
+                }
+            }
+
+            path.Remove(entity.Id);
         }
 
         /// <summary>

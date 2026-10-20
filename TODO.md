@@ -64,3 +64,34 @@ How much nutrients from each ingredient
 Even user can add description
 
 DatabaseDescriptors use some config folder, add it to docs that this should be production set, and add to gitignore, if easy to migrate docker sourcing from it..
+
+## TODO slopgpt review (2026-10-21)
+
+### Implement soon
+
+- **Backend validation:** enforce name and description lengths, non-negative nutrients, `saturated <= total fat`, and `sugar <= total carbohydrates`. The database has length limits, but the API currently accepts invalid values until SQL rejects them.
+- **Unknown nutrients in composites:** a composite must not present a calculated nutrient total when an ingredient's value is unknown. Show it as unknown, with a short UI explanation.
+- **Transactions for complete operations:** creating food and adding it to favorites currently writes separately. A failed second write can leave a partially-created food.
+- **Schema migrations:** useful before changing the persistent Docker database schema. The current scripts plus EF mappings can drift.
+- **Configuration cleanup:** `.env` is ignored, but the legacy CLI and maintenance configuration still has fallback credentials in `DatabaseDescriptors.cs`. Remove those defaults, use one environment-variable path, and add an `.env.example`.
+- **Tests and CI:** the no-tests item is stale: there are now 11 SQL integration tests. CI is still worth adding later.
+- **`GetFoodForUserAsync` TODO:** this is a real bug. A user can have multiple package options, but the method calls `SingleOrDefault`, so it can throw. It should accept a chosen weight, or use 100 g when no explicit weight is requested; it should not silently choose one option.
+
+### Already done
+
+- The nested composite tree issue is fixed by recursive ingredient loading and its tests.
+- A food-detail not-found state exists. Unknown routes redirect to `/`.
+
+### Product decisions needed before implementation
+
+- **Deleting user-created food:** decide whether user-created foods are public. They are currently readable by ID. If they remain public, deletion should be creator-only and reject deletion while the food is referenced by composites or other users' favorites.
+- **Editing nutrients of created food:** useful after deletion and ownership rules exist. It needs creator-only authorization and the same validation above.
+- **Sharing:** unnecessary if created foods remain public. Add a visibility/share model only if foods should be private by default.
+
+### Low priority or cosmetic
+
+- Separate generic 404 page.
+- Friendly URL slugs instead of IDs: keep IDs; add optional slugs only for nicer links.
+- Shared nutrient-table component: sensible cleanup, but common nutrient-row helpers already reduce duplication.
+- Favorites spacing and table styling: do during a UI pass.
+- Documentation on ingredient nutrient contributions and descriptions: worthwhile after the behavior is finalized.

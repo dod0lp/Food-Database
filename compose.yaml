@@ -56,6 +56,24 @@ services:
       # only host port
       - "${WEB_PORT}:${WEB_PORT}"
 
+  maintenance:
+    # to prevent automatic execution of maintenace
+    profiles: ["maintenance"]
+    build:  
+      context: .
+      dockerfile: backend-maintenance/Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      DB_SERVER: sqlserver,${SQL_PORT}
+      FOOD_DATABASE_REPORTS_DIRECTORY: /reports
+    command: ["--checkdb"]
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - ./backend-maintenance/reports:/reports
+
 volumes:
   sqlserver_data:
   api_data_protection:

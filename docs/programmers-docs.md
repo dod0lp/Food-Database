@@ -42,10 +42,21 @@ flowchart LR
     Repository -. uses .-> Mapper[Mapper<br/>EF entities to/from domain Food]
 ```
 
-The console program in `backend-cli/Main.cs` can call
-repository and context directly -- for testing, maintenance checks (*--checkdb*), and seeding data
-(*--seed*, should be done on empty database only).
+`backend-cli` is an interactive development console. Its files are separated by
+responsibility:
+
+- `Main.cs` contains only the executable entry point.
+- `CliApplication.cs` creates the database context, selects the user, and starts
+  a console session.
+- `InteractiveMenu.cs` owns the menu and console input/output.
+- `InteractiveMenuHelpers.cs` contains display formatting and ingredient-tree
+  generation used by the menu.
+
+`backend-maintenance` is a separate command-line project for database seeding
+and data checks.
+
 Keep calculation and rules in the shared C# layers.
+Automated checks belong in `backend-tests`.
 
 Code is meant as follows:\
 `backend-library/Food/` for the `Food`, `Nutrients`, and related domain types\
@@ -56,8 +67,10 @@ Code is meant as follows:\
 `compose.yaml` for Docker Compose\
 `database/` for SQL Server initialisation\
 `backend-library/Parser/` is the CSV importer\
+`backend-maintenance/` contains database seeding and data checks\
+`backend-tests/` is the SQL Server integration-test project\
 The shared project file is `backend-library/FoodDatabase.Library.csproj`.\
-`backend-cli/Main.cs` is a development/console entry point, not runner for API.
+`backend-cli/Main.cs` is the console entry point, not runner for API or tests.
 
 <details>
 <summary>Hide/show components diagram</summary>
@@ -73,22 +86,28 @@ flowchart LR
     Database["database/"] --> DatabaseInit["Database initialization"]
     ParserFiles["backend-library/Parser/"] --> CsvImport["CSV import"]
     LibraryProject["FoodDatabase.Library.csproj"] --> SharedLibrary["Shared backend library"]
-    CliMain["backend-cli/Main.cs"] --> CliOperations["Development checks and seeding"]
+    CliMain["backend-cli/Main.cs"] --> CliApplication["CLI startup and user selection"]
+    CliApplication --> CliMenu["Interactive menu and prompts"]
+    CliMenu --> CliHelpers["Menu formatting and ingredient tree"]
+    Maintenance["backend-maintenance/"] --> SqlMaintenance["Seed and database checks"]
+    TestProject["backend-tests/"] --> TestDatabase["Temporary SQL database"]
 ```
 </details>
 
 ======================
 
-Currently C# projects are .NET 10.\
+Currently **C#** projects are **.NET 10**.\
 The **backend** uses:\
 `Entity Framework Core` for data access\
 `ASP.NET Core Identity` for users and passwords\
 `CsvHelper` for seed import\
 `DotNetEnv` for console application's database settings\
+`xUnit` for backend unit and integration tests\
 **API** uses `ASP.NET Core` for dependency injection, CORS, cookie
 auth, authorization, forwarded headers, and rate limiting\
-The **frontend** is Angular 21\
-Docker starts all of it, except console application.
+The **frontend** is `Angular 21`\
+`Docker` starts the web stack. The interactive CLI and database-maintenance
+commands run only when explicitly requested.
 
 The main data rule is that every `Food` database row stores its values
 per 100g. A domain `Food.Weight` can represent another amount, such as a
@@ -338,17 +357,78 @@ Then EF entity and context mapping, domain types and mapper, repository validati
 operations.\
 Also API contracts and controller actions, then Angular services, forms,
 and error handling.\
-Test the database logic, at least through `Main.cs`.
+Run the database test project for repository and CLI interaction checks.
+Ideally add new tests.
 Test the Docker clean start, and maybe also test user auth.\
 Then update user and programmer documentation, and user stories.
 
-`dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --checkdb`
-checks nutrient data with application rules, using read-onyl operations.\
-`dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --seed`
-imports CSV seed data from `data/seed_data/food.csv`. It is intended only
-for an empty database.\
-The source CSV has no salt column, so generated
-salt values can make its total nutrient values exceed 100g and cause that
-check to report a problem.\
+======================
+
+### Tests
+`backend-tests/FoodDatabase.Tests.csproj` uses xUnit and a real local SQL
+Server instance. It creates a uniquely named empty database,
+initializes it with `DB_FoodContext.Database.EnsureCreatedAsync()`,
+and drops it after the test run.
+Tests, currently, reset their data before each case, so they do not depend on test order.
+
+Run the tests from the repository root
+after the `sqlserver` Compose service is healthy:
+
+```sh
+docker compose up -d sqlserver
+dotnet test backend-tests/FoodDatabase.Tests.csproj
+```
+
+The fixture reads SQL Server settings from `.env` and connects as `sa` only to
+create and remove its temporary database.
+Set `KEEP_FOOD_DATABASE_TEST_DATABASES=1` to retain a generated
+`FoodDatabaseTests_<id>` database for inspection.
+Test project references the CLI only for `InteractiveMenu` with redirected console input,
+it does not use the interactive menu as a test runner.
+
+======================
+
+### Maintenance
+> [!WARNING]
+`backend-maintenance/FoodDatabase.Maintenance.csproj`
+**targets the configured development database. Be careful.**
+
+`--seed` imports the CSV data and creates development users and composite foods.
+**Run it only on an empty database.**\
+`--checkdb` writes the nutrient and composite ingredient-weight report to
+`backend-maintenance/reports/database-constraints-check.txt`.
+The checker writes every result to the report and returns exit code `0`, even
+when the report contains `NOT OK` findings. Read the report, or make a script to decide whether
+the data passes the constraints.\
+If both used, seeding finishes before the check starts.
+
+There are two ways to start it. dotnet or containerized.
+First, there ofcourse needs to be sqlserver running:
+```sh
+docker compose up -d sqlserver
+```
+
+`dotnet`:
+```sh
+dotnet run --project backend-maintenance/FoodDatabase.Maintenance.csproj -- --seed
+dotnet run --project backend-maintenance/FoodDatabase.Maintenance.csproj -- --checkdb
+dotnet run --project backend-maintenance/FoodDatabase.Maintenance.csproj -- --seed --checkdb
+```
+
+`container`:\
+Docker Compose exposes the same executable through its `maintenance` service.
+Normal `docker compose up` does not start maintenance.
+Its default command is `--checkdb`.
+
+It creates a separate one-off container.
+Arguments after `maintenance` replace the service's default command,
+and `--rm` removes the one-off container after it exits.
+
+```sh
+docker compose --profile maintenance run --rm maintenance --seed
+docker compose --profile maintenance run --rm maintenance --checkdb
+docker compose --profile maintenance run --rm maintenance --seed --checkdb
+```
+
 A clean Windows clone that fails to load the SQL startup script
 should also be checked for incorrect line endings in `database/startup.sh`.

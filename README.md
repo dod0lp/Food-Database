@@ -54,25 +54,12 @@
 
 ### Backend projects
 - `backend-library` is the shared domain, data-access, and CSV-import library.
-- `backend-cli` is the console program for testing, database values checks, seeding...
+- `backend-cli` is the interactive console program for browsing and managing foods.
+- `backend-maintenance` runs database seeding and data checks without the
+  interactive CLI.
 - `backend-http` is the ASP.NET Core HTTP API used by the web application.
-- `backend-tests` contains SQL Server integration tests. Each test run creates a
-  new empty temp database (or optionally keeps it for debug).
-
-### Seed dummy data (dotnet required)
-- Uses `data/seed_data/food.csv` with predefined column names.
-- File is from some open-source dataset.
-  - This particular file has missing salt values, so they are randomly generated, so it's technically possible that sum of columns is bigger than 100.
-- To seed data, tested only for empty database, run
-    ```sh
-    dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --seed
-    ```
-
-### Check databse values (dotnet required)
-- To check database values if they fall within application logic, run
-    ```sh
-    dotnet run --project backend-cli/FoodDatabase.Cli.csproj -- --checkdb
-    ```
+- `backend-tests` contains automatic SQL Server integration tests. Each run creates
+  a new empty temporary database and drops it afterward.
 
 ### Run backend tests
 - Start the local SQL Server service first:
@@ -86,8 +73,14 @@
 - Set `KEEP_FOOD_DATABASE_TEST_DATABASES=1` to keep the generated database for
   investigation. The test database name starts with `FoodDatabaseTests_`.
 
-#### Potential development issues
-When I was writing code on windows, there have been error for clean `git clone` setup, that it couldn't load startup script because of line endings.
-I hopefully fixed that.
-If you are developing on Windows and `startup.sh` you get error about, first thing to look for is
-line endings in `database/startup.sh`.
+### Database maintenance
+Start SQL Server, then run either maintenance command explicitly:
+
+```sh
+docker compose up -d sqlserver
+docker compose --profile maintenance run --rm maintenance --seed
+docker compose --profile maintenance run --rm maintenance --checkdb
+```
+
+The check report is written to
+`backend-maintenance/reports/database-constraints-check.txt`.

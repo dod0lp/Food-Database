@@ -1,0 +1,1 @@
+slopgpt rewrote tests I already had in Main() -- either interactively, or adding them into functions and reviewing them

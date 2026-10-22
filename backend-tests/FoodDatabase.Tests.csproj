@@ -17,5 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\\backend-library\\FoodDatabase.Library.csproj" />
+    <ProjectReference Include="..\\backend-cli\\FoodDatabase.Cli.csproj" />
   </ItemGroup>
 </Project>
